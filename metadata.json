@@ -1,0 +1,6 @@
+{
+  "name": "cv.fyi",
+  "description": "Your resume, portfolio and cover letters, all in one place. Pass ATS filters and tailor for every job.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

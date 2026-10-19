@@ -185,7 +185,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
             Career Profile Studio
           </h1>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
-            Save your baseline details once. When you paste any job post, the AI automatically extracts your real background to tailor the resume, Gmail pitch, and Telegram DM.
+            Save your profile once. AI tailors your resume, Gmail pitch, and Telegram DM to every job.
           </p>
         </div>
 

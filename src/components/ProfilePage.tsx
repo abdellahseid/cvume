@@ -181,12 +181,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-neutral-200">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-neutral-100 text-neutral-700 border border-neutral-200">
-              <User className="w-3 h-3 text-[#e0644e]" />
-              Persistent Candidate Profile
-            </span>
-          </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-neutral-950 tracking-tight mt-1">
             Career Profile Studio
           </h1>

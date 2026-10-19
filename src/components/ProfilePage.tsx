@@ -191,14 +191,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
 
         <div className="flex items-center gap-2.5 shrink-0">
           <button
-            onClick={handleReset}
-            className="p-2 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
-            title="Reset to default sample profile"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </button>
-          
-          <button
             onClick={handleSave}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
           >

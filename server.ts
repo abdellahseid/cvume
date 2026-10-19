@@ -5,21 +5,35 @@ import path from 'path';
 import dotenv from 'dotenv';
 
 dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '.env'), override: true });
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true });
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
-// Initialize Gemini SDK with telemetry header per AI Studio guidelines
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || '',
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
+// Helper to reliably load Gemini API key from process.env or .env/.env.local
+export function loadApiKey(): string {
+  if (!process.env.GEMINI_API_KEY) {
+    dotenv.config({ path: path.resolve(process.cwd(), '.env'), override: true });
+    dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true });
+  }
+  return (process.env.GEMINI_API_KEY || '').trim();
+}
+
+// Initialize Gemini SDK helper with telemetry header per AI Studio guidelines
+function getGeminiClient() {
+  const apiKey = loadApiKey();
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      },
     },
-  },
-});
+  });
+}
 
 interface UserExperience {
   id: string;
@@ -199,11 +213,14 @@ app.post('/api/generate-application', async (req: Request, res: Response) => {
     }
 
     // If no API key configured, use our tailored fallback generator
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKey = loadApiKey();
+    if (!apiKey) {
       console.log('No GEMINI_API_KEY found, using local tailored application generator.');
       const result = generateFallbackApplication(jobDescription, profile);
       return res.json(result);
     }
+
+    console.log(`[AI Application Studio] Generating tailored CV using live Gemini (gemini-3.8-flash)...`);
 
     const systemPrompt = `You are CVUME's AI Career Copilot. Your job is to take a complete job description and a candidate's saved profile, and generate 3 tailored, production-ready application assets:
 
@@ -281,7 +298,8 @@ Respond strictly in valid JSON with this exact structure:
   }
 }`;
 
-    // Call Gemini with a 5-second timeout to prevent hanging if external connection is throttled
+    // Call Gemini with a 30-second timeout to allow complete generation of tailored application assets
+    const ai = getGeminiClient();
     const geminiCall = ai.models.generateContent({
       model: 'gemini-3.8-flash',
       contents: systemPrompt,
@@ -291,7 +309,7 @@ Respond strictly in valid JSON with this exact structure:
     });
 
     const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Gemini API request timed out after 5s')), 5000)
+      setTimeout(() => reject(new Error('Gemini API request timed out after 30s')), 30000)
     );
 
     const response = await Promise.race([geminiCall, timeoutPromise]);

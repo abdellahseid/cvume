@@ -222,97 +222,99 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mt-6">
         {/* Navigation Sidebar */}
         <div className="md:col-span-3">
-          <div className="bg-neutral-50/80 rounded-xl border border-neutral-200/80 p-2 space-y-1 sticky top-20">
-            <button
-              onClick={() => setActiveTab('personal')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
-                activeTab === 'personal'
-                  ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
-                  : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
-              }`}
-            >
-              <User className="w-4 h-4 text-[#e0644e]" />
-              <span>Personal & Contact</span>
-            </button>
+          <div className="sticky top-20 space-y-4">
+            <div className="bg-neutral-50/80 rounded-xl border border-neutral-200/80 p-2 space-y-1">
+              <button
+                onClick={() => setActiveTab('personal')}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                  activeTab === 'personal'
+                    ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
+                    : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
+                }`}
+              >
+                <User className="w-4 h-4 text-[#e0644e]" />
+                <span>Personal & Contact</span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('experience')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
-                activeTab === 'experience'
-                  ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
-                  : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Briefcase className="w-4 h-4 text-blue-600" />
-                <span>Work Experience</span>
-              </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
-                {profile.experiences.length}
-              </span>
-            </button>
+              <button
+                onClick={() => setActiveTab('experience')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                  activeTab === 'experience'
+                    ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
+                    : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Briefcase className="w-4 h-4 text-blue-600" />
+                  <span>Work Experience</span>
+                </div>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
+                  {profile.experiences.length}
+                </span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('skills')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
-                activeTab === 'skills'
-                  ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
-                  : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Code className="w-4 h-4 text-emerald-600" />
-                <span>Core Skills</span>
-              </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
-                {profile.skills.length}
-              </span>
-            </button>
+              <button
+                onClick={() => setActiveTab('skills')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                  activeTab === 'skills'
+                    ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
+                    : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Code className="w-4 h-4 text-emerald-600" />
+                  <span>Core Skills</span>
+                </div>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
+                  {profile.skills.length}
+                </span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('education')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
-                activeTab === 'education'
-                  ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
-                  : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <GraduationCap className="w-4 h-4 text-purple-600" />
-                <span>Education</span>
-              </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
-                {profile.education.length}
-              </span>
-            </button>
+              <button
+                onClick={() => setActiveTab('education')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                  activeTab === 'education'
+                    ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
+                    : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <GraduationCap className="w-4 h-4 text-purple-600" />
+                  <span>Education</span>
+                </div>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
+                  {profile.education.length}
+                </span>
+              </button>
 
-            <button
-              onClick={() => setActiveTab('projects')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
-                activeTab === 'projects'
-                  ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
-                  : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <FolderGit2 className="w-4 h-4 text-amber-600" />
-                <span>Projects</span>
-              </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
-                {profile.projects.length}
-              </span>
-            </button>
-          </div>
-
-          {/* Quick AI Tip card */}
-          <div className="mt-4 p-3.5 rounded-xl bg-[#e0644e]/5 border border-[#e0644e]/15 text-neutral-700">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#e0644e] mb-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>How AI uses this</span>
+              <button
+                onClick={() => setActiveTab('projects')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                  activeTab === 'projects'
+                    ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
+                    : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <FolderGit2 className="w-4 h-4 text-amber-600" />
+                  <span>Projects</span>
+                </div>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
+                  {profile.projects.length}
+                </span>
+              </button>
             </div>
-            <p className="text-[11px] leading-relaxed text-neutral-600">
-              The AI never fabricates fake companies or fake degrees. It selectively pulls your real achievements and rewrites them using Google's XYZ formula to match the exact requirements of each job posting you submit.
-            </p>
+
+            {/* Quick AI Tip card — now sticks along with the buttons */}
+            <div className="p-3.5 rounded-xl bg-[#e0644e]/5 border border-[#e0644e]/15 text-neutral-700">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-[#e0644e] mb-1">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>How AI uses this</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-neutral-600">
+                The AI never fabricates fake companies or fake degrees. It selectively pulls your real achievements and rewrites them using Google's XYZ formula to match the exact requirements of each job posting you submit.
+              </p>
+            </div>
           </div>
         </div>
 

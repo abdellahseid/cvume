@@ -125,3 +125,83 @@ export function resetStoredProfile(): UserProfile {
   saveStoredProfile(DEFAULT_USER_PROFILE);
   return DEFAULT_USER_PROFILE;
 }
+
+// Database-backed async sync helpers
+export async function syncProfileWithDatabase(): Promise<UserProfile> {
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('cvume_auth_token') : null;
+    if (!token) {
+      return getStoredProfile();
+    }
+    const response = await fetch('/api/profile', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.profile) {
+        saveStoredProfile(data.profile);
+        return data.profile;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not sync profile from database, using cached profile:', err);
+  }
+  return getStoredProfile();
+}
+
+export async function persistProfileToDatabase(profile: UserProfile): Promise<UserProfile> {
+  saveStoredProfile(profile);
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('cvume_auth_token') : null;
+    if (token) {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ profile }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.profile) {
+          saveStoredProfile(data.profile);
+          return data.profile;
+        }
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error || 'Failed to save profile to database');
+      }
+    }
+  } catch (err) {
+    console.error('Error persisting profile to database:', err);
+    throw err;
+  }
+  return profile;
+}
+
+export async function resetProfileInDatabase(): Promise<UserProfile> {
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('cvume_auth_token') : null;
+    if (token) {
+      const response = await fetch('/api/profile/reset', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.profile) {
+          saveStoredProfile(data.profile);
+          return data.profile;
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error resetting profile in database:', err);
+  }
+  return resetStoredProfile();
+}

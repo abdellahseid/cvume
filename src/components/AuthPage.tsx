@@ -11,6 +11,7 @@ import {
   Check, 
   Star 
 } from 'lucide-react';
+import { api } from '../services/api';
 
 interface AuthPageProps {
   initialMode?: 'login' | 'signup';
@@ -34,7 +35,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [isSuccess, setIsSuccess] = useState(false);
   const [forgotPasswordNotice, setForgotPasswordNotice] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setForgotPasswordNotice(false);
@@ -44,7 +45,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       return;
     }
 
-    if (!email || !email.includes('@')) {
+    if (!email || !email.includes('@') || !email.includes('.')) {
       setErrorMessage('Please enter a valid email address.');
       return;
     }
@@ -55,13 +56,26 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      if (mode === 'signup') {
+        const response = await api.signup(email, password, fullName.trim());
+        setIsSuccess(true);
+        setTimeout(() => {
+          onAuthSuccess(response.user.email, 'signup', response.user.name);
+        }, 500);
+      } else {
+        const response = await api.login(email, password);
+        setIsSuccess(true);
+        setTimeout(() => {
+          onAuthSuccess(response.user.email, 'login', response.user.name);
+        }, 500);
+      }
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Authentication failed. Please check your credentials.');
+    } finally {
       setIsLoading(false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        onAuthSuccess(email, mode, fullName);
-      }, 900);
-    }, 600);
+    }
   };
 
   const handleForgotPassword = () => {

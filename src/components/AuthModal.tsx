@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, ShieldCheck, Linkedin, Eye, EyeOff, Lock, Mail, User, ArrowRight } from 'lucide-react';
+import { api } from '../services/api';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -46,7 +47,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -66,13 +67,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep('success');
-      if (onSuccess) {
-        onSuccess(email);
+    try {
+      if (mode === 'signup') {
+        const res = await api.signup(email, password, fullName.trim());
+        setStep('success');
+        if (onSuccess) {
+          onSuccess(res.user.email);
+        }
+      } else {
+        const res = await api.login(email, password);
+        setStep('success');
+        if (onSuccess) {
+          onSuccess(res.user.email);
+        }
       }
-    }, 700);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Authentication failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSocialAuth = (provider: 'linkedin' | 'google') => {

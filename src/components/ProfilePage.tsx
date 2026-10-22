@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Briefcase, 
@@ -17,10 +17,18 @@ import {
   Phone,
   MapPin,
   Globe,
-  RotateCcw
+  RotateCcw,
+  Database,
+  Loader2
 } from 'lucide-react';
 import { UserProfile, UserExperience, UserEducation, UserProject } from '../types/profile';
-import { getStoredProfile, saveStoredProfile, resetStoredProfile } from '../services/profileService';
+import { 
+  getStoredProfile, 
+  saveStoredProfile, 
+  syncProfileWithDatabase, 
+  persistProfileToDatabase, 
+  resetProfileInDatabase 
+} from '../services/profileService';
 
 interface ProfilePageProps {
   onGoToGenerator: () => void;
@@ -32,19 +40,54 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
   const [activeTab, setActiveTab] = useState<'personal' | 'experience' | 'skills' | 'education' | 'projects'>('personal');
   const [newSkill, setNewSkill] = useState('');
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingFromDb, setIsLoadingFromDb] = useState(false);
 
-  const handleSave = () => {
-    saveStoredProfile(profile);
-    setIsSaved(true);
-    onToast('Profile updated & saved! AI generator will now use your latest details.');
-    setTimeout(() => setIsSaved(false), 2500);
+  // Sync with backend database on mount
+  useEffect(() => {
+    let mounted = true;
+    setIsLoadingFromDb(true);
+    syncProfileWithDatabase()
+      .then((dbProfile) => {
+        if (mounted && dbProfile) {
+          setProfile(dbProfile);
+        }
+      })
+      .finally(() => {
+        if (mounted) setIsLoadingFromDb(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await persistProfileToDatabase(profile);
+      setIsSaved(true);
+      onToast('Profile updated & saved to database! AI generator will use your latest details.');
+      setTimeout(() => setIsSaved(false), 2500);
+    } catch (err: any) {
+      onToast(err?.message || 'Error saving profile to database');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleReset = () => {
-    if (window.confirm('Reset profile to default sample profile? This can help if you want to test with prefilled data.')) {
-      const def = resetStoredProfile();
-      setProfile(def);
-      onToast('Profile reset to default sample data.');
+  const handleReset = async () => {
+    if (window.confirm('Reset profile to default sample profile in database? This will refresh your experiences and skills.')) {
+      setIsSaving(true);
+      try {
+        const def = await resetProfileInDatabase();
+        setProfile(def);
+        onToast('Profile reset to default in database.');
+      } catch (err: any) {
+        onToast(err?.message || 'Error resetting profile');
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -181,28 +224,40 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-neutral-200">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-950 tracking-tight mt-1">
-            Career Profile Studio
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-950 tracking-tight mt-1">
+              Career Profile Studio
+            </h1>
+            <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-1 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <Database className="w-3 h-3 text-emerald-600" />
+              <span>Database Synced</span>
+            </div>
+          </div>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
-            Save your profile once. AI tailors your resume, Gmail pitch, and Telegram DM to every job.
+            Save your profile to your database once. AI tailors your resume, Gmail pitch, and Telegram DM to every job.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={handleSave}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
+            disabled={isSaving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-75 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
           >
-            {isSaved ? (
+            {isSaving ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                <span>Saving to Database...</span>
+              </>
+            ) : isSaved ? (
               <>
                 <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
-                <span>Saved to CVUME</span>
+                <span>Saved to Database</span>
               </>
             ) : (
               <>
                 <Save className="w-3.5 h-3.5" />
-                <span>Save Profile</span>
+                <span>Save to Database</span>
               </>
             )}
           </button>

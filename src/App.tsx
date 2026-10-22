@@ -16,7 +16,8 @@ import { CommandMenuModal } from './components/CommandMenuModal';
 import { AuthPage } from './components/AuthPage';
 import { JobApplicationStudio } from './components/JobApplicationStudio';
 import { ProfilePage } from './components/ProfilePage';
-import { getStoredProfile, saveStoredProfile } from './services/profileService';
+import { getStoredProfile, saveStoredProfile, syncProfileWithDatabase } from './services/profileService';
+import { api, getCachedUser } from './services/api';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'app'>('landing');
@@ -25,14 +26,7 @@ export default function App() {
   const [commandMenuOpen, setCommandMenuOpen] = useState(false);
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [user, setUser] = useState<{ email: string; name?: string } | null>(() => {
-    try {
-      const raw = localStorage.getItem('cvume_logged_in_user');
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<{ email: string; name?: string } | null>(() => getCachedUser());
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -40,6 +34,21 @@ export default function App() {
       setToastMessage(null);
     }, 3500);
   };
+
+  // Verify backend database session on mount
+  useEffect(() => {
+    api.me().then(res => {
+      if (res?.user) {
+        setUser(res.user);
+        syncProfileWithDatabase();
+      } else {
+        // If server says token is invalid, clear user
+        setUser(null);
+      }
+    }).catch(() => {
+      // Offline fallback: keep cached user
+    });
+  }, []);
 
   // Check URL hash on initial load or popstate
   useEffect(() => {
@@ -132,13 +141,9 @@ export default function App() {
     );
   };
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     setUser(null);
-    try {
-      localStorage.removeItem('cvume_logged_in_user');
-    } catch (e) {
-      console.error(e);
-    }
+    await api.logout();
     setCurrentView('landing');
     window.location.hash = '';
     showToast('Signed out of CVUME.');

@@ -1,8 +1,23 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import path from 'path';
 import dotenv from 'dotenv';
+import {
+  createUser,
+  findUserByEmail,
+  createSession,
+  findSession,
+  deleteSession,
+  getProfile,
+  upsertProfile,
+  getApplications,
+  getApplicationById,
+  saveApplication,
+  deleteApplication,
+  verifyPassword,
+} from './server/db.ts';
+import { DEFAULT_USER_PROFILE } from './src/services/profileService.ts';
 
 dotenv.config();
 dotenv.config({ path: path.resolve(process.cwd(), '.env'), override: true });
@@ -12,6 +27,63 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
+
+interface AuthRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  token?: string;
+}
+
+function extractToken(req: Request): string | null {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7).trim();
+  }
+  const customHeader = req.headers['x-auth-token'];
+  if (typeof customHeader === 'string') {
+    return customHeader.trim();
+  }
+  return null;
+}
+
+function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
+  const token = extractToken(req);
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required. Please sign in.' });
+  }
+
+  const sessionData = findSession(token);
+  if (!sessionData) {
+    return res.status(401).json({ error: 'Session expired or invalid. Please sign in again.' });
+  }
+
+  req.user = {
+    id: sessionData.user.id,
+    email: sessionData.user.email,
+    name: sessionData.user.name,
+  };
+  req.token = token;
+  next();
+}
+
+function optionalAuth(req: AuthRequest, _res: Response, next: NextFunction) {
+  const token = extractToken(req);
+  if (token) {
+    const sessionData = findSession(token);
+    if (sessionData) {
+      req.user = {
+        id: sessionData.user.id,
+        email: sessionData.user.email,
+        name: sessionData.user.name,
+      };
+      req.token = token;
+    }
+  }
+  next();
+}
 
 // Helper to reliably load Gemini API key from process.env or .env/.env.local
 export function loadApiKey(): string {
@@ -335,9 +407,302 @@ Respond strictly in valid JSON with this exact structure:
   }
 });
 
+// ==========================================
+// Authentication Endpoints (Database-backed)
+// ==========================================
+
+// Register a new user
+app.post('/api/auth/signup', (req: Request, res: Response) => {
+  try {
+    const { email, password, fullName } = req.body;
+
+    if (!fullName || typeof fullName !== 'string' || fullName.trim().length < 2) {
+      return res.status(400).json({ error: 'Please enter a valid full name.' });
+    }
+
+    if (!email || typeof email !== 'string' || !email.includes('@') || !email.includes('.')) {
+      return res.status(400).json({ error: 'Please provide a valid email address.' });
+    }
+
+    if (!password || typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = fullName.trim();
+
+    // Create user in SQLite database
+    const user = createUser(cleanEmail, cleanName, password);
+
+    // Initialize user profile in SQLite database with user's name & email
+    const initialProfile = {
+      ...DEFAULT_USER_PROFILE,
+      fullName: cleanName,
+      email: cleanEmail,
+    };
+    upsertProfile(user.id, initialProfile);
+
+    // Create 30-day session
+    const token = createSession(user.id, 30);
+
+    return res.status(201).json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (err: any) {
+    console.error('Signup error:', err);
+    return res.status(400).json({ error: err?.message || 'Failed to create account.' });
+  }
+});
+
+// Sign in with email & password
+app.post('/api/auth/login', (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const user = findUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    const isValid = verifyPassword(password, user.salt, user.password_hash);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+
+    // Create 30-day session
+    const token = createSession(user.id, 30);
+
+    return res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (err: any) {
+    console.error('Login error:', err);
+    return res.status(500).json({ error: 'An unexpected error occurred during sign in.' });
+  }
+});
+
+// Check current session & user
+app.get('/api/auth/me', requireAuth, (req: AuthRequest, res: Response) => {
+  return res.json({ user: req.user });
+});
+
+// Sign out
+app.post('/api/auth/logout', (req: AuthRequest, res: Response) => {
+  const token = extractToken(req);
+  if (token) {
+    deleteSession(token);
+  }
+  return res.json({ success: true });
+});
+
+// ==========================================
+// Profile Data Endpoints (Database-backed)
+// ==========================================
+
+// Retrieve user profile
+app.get('/api/profile', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    let profile = getProfile(userId);
+
+    // If no profile exists yet, seed with default customized to user
+    if (!profile) {
+      profile = {
+        ...DEFAULT_USER_PROFILE,
+        fullName: req.user!.name,
+        email: req.user!.email,
+      };
+      upsertProfile(userId, profile);
+    }
+
+    return res.json({ profile });
+  } catch (err: any) {
+    console.error('Error fetching profile:', err);
+    return res.status(500).json({ error: 'Failed to retrieve profile data.' });
+  }
+});
+
+// Update user profile
+const handleProfileSave = (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const profileData = req.body.profile || req.body;
+
+    if (!profileData || typeof profileData !== 'object') {
+      return res.status(400).json({ error: 'Invalid profile data provided.' });
+    }
+
+    upsertProfile(userId, profileData);
+    return res.json({ success: true, profile: profileData });
+  } catch (err: any) {
+    console.error('Error saving profile:', err);
+    return res.status(500).json({ error: 'Failed to save profile to database.' });
+  }
+};
+
+app.put('/api/profile', requireAuth, handleProfileSave);
+app.post('/api/profile', requireAuth, handleProfileSave);
+
+// Reset profile to default template
+app.post('/api/profile/reset', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const resetProfile = {
+      ...DEFAULT_USER_PROFILE,
+      fullName: req.user!.name,
+      email: req.user!.email,
+    };
+    upsertProfile(userId, resetProfile);
+    return res.json({ success: true, profile: resetProfile });
+  } catch (err: any) {
+    console.error('Error resetting profile:', err);
+    return res.status(500).json({ error: 'Failed to reset profile.' });
+  }
+});
+
+// ==========================================
+// Applications Endpoints (Saved Resumes & Pitches in Database)
+// ==========================================
+
+// Get all saved applications for user
+app.get('/api/applications', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const rows = getApplications(userId);
+
+    const applications = rows.map(row => {
+      let result = null;
+      try {
+        result = JSON.parse(row.result_json);
+      } catch {
+        result = null;
+      }
+      return {
+        id: row.id,
+        user_id: row.user_id,
+        job_title: row.job_title,
+        company_name: row.company_name,
+        job_description: row.job_description,
+        result,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      };
+    });
+
+    return res.json({ applications });
+  } catch (err: any) {
+    console.error('Error getting applications:', err);
+    return res.status(500).json({ error: 'Failed to retrieve saved applications.' });
+  }
+});
+
+// Save or update an application
+app.post('/api/applications', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const { jobTitle, companyName, jobDescription, result, id } = req.body;
+
+    if (!jobTitle || !companyName || !result) {
+      return res.status(400).json({ error: 'Missing required application data fields.' });
+    }
+
+    const saved = saveApplication(
+      userId,
+      jobTitle.trim(),
+      companyName.trim(),
+      (jobDescription || '').trim(),
+      result,
+      id
+    );
+
+    return res.json({
+      success: true,
+      application: {
+        id: saved.id,
+        user_id: saved.user_id,
+        job_title: saved.job_title,
+        company_name: saved.company_name,
+        job_description: saved.job_description,
+        result,
+        created_at: saved.created_at,
+        updated_at: saved.updated_at,
+      },
+    });
+  } catch (err: any) {
+    console.error('Error saving application:', err);
+    return res.status(500).json({ error: 'Failed to save application to database.' });
+  }
+});
+
+// Get a single saved application
+app.get('/api/applications/:id', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const row = getApplicationById(req.params.id, userId);
+
+    if (!row) {
+      return res.status(404).json({ error: 'Application not found.' });
+    }
+
+    let result = null;
+    try {
+      result = JSON.parse(row.result_json);
+    } catch {
+      result = null;
+    }
+
+    return res.json({
+      application: {
+        id: row.id,
+        user_id: row.user_id,
+        job_title: row.job_title,
+        company_name: row.company_name,
+        job_description: row.job_description,
+        result,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      },
+    });
+  } catch (err: any) {
+    console.error('Error retrieving application:', err);
+    return res.status(500).json({ error: 'Failed to load application.' });
+  }
+});
+
+// Delete a saved application
+app.delete('/api/applications/:id', requireAuth, (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const deleted = deleteApplication(req.params.id, userId);
+
+    if (!deleted) {
+      return res.status(404).json({ error: 'Application not found or already deleted.' });
+    }
+
+    return res.json({ success: true, id: req.params.id });
+  } catch (err: any) {
+    console.error('Error deleting application:', err);
+    return res.status(500).json({ error: 'Failed to delete application.' });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'cvume-backend', time: new Date().toISOString() });
+  res.json({ status: 'ok', service: 'cvume-backend', database: 'sqlite', time: new Date().toISOString() });
 });
 
 // Setup Vite middleware in dev or static files in production

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 import { 
@@ -19,10 +19,18 @@ import {
   AlertCircle,
   FileCode,
   Edit3,
-  Printer
+  Printer,
+  FolderOpen,
+  Database,
+  Bookmark,
+  Trash2,
+  Clock,
+  X,
+  Loader2
 } from 'lucide-react';
 import { UserProfile, ApplicationGenerationResult } from '../types/profile';
-import { getStoredProfile } from '../services/profileService';
+import { getStoredProfile, syncProfileWithDatabase } from '../services/profileService';
+import { api, SavedApplication } from '../services/api';
 
 interface JobApplicationStudioProps {
   onOpenProfile: () => void;
@@ -106,6 +114,82 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
   const [activeTab, setActiveTab] = useState<'resume' | 'gmail' | 'social'>('resume');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  const [savedApps, setSavedApps] = useState<SavedApplication[]>([]);
+  const [activeAppId, setActiveAppId] = useState<string | null>(null);
+  const [isSavingToDb, setIsSavingToDb] = useState(false);
+  const [showSavedModal, setShowSavedModal] = useState(false);
+  const [isLoadingSaved, setIsLoadingSaved] = useState(false);
+
+  // Sync profile and load saved applications from database on mount
+  useEffect(() => {
+    let mounted = true;
+    syncProfileWithDatabase().then(p => {
+      if (mounted && p) setProfile(p);
+    });
+
+    setIsLoadingSaved(true);
+    api.getApplications()
+      .then(apps => {
+        if (mounted && apps) setSavedApps(apps);
+      })
+      .catch(err => {
+        console.warn('Error loading applications from database:', err);
+      })
+      .finally(() => {
+        if (mounted) setIsLoadingSaved(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSaveCurrentApplication = async () => {
+    if (!result) return;
+    setIsSavingToDb(true);
+    try {
+      const saved = await api.saveApplication({
+        jobTitle: result.jobTitle,
+        companyName: result.companyName,
+        jobDescription,
+        result,
+        id: activeAppId || undefined,
+      });
+      setActiveAppId(saved.id);
+      setSavedApps(prev => {
+        const filtered = prev.filter(a => a.id !== saved.id);
+        return [saved, ...filtered];
+      });
+      onToast(`Saved "${result.jobTitle}" application to database!`);
+    } catch (err: any) {
+      console.error(err);
+      onToast(err?.message || 'Failed to save application to database');
+    } finally {
+      setIsSavingToDb(false);
+    }
+  };
+
+  const handleLoadApplication = (app: SavedApplication) => {
+    setResult(app.result);
+    setJobDescription(app.job_description);
+    setActiveAppId(app.id);
+    setShowSavedModal(false);
+    onToast(`Loaded "${app.job_title}" from database!`);
+  };
+
+  const handleDeleteApplication = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('Delete this saved application from your database?')) return;
+    try {
+      await api.deleteApplication(id);
+      setSavedApps(prev => prev.filter(a => a.id !== id));
+      if (activeAppId === id) setActiveAppId(null);
+      onToast('Application deleted from database.');
+    } catch (err: any) {
+      onToast(err?.message || 'Failed to delete application.');
+    }
+  };
 
   // Sync profile if user returned from profile page
   const refreshProfile = () => {
@@ -245,29 +329,39 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
           </p>
         </div>
 
-        {/* Profile Pill Badge */}
-        <div className="flex items-center gap-2.5 bg-neutral-50 border border-neutral-200/90 rounded-xl p-2.5 sm:px-3.5 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">
-            {profile.fullName.charAt(0) || 'U'}
-          </div>
-          <div className="text-left">
-            <div className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-              <span>{profile.fullName || 'Candidate Profile'}</span>
-              <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-neutral-200/70 text-neutral-700">
-                Active
-              </span>
-            </div>
-            <div className="text-[11px] text-neutral-500 truncate max-w-[180px]">
-              {profile.targetRole || 'Profile configured'}
-            </div>
-          </div>
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           <button
-            onClick={onOpenProfile}
-            className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-neutral-700 hover:text-neutral-950 bg-white hover:bg-neutral-100 border border-neutral-200 rounded-lg transition-colors cursor-pointer"
+            onClick={() => setShowSavedModal(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-neutral-800 hover:text-neutral-950 bg-white hover:bg-neutral-50 border border-neutral-200/90 rounded-xl transition-all shadow-2xs cursor-pointer"
           >
-            <Edit3 className="w-3 h-3 text-[#e0644e]" />
-            <span>Edit Profile</span>
+            <Database className="w-3.5 h-3.5 text-[#e0644e]" />
+            <span>Saved in DB ({savedApps.length})</span>
           </button>
+
+          {/* Profile Pill Badge */}
+          <div className="flex items-center gap-2.5 bg-neutral-50 border border-neutral-200/90 rounded-xl p-2 sm:px-3">
+            <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">
+              {profile.fullName.charAt(0) || 'U'}
+            </div>
+            <div className="text-left">
+              <div className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
+                <span>{profile.fullName || 'Candidate Profile'}</span>
+                <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-neutral-200/70 text-neutral-700">
+                  Active
+                </span>
+              </div>
+              <div className="text-[11px] text-neutral-500 truncate max-w-[160px]">
+                {profile.targetRole || 'Profile configured'}
+              </div>
+            </div>
+            <button
+              onClick={onOpenProfile}
+              className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-neutral-700 hover:text-neutral-950 bg-white hover:bg-neutral-100 border border-neutral-200 rounded-lg transition-colors cursor-pointer"
+            >
+              <Edit3 className="w-3 h-3 text-[#e0644e]" />
+              <span>Edit</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -393,9 +487,33 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
             </div>
 
             <div className="flex items-center gap-2 pr-1">
-              <span className="text-[11px] text-neutral-500 font-medium">
+              <span className="text-[11px] text-neutral-500 font-medium hidden md:inline">
                 Tailored for: <strong className="text-neutral-800">{result.jobTitle}</strong> at <strong className="text-neutral-800">{result.companyName}</strong>
               </span>
+
+              <button
+                onClick={handleSaveCurrentApplication}
+                disabled={isSavingToDb}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-75 text-white text-xs font-semibold rounded-lg shadow-2xs transition-all cursor-pointer"
+                title="Save this application, resume, and letter to your database"
+              >
+                {isSavingToDb ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : activeAppId ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
+                    <span>Saved in DB</span>
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="w-3.5 h-3.5 text-[#e0644e]" />
+                    <span>Save to DB</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
@@ -843,6 +961,120 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* SAVED APPLICATIONS DATABASE MODAL */}
+      {showSavedModal && (
+        <div className="fixed inset-0 bg-neutral-950/45 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-neutral-200 shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center">
+                  <Database className="w-4 h-4 text-[#e0644e]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-neutral-950">
+                    Saved Applications & Resumes ({savedApps.length})
+                  </h3>
+                  <p className="text-xs text-neutral-500">
+                    Stored in your SQLite database. Load any tailored resume or cover letter.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSavedModal(false)}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="p-6 overflow-y-auto space-y-3 flex-1">
+              {isLoadingSaved ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-2 text-neutral-500 text-xs">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#e0644e]" />
+                  <span>Loading from database...</span>
+                </div>
+              ) : savedApps.length === 0 ? (
+                <div className="py-12 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-neutral-100 text-neutral-400 mx-auto flex items-center justify-center mb-3">
+                    <Database className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-neutral-900">No saved applications yet</h4>
+                  <p className="text-xs text-neutral-500 max-w-sm mx-auto mt-1">
+                    Paste any job post, generate your tailored resume and Gmail pitch, then click <strong>"Save to DB"</strong> to store it here.
+                  </p>
+                </div>
+              ) : (
+                savedApps.map((app) => (
+                  <div
+                    key={app.id}
+                    className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                      activeAppId === app.id
+                        ? 'border-neutral-900 bg-neutral-50/60 shadow-xs'
+                        : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-sm text-neutral-950">
+                          {app.job_title}
+                        </span>
+                        <span className="text-xs font-medium text-neutral-600">
+                          @ {app.company_name}
+                        </span>
+                        {app.result?.resume?.atsBreakdown?.score && (
+                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            {app.result.resume.atsBreakdown.score}% ATS
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-neutral-400 flex items-center gap-1.5">
+                        <Clock className="w-3 h-3" />
+                        <span>Saved: {new Date(app.created_at).toLocaleDateString()} {new Date(app.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        {activeAppId === app.id && (
+                          <span className="text-emerald-600 font-semibold">• Currently Active</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleLoadApplication(app)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-all cursor-pointer"
+                      >
+                        <span>Load Application</span>
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteApplication(app.id, e)}
+                        className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="Delete from database"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-3 bg-neutral-50 border-t border-neutral-200 flex items-center justify-between text-xs text-neutral-500">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>SQLite Database connected</span>
+              </span>
+              <button
+                onClick={() => setShowSavedModal(false)}
+                className="text-xs font-semibold text-neutral-700 hover:text-neutral-950 cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

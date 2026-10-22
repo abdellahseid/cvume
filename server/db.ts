@@ -1,60 +1,87 @@
-import { DatabaseSync } from 'node:sqlite';
+import pg from 'pg';
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import dotenv from 'dotenv';
 import path from 'node:path';
-import fs from 'node:fs';
 
-// Ensure data directory exists
-const DATA_DIR = path.resolve(process.cwd(), 'data');
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '.env'), override: true });
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true });
+
+const { Pool } = pg;
+
+const connectionString = process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/cvumedb';
+
+export const pool = new Pool({
+  connectionString,
+});
+
+let initPromise: Promise<void> | null = null;
+
+// Initialize PostgreSQL tables and indexes
+export async function initDb(): Promise<void> {
+  if (initPromise) return initPromise;
+
+  initPromise = (async () => {
+    const client = await pool.connect();
+    try {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id VARCHAR(64) PRIMARY KEY,
+          email VARCHAR(255) UNIQUE NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          password_hash TEXT NOT NULL,
+          salt TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS sessions (
+          token VARCHAR(128) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          expires_at TIMESTAMPTZ NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS profiles (
+          user_id VARCHAR(64) PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+          data JSONB NOT NULL,
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS applications (
+          id VARCHAR(64) PRIMARY KEY,
+          user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          job_title VARCHAR(255) NOT NULL,
+          company_name VARCHAR(255) NOT NULL,
+          job_description TEXT NOT NULL,
+          result_json JSONB NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+        CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
+      `);
+      console.log('✓ PostgreSQL schema initialized successfully in database: cvumedb');
+    } catch (err) {
+      console.error('Failed to initialize PostgreSQL tables:', err);
+      throw err;
+    } finally {
+      client.release();
+    }
+  })();
+
+  return initPromise;
 }
 
-const DB_PATH = path.join(DATA_DIR, 'cvume.db');
-export const db = new DatabaseSync(DB_PATH);
-
-// Enable foreign keys and WAL mode for high performance
-db.exec('PRAGMA foreign_keys = ON;');
-db.exec('PRAGMA journal_mode = WAL;');
-
-// Initialize tables
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL COLLATE NOCASE,
-    name TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
-    salt TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS sessions (
-    token TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at TEXT NOT NULL,
-    created_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS profiles (
-    user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-    data TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS applications (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    job_title TEXT NOT NULL,
-    company_name TEXT NOT NULL,
-    job_description TEXT NOT NULL,
-    result_json TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
-  );
-
-  CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
-  CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
-`);
+// Auto-run schema init on module load
+initDb().catch(err => {
+  console.warn('Initial PostgreSQL connection attempt:', err?.message || err);
+});
 
 // Types
 export interface UserRecord {
@@ -80,12 +107,12 @@ export interface ApplicationRecord {
   job_title: string;
   company_name: string;
   job_description: string;
-  result_json: string;
+  result_json: any;
   created_at: string;
   updated_at: string;
 }
 
-// Helpers
+// Security & Hashing Helpers
 export function hashPassword(password: string): { salt: string; hash: string } {
   const salt = randomBytes(16).toString('hex');
   const hash = scryptSync(password, salt, 64).toString('hex');
@@ -112,9 +139,9 @@ export function generateId(prefix: string = 'id'): string {
 }
 
 // User repository
-export function createUser(email: string, name: string, password: string):UserRecord {
+export async function createUser(email: string, name: string, password: string): Promise<UserRecord> {
   const normalizedEmail = email.trim().toLowerCase();
-  const existing = findUserByEmail(normalizedEmail);
+  const existing = await findUserByEmail(normalizedEmail);
   if (existing) {
     throw new Error('An account with this email already exists.');
   }
@@ -123,51 +150,43 @@ export function createUser(email: string, name: string, password: string):UserRe
   const { salt, hash } = hashPassword(password);
   const now = new Date().toISOString();
 
-  const insert = db.prepare(`
+  const query = `
     INSERT INTO users (id, email, name, password_hash, salt, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-  insert.run(id, normalizedEmail, name.trim(), hash, salt, now, now);
-
-  return {
-    id,
-    email: normalizedEmail,
-    name: name.trim(),
-    password_hash: hash,
-    salt,
-    created_at: now,
-    updated_at: now,
-  };
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING *
+  `;
+  const result = await pool.query(query, [id, normalizedEmail, name.trim(), hash, salt, now, now]);
+  return result.rows[0];
 }
 
-export function findUserByEmail(email: string): UserRecord | null {
-  const stmt = db.prepare('SELECT * FROM users WHERE email = ? COLLATE NOCASE');
-  const result = stmt.get(email.trim().toLowerCase()) as UserRecord | undefined;
-  return result || null;
+export async function findUserByEmail(email: string): Promise<UserRecord | null> {
+  const query = 'SELECT * FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1';
+  const result = await pool.query(query, [email.trim()]);
+  return result.rows[0] || null;
 }
 
-export function findUserById(id: string): UserRecord | null {
-  const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
-  const result = stmt.get(id) as UserRecord | undefined;
-  return result || null;
+export async function findUserById(id: string): Promise<UserRecord | null> {
+  const query = 'SELECT * FROM users WHERE id = $1 LIMIT 1';
+  const result = await pool.query(query, [id]);
+  return result.rows[0] || null;
 }
 
 // Session repository
-export function createSession(userId: string, durationDays: number = 30): string {
+export async function createSession(userId: string, durationDays: number = 30): Promise<string> {
   const token = generateSessionToken();
   const now = new Date();
   const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000).toISOString();
 
-  const stmt = db.prepare(`
+  const query = `
     INSERT INTO sessions (token, user_id, expires_at, created_at)
-    VALUES (?, ?, ?, ?)
-  `);
-  stmt.run(token, userId, expiresAt, now.toISOString());
+    VALUES ($1, $2, $3, $4)
+  `;
+  await pool.query(query, [token, userId, expiresAt, now.toISOString()]);
   return token;
 }
 
-export function findSession(token: string): { session: SessionRecord; user: UserRecord } | null {
-  const stmt = db.prepare(`
+export async function findSession(token: string): Promise<{ session: SessionRecord; user: UserRecord } | null> {
+  const query = `
     SELECT 
       s.token, s.user_id, s.expires_at, s.created_at,
       u.id as u_id, u.email as u_email, u.name as u_name, 
@@ -175,14 +194,16 @@ export function findSession(token: string): { session: SessionRecord; user: User
       u.created_at as u_created_at, u.updated_at as u_updated_at
     FROM sessions s
     JOIN users u ON s.user_id = u.id
-    WHERE s.token = ?
-  `);
-  const row = stmt.get(token) as any;
+    WHERE s.token = $1
+    LIMIT 1
+  `;
+  const res = await pool.query(query, [token]);
+  const row = res.rows[0];
   if (!row) return null;
 
   // Check expiration
   if (new Date(row.expires_at).getTime() < Date.now()) {
-    deleteSession(token);
+    await deleteSession(token);
     return null;
   }
 
@@ -205,98 +226,91 @@ export function findSession(token: string): { session: SessionRecord; user: User
   };
 }
 
-export function deleteSession(token: string): void {
-  const stmt = db.prepare('DELETE FROM sessions WHERE token = ?');
-  stmt.run(token);
+export async function deleteSession(token: string): Promise<void> {
+  const query = 'DELETE FROM sessions WHERE token = $1';
+  await pool.query(query, [token]);
 }
 
-export function deleteUserSessions(userId: string): void {
-  const stmt = db.prepare('DELETE FROM sessions WHERE user_id = ?');
-  stmt.run(userId);
+export async function deleteUserSessions(userId: string): Promise<void> {
+  const query = 'DELETE FROM sessions WHERE user_id = $1';
+  await pool.query(query, [userId]);
 }
 
 // Profile repository
-export function getProfile(userId: string): any | null {
-  const stmt = db.prepare('SELECT data FROM profiles WHERE user_id = ?');
-  const row = stmt.get(userId) as { data: string } | undefined;
+export async function getProfile(userId: string): Promise<any | null> {
+  const query = 'SELECT data FROM profiles WHERE user_id = $1 LIMIT 1';
+  const res = await pool.query(query, [userId]);
+  const row = res.rows[0];
   if (!row) return null;
-  try {
-    return JSON.parse(row.data);
-  } catch {
-    return null;
-  }
+  return typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
 }
 
-export function upsertProfile(userId: string, profileData: any): void {
+export async function upsertProfile(userId: string, profileData: any): Promise<void> {
   const now = new Date().toISOString();
-  const jsonStr = JSON.stringify(profileData);
-  const stmt = db.prepare(`
+  const query = `
     INSERT INTO profiles (user_id, data, updated_at)
-    VALUES (?, ?, ?)
-    ON CONFLICT(user_id) DO UPDATE SET
-      data = excluded.data,
-      updated_at = excluded.updated_at
-  `);
-  stmt.run(userId, jsonStr, now);
+    VALUES ($1, $2, $3)
+    ON CONFLICT (user_id) DO UPDATE SET
+      data = EXCLUDED.data,
+      updated_at = EXCLUDED.updated_at
+  `;
+  await pool.query(query, [userId, profileData, now]);
 }
 
-// Applications repository (Tailored Resumes, Letters, and Pitches)
-export function getApplications(userId: string): ApplicationRecord[] {
-  const stmt = db.prepare(`
+// Applications repository (Saved Tailored Resumes & Pitches in PostgreSQL)
+export async function getApplications(userId: string): Promise<ApplicationRecord[]> {
+  const query = `
     SELECT * FROM applications
-    WHERE user_id = ?
+    WHERE user_id = $1
     ORDER BY created_at DESC
-  `);
-  return (stmt.all(userId) as unknown as ApplicationRecord[]) || [];
+  `;
+  const res = await pool.query(query, [userId]);
+  return res.rows;
 }
 
-export function getApplicationById(id: string, userId: string): ApplicationRecord | null {
-  const stmt = db.prepare(`
-    SELECT * FROM applications
-    WHERE id = ? AND user_id = ?
-  `);
-  const result = stmt.get(id, userId) as ApplicationRecord | undefined;
-  return result || null;
+export async function getApplicationById(id: string, userId: string): Promise<ApplicationRecord | null> {
+  const query = 'SELECT * FROM applications WHERE id = $1 AND user_id = $2 LIMIT 1';
+  const res = await pool.query(query, [id, userId]);
+  return res.rows[0] || null;
 }
 
-export function saveApplication(
+export async function saveApplication(
   userId: string,
   jobTitle: string,
   companyName: string,
   jobDescription: string,
   resultJson: any,
   existingId?: string
-): ApplicationRecord {
+): Promise<ApplicationRecord> {
   const now = new Date().toISOString();
   const id = existingId || generateId('app');
-  const resultStr = typeof resultJson === 'string' ? resultJson : JSON.stringify(resultJson);
 
-  const stmt = db.prepare(`
+  const query = `
     INSERT INTO applications (id, user_id, job_title, company_name, job_description, result_json, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET
-      job_title = excluded.job_title,
-      company_name = excluded.company_name,
-      job_description = excluded.job_description,
-      result_json = excluded.result_json,
-      updated_at = excluded.updated_at
-  `);
-  stmt.run(id, userId, jobTitle, companyName, jobDescription, resultStr, now, now);
-
-  return {
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    ON CONFLICT (id) DO UPDATE SET
+      job_title = EXCLUDED.job_title,
+      company_name = EXCLUDED.company_name,
+      job_description = EXCLUDED.job_description,
+      result_json = EXCLUDED.result_json,
+      updated_at = EXCLUDED.updated_at
+    RETURNING *
+  `;
+  const res = await pool.query(query, [
     id,
-    user_id: userId,
-    job_title: jobTitle,
-    company_name: companyName,
-    job_description: jobDescription,
-    result_json: resultStr,
-    created_at: now,
-    updated_at: now,
-  };
+    userId,
+    jobTitle,
+    companyName,
+    jobDescription,
+    resultJson,
+    now,
+    now,
+  ]);
+  return res.rows[0];
 }
 
-export function deleteApplication(id: string, userId: string): boolean {
-  const stmt = db.prepare('DELETE FROM applications WHERE id = ? AND user_id = ?');
-  const res = stmt.run(id, userId);
-  return (res as any).changes > 0;
+export async function deleteApplication(id: string, userId: string): Promise<boolean> {
+  const query = 'DELETE FROM applications WHERE id = $1 AND user_id = $2';
+  const res = await pool.query(query, [id, userId]);
+  return (res.rowCount ?? 0) > 0;
 }

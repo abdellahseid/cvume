@@ -49,37 +49,46 @@ function extractToken(req: Request): string | null {
   return null;
 }
 
-function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
+async function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
   const token = extractToken(req);
   if (!token) {
     return res.status(401).json({ error: 'Authentication required. Please sign in.' });
   }
 
-  const sessionData = findSession(token);
-  if (!sessionData) {
-    return res.status(401).json({ error: 'Session expired or invalid. Please sign in again.' });
-  }
+  try {
+    const sessionData = await findSession(token);
+    if (!sessionData) {
+      return res.status(401).json({ error: 'Session expired or invalid. Please sign in again.' });
+    }
 
-  req.user = {
-    id: sessionData.user.id,
-    email: sessionData.user.email,
-    name: sessionData.user.name,
-  };
-  req.token = token;
-  next();
+    req.user = {
+      id: sessionData.user.id,
+      email: sessionData.user.email,
+      name: sessionData.user.name,
+    };
+    req.token = token;
+    next();
+  } catch (err) {
+    console.error('Session verification error:', err);
+    return res.status(500).json({ error: 'Authentication service error.' });
+  }
 }
 
-function optionalAuth(req: AuthRequest, _res: Response, next: NextFunction) {
+async function optionalAuth(req: AuthRequest, _res: Response, next: NextFunction) {
   const token = extractToken(req);
   if (token) {
-    const sessionData = findSession(token);
-    if (sessionData) {
-      req.user = {
-        id: sessionData.user.id,
-        email: sessionData.user.email,
-        name: sessionData.user.name,
-      };
-      req.token = token;
+    try {
+      const sessionData = await findSession(token);
+      if (sessionData) {
+        req.user = {
+          id: sessionData.user.id,
+          email: sessionData.user.email,
+          name: sessionData.user.name,
+        };
+        req.token = token;
+      }
+    } catch {
+      // Ignore optional auth errors
     }
   }
   next();
@@ -412,7 +421,7 @@ Respond strictly in valid JSON with this exact structure:
 // ==========================================
 
 // Register a new user
-app.post('/api/auth/signup', (req: Request, res: Response) => {
+app.post('/api/auth/signup', async (req: Request, res: Response) => {
   try {
     const { email, password, fullName } = req.body;
 
@@ -431,19 +440,19 @@ app.post('/api/auth/signup', (req: Request, res: Response) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullName.trim();
 
-    // Create user in SQLite database
-    const user = createUser(cleanEmail, cleanName, password);
+    // Create user in PostgreSQL database
+    const user = await createUser(cleanEmail, cleanName, password);
 
-    // Initialize user profile in SQLite database with user's name & email
+    // Initialize user profile in PostgreSQL database with user's name & email
     const initialProfile = {
       ...DEFAULT_USER_PROFILE,
       fullName: cleanName,
       email: cleanEmail,
     };
-    upsertProfile(user.id, initialProfile);
+    await upsertProfile(user.id, initialProfile);
 
     // Create 30-day session
-    const token = createSession(user.id, 30);
+    const token = await createSession(user.id, 30);
 
     return res.status(201).json({
       token,
@@ -460,7 +469,7 @@ app.post('/api/auth/signup', (req: Request, res: Response) => {
 });
 
 // Sign in with email & password
-app.post('/api/auth/login', (req: Request, res: Response) => {
+app.post('/api/auth/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -468,7 +477,7 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    const user = findUserByEmail(email);
+    const user = await findUserByEmail(email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
@@ -479,7 +488,7 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
     }
 
     // Create 30-day session
-    const token = createSession(user.id, 30);
+    const token = await createSession(user.id, 30);
 
     return res.json({
       token,
@@ -501,10 +510,10 @@ app.get('/api/auth/me', requireAuth, (req: AuthRequest, res: Response) => {
 });
 
 // Sign out
-app.post('/api/auth/logout', (req: AuthRequest, res: Response) => {
+app.post('/api/auth/logout', requireAuth, async (req: AuthRequest, res: Response) => {
   const token = extractToken(req);
   if (token) {
-    deleteSession(token);
+    await deleteSession(token);
   }
   return res.json({ success: true });
 });
@@ -514,10 +523,10 @@ app.post('/api/auth/logout', (req: AuthRequest, res: Response) => {
 // ==========================================
 
 // Retrieve user profile
-app.get('/api/profile', requireAuth, (req: AuthRequest, res: Response) => {
+app.get('/api/profile', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    let profile = getProfile(userId);
+    let profile = await getProfile(userId);
 
     // If no profile exists yet, seed with default customized to user
     if (!profile) {
@@ -526,7 +535,7 @@ app.get('/api/profile', requireAuth, (req: AuthRequest, res: Response) => {
         fullName: req.user!.name,
         email: req.user!.email,
       };
-      upsertProfile(userId, profile);
+      await upsertProfile(userId, profile);
     }
 
     return res.json({ profile });
@@ -537,7 +546,7 @@ app.get('/api/profile', requireAuth, (req: AuthRequest, res: Response) => {
 });
 
 // Update user profile
-const handleProfileSave = (req: AuthRequest, res: Response) => {
+const handleProfileSave = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const profileData = req.body.profile || req.body;
@@ -546,7 +555,7 @@ const handleProfileSave = (req: AuthRequest, res: Response) => {
       return res.status(400).json({ error: 'Invalid profile data provided.' });
     }
 
-    upsertProfile(userId, profileData);
+    await upsertProfile(userId, profileData);
     return res.json({ success: true, profile: profileData });
   } catch (err: any) {
     console.error('Error saving profile:', err);
@@ -558,7 +567,7 @@ app.put('/api/profile', requireAuth, handleProfileSave);
 app.post('/api/profile', requireAuth, handleProfileSave);
 
 // Reset profile to default template
-app.post('/api/profile/reset', requireAuth, (req: AuthRequest, res: Response) => {
+app.post('/api/profile/reset', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const resetProfile = {
@@ -566,7 +575,7 @@ app.post('/api/profile/reset', requireAuth, (req: AuthRequest, res: Response) =>
       fullName: req.user!.name,
       email: req.user!.email,
     };
-    upsertProfile(userId, resetProfile);
+    await upsertProfile(userId, resetProfile);
     return res.json({ success: true, profile: resetProfile });
   } catch (err: any) {
     console.error('Error resetting profile:', err);
@@ -579,17 +588,21 @@ app.post('/api/profile/reset', requireAuth, (req: AuthRequest, res: Response) =>
 // ==========================================
 
 // Get all saved applications for user
-app.get('/api/applications', requireAuth, (req: AuthRequest, res: Response) => {
+app.get('/api/applications', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const rows = getApplications(userId);
+    const rows = await getApplications(userId);
 
     const applications = rows.map(row => {
       let result = null;
-      try {
-        result = JSON.parse(row.result_json);
-      } catch {
-        result = null;
+      if (typeof row.result_json === 'string') {
+        try {
+          result = JSON.parse(row.result_json);
+        } catch {
+          result = null;
+        }
+      } else {
+        result = row.result_json;
       }
       return {
         id: row.id,
@@ -611,7 +624,7 @@ app.get('/api/applications', requireAuth, (req: AuthRequest, res: Response) => {
 });
 
 // Save or update an application
-app.post('/api/applications', requireAuth, (req: AuthRequest, res: Response) => {
+app.post('/api/applications', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const { jobTitle, companyName, jobDescription, result, id } = req.body;
@@ -620,7 +633,7 @@ app.post('/api/applications', requireAuth, (req: AuthRequest, res: Response) => 
       return res.status(400).json({ error: 'Missing required application data fields.' });
     }
 
-    const saved = saveApplication(
+    const saved = await saveApplication(
       userId,
       jobTitle.trim(),
       companyName.trim(),
@@ -649,20 +662,24 @@ app.post('/api/applications', requireAuth, (req: AuthRequest, res: Response) => 
 });
 
 // Get a single saved application
-app.get('/api/applications/:id', requireAuth, (req: AuthRequest, res: Response) => {
+app.get('/api/applications/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const row = getApplicationById(req.params.id, userId);
+    const row = await getApplicationById(req.params.id, userId);
 
     if (!row) {
       return res.status(404).json({ error: 'Application not found.' });
     }
 
     let result = null;
-    try {
-      result = JSON.parse(row.result_json);
-    } catch {
-      result = null;
+    if (typeof row.result_json === 'string') {
+      try {
+        result = JSON.parse(row.result_json);
+      } catch {
+        result = null;
+      }
+    } else {
+      result = row.result_json;
     }
 
     return res.json({
@@ -684,10 +701,10 @@ app.get('/api/applications/:id', requireAuth, (req: AuthRequest, res: Response) 
 });
 
 // Delete a saved application
-app.delete('/api/applications/:id', requireAuth, (req: AuthRequest, res: Response) => {
+app.delete('/api/applications/:id', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const deleted = deleteApplication(req.params.id, userId);
+    const deleted = await deleteApplication(req.params.id, userId);
 
     if (!deleted) {
       return res.status(404).json({ error: 'Application not found or already deleted.' });
@@ -702,7 +719,13 @@ app.delete('/api/applications/:id', requireAuth, (req: AuthRequest, res: Respons
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'cvume-backend', database: 'sqlite', time: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    service: 'cvume-backend',
+    database: 'postgresql',
+    databaseName: 'cvumedb',
+    time: new Date().toISOString()
+  });
 });
 
 // Setup Vite middleware in dev or static files in production

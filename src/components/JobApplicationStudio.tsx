@@ -979,7 +979,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                     Saved Applications & Resumes ({savedApps.length})
                   </h3>
                   <p className="text-xs text-neutral-500">
-                    Stored in your SQLite database. Load any tailored resume or cover letter.
+                    Stored in your PostgreSQL database (cvumedb). Load any tailored resume or cover letter.
                   </p>
                 </div>
               </div>
@@ -1065,7 +1065,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
             <div className="px-6 py-3 bg-neutral-50 border-t border-neutral-200 flex items-center justify-between text-xs text-neutral-500">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>SQLite Database connected</span>
+                <span>PostgreSQL (cvumedb) connected</span>
               </span>
               <button
                 onClick={() => setShowSavedModal(false)}

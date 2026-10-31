@@ -10,9 +10,11 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true 
 const { Pool } = pg;
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres@localhost:5432/cvumedb';
+const isLocalhost = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
 
 export const pool = new Pool({
   connectionString,
+  ssl: !isLocalhost ? { rejectUnauthorized: false } : undefined,
 });
 
 let initPromise: Promise<void> | null = null;
@@ -69,6 +71,7 @@ export async function initDb(): Promise<void> {
       console.log('✓ PostgreSQL schema initialized successfully in database: cvumedb');
     } catch (err) {
       console.error('Failed to initialize PostgreSQL tables:', err);
+      initPromise = null;
       throw err;
     } finally {
       client.release();

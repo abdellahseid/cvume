@@ -1,9 +1,9 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import path from 'path';
 import dotenv from 'dotenv';
 import {
+  initDb,
   createUser,
   findUserByEmail,
   createSession,
@@ -27,6 +27,16 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
+
+// Ensure DB is initialized before handling requests (especially for serverless cold-starts)
+app.use(async (_req, _res, next) => {
+  try {
+    await initDb();
+  } catch (err) {
+    console.warn('Database initialization check warning:', err);
+  }
+  next();
+});
 
 interface AuthRequest extends Request {
   user?: {
@@ -733,13 +743,14 @@ async function startServer() {
   const isProd = process.env.NODE_ENV === 'production';
 
   if (!isProd) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.resolve(__dirname, 'dist');
+    const distPath = path.resolve(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (_req, res) => {
       res.sendFile(path.resolve(distPath, 'index.html'));
@@ -751,4 +762,9 @@ async function startServer() {
   });
 }
 
-startServer();
+// Only start the standalone HTTP listener if not running as a Vercel Serverless Function
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;

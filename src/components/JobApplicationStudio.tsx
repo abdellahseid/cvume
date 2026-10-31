@@ -335,7 +335,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
             className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-neutral-800 hover:text-neutral-950 bg-white hover:bg-neutral-50 border border-neutral-200/90 rounded-xl transition-all shadow-2xs cursor-pointer"
           >
             <Database className="w-3.5 h-3.5 text-[#e0644e]" />
-            <span>Saved in DB ({savedApps.length})</span>
+            <span>Saved({savedApps.length})</span>
           </button>
 
           {/* Profile Pill Badge */}

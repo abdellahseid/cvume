@@ -257,7 +257,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
             ) : (
               <>
                 <Save className="w-3.5 h-3.5" />
-                <span>Save to Database</span>
+                <span>Save</span>
               </>
             )}
           </button>

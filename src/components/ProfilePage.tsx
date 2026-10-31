@@ -228,10 +228,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
             <h1 className="text-2xl sm:text-3xl font-bold text-neutral-950 tracking-tight mt-1">
               Career Profile Studio
             </h1>
-            <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 mt-1 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <Database className="w-3 h-3 text-emerald-600" />
-              <span>Database Synced</span>
-            </div>
           </div>
           <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
             Save your profile to your database once. AI tailors your resume, Gmail pitch, and Telegram DM to every job.

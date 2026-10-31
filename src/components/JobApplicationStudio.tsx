@@ -505,7 +505,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                 ) : activeAppId ? (
                   <>
                     <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
-                    <span>Saved in DB</span>
+                    <span>Saved</span>
                   </>
                 ) : (
                   <>

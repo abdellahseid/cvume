@@ -1064,10 +1064,6 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
 
             {/* Footer */}
             <div className="px-6 py-3 bg-neutral-50 border-t border-neutral-200 flex items-center justify-between text-xs text-neutral-500">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>PostgreSQL (cvumedb) connected</span>
-              </span>
               <button
                 onClick={() => setShowSavedModal(false)}
                 className="text-xs font-semibold text-neutral-700 hover:text-neutral-950 cursor-pointer"

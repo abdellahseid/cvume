@@ -334,9 +334,6 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
             <div>
               <h1 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
                 <span>Resume Template & Export Studio</span>
-                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold">
-                  A4 Vector Export
-                </span>
               </h1>
               <p className="text-[11px] text-neutral-500">
                 Pick a template design and color palette to export your customized resume.

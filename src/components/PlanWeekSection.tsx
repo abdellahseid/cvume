@@ -184,7 +184,7 @@ export const PlanWeekSection: React.FC = () => {
         </div>
 
         {/* Right Preview Box (Warm sand container) */}
-        <div className="lg:col-span-7 bg-[#FAF5EE] border border-[#f0e3d2] rounded-2xl p-6 sm:p-7 relative min-h-[380px] flex flex-col justify-between shadow-xs">
+        <div className="lg:col-span-7 bg-[#FAF5EE] border border-[#f0e3d2] rounded-2xl p-4 sm:p-6 lg:p-7 relative min-h-[380px] flex flex-col justify-between shadow-xs">
           {/* Top Bar with Replay */}
           <div className="flex items-center justify-end mb-4">
             <button
@@ -200,7 +200,7 @@ export const PlanWeekSection: React.FC = () => {
           {activeTab === 'type' && (
             <div className="space-y-4">
               {/* Floating Input Bar */}
-              <div className="bg-white border border-neutral-200/80 rounded-xl p-2.5 shadow-xs flex items-center gap-2 max-w-md mx-auto">
+              <div className="bg-white border border-neutral-200/80 rounded-xl p-2.5 shadow-xs flex items-center gap-2 max-w-md mx-auto w-full">
                 <span className="w-5 h-5 rounded bg-neutral-100 border border-neutral-200 font-mono text-[10px] flex items-center justify-center font-semibold text-neutral-600 shrink-0">
                   E
                 </span>
@@ -220,7 +220,7 @@ export const PlanWeekSection: React.FC = () => {
               </div>
 
               {/* Mini Resume Snippet Mock */}
-              <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto space-y-3">
+              <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto w-full space-y-3">
                 <div className="flex items-center justify-between border-b border-neutral-100 pb-1.5">
                   <span className="text-xs font-bold text-neutral-900">Staff Product Designer</span>
                   <span className="text-[10px] font-mono text-neutral-400">Acme Cloud</span>
@@ -244,42 +244,42 @@ export const PlanWeekSection: React.FC = () => {
           )}
 
           {activeTab === 'tasks' && (
-            <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto space-y-2.5">
+            <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto w-full space-y-2.5">
               <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                 Job Requirements Matching Drawer
               </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 border border-neutral-200/60">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 border border-neutral-200/60 gap-2">
                 <span className="text-xs font-medium text-neutral-800">5+ years React & TypeScript</span>
-                <span className="text-[10px] text-emerald-600 font-semibold">Matched in Experience</span>
+                <span className="text-[10px] text-emerald-600 font-semibold shrink-0">Matched in Experience</span>
               </div>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-purple-50/60 border border-purple-200/60">
+              <div className="flex items-center justify-between p-2 rounded-lg bg-purple-50/60 border border-purple-200/60 gap-2">
                 <span className="text-xs font-medium text-purple-900">Design Systems Tokens & Architecture</span>
-                <span className="text-[10px] text-purple-700 font-semibold">Matched in Acme Role</span>
+                <span className="text-[10px] text-purple-700 font-semibold shrink-0">Matched in Acme Role</span>
               </div>
             </div>
           )}
 
           {activeTab === 'command' && (
-            <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto space-y-3">
+            <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto w-full space-y-3">
               <div className="flex items-center gap-2 border-b border-neutral-100 pb-2">
                 <span className="font-mono text-xs bg-neutral-100 px-1 rounded text-neutral-500">⌘K</span>
                 <span className="text-xs font-medium text-neutral-900">Run ATS scan...</span>
               </div>
               <div className="space-y-1.5 text-xs text-neutral-600">
-                <div className="p-1.5 rounded bg-neutral-50 text-neutral-900 font-medium flex justify-between">
-                  <span>Export ATS-friendly single-page PDF</span>
-                  <span className="text-[10px] text-neutral-400 font-mono">⌘P</span>
+                <div className="p-1.5 rounded bg-neutral-50 text-neutral-900 font-medium flex justify-between items-center gap-2">
+                  <span className="truncate">Export ATS-friendly single-page PDF</span>
+                  <span className="text-[10px] text-neutral-400 font-mono shrink-0">⌘P</span>
                 </div>
-                <div className="p-1.5 rounded hover:bg-neutral-50 flex justify-between">
-                  <span>Switch template to Minimal ATS</span>
-                  <span className="text-[10px] text-neutral-400 font-mono">T</span>
+                <div className="p-1.5 rounded hover:bg-neutral-50 flex justify-between items-center gap-2">
+                  <span className="truncate">Switch template to Minimal ATS</span>
+                  <span className="text-[10px] text-neutral-400 font-mono shrink-0">T</span>
                 </div>
               </div>
             </div>
           )}
 
           {activeTab === 'search' && (
-            <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto space-y-3">
+            <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto w-full space-y-3">
               <div className="flex items-center gap-2 border-b border-neutral-100 pb-2">
                 <span className="font-mono text-xs text-neutral-400">/</span>
                 <span className="text-xs font-medium text-neutral-900">conversion</span>
@@ -292,11 +292,11 @@ export const PlanWeekSection: React.FC = () => {
           )}
 
           {activeTab === 'days' && (
-            <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto text-center space-y-3">
-              <div className="inline-flex p-1 bg-neutral-100 rounded-lg text-xs font-medium gap-1">
-                <span className="px-2.5 py-1 rounded bg-white shadow-2xs text-neutral-900">1-Page Fit</span>
-                <span className="px-2.5 py-1 text-neutral-500">2-Page Exec</span>
-                <span className="px-2.5 py-1 text-neutral-500">CV Longform</span>
+            <div className="bg-white border border-neutral-200/80 rounded-xl p-4 shadow-xs max-w-md mx-auto w-full text-center space-y-3">
+              <div className="inline-flex p-1 bg-neutral-100 rounded-lg text-xs font-medium gap-1 max-w-full overflow-x-auto">
+                <span className="px-2.5 py-1 rounded bg-white shadow-2xs text-neutral-900 whitespace-nowrap">1-Page Fit</span>
+                <span className="px-2.5 py-1 text-neutral-500 whitespace-nowrap">2-Page Exec</span>
+                <span className="px-2.5 py-1 text-neutral-500 whitespace-nowrap">CV Longform</span>
               </div>
               <p className="text-xs text-neutral-500">
                 Automatic intelligent line-compression prevents awkward orphan lines on second pages.

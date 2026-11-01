@@ -111,21 +111,22 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
   return (
     <div className="relative w-full max-w-5xl mx-auto bg-white rounded-2xl border border-neutral-200/90 shadow-[0_12px_40px_rgba(0,0,0,0.06)] overflow-hidden select-none">
       {/* Window Title Bar */}
-      <div className="h-10 bg-neutral-50/90 border-b border-neutral-200/70 px-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="h-10 bg-neutral-50/90 border-b border-neutral-200/70 px-3 sm:px-4 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <div className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/40 shadow-2xs" />
           <div className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/40 shadow-2xs" />
           <div className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]/40 shadow-2xs" />
         </div>
-        <div className="text-xs font-medium text-neutral-500 font-sans tracking-tight flex items-center gap-1.5">
-          <FileText className="w-3 h-3 text-neutral-400" />
-          <span>CVUME — Resume Studio (ATS Optimized)</span>
+        <div className="text-xs font-medium text-neutral-500 font-sans tracking-tight flex items-center gap-1.5 truncate min-w-0">
+          <FileText className="w-3 h-3 text-neutral-400 shrink-0" />
+          <span className="truncate">CVUME — Resume Studio</span>
+          <span className="hidden sm:inline text-neutral-400">(ATS Optimized)</span>
         </div>
-        <div className="flex items-center gap-2 text-neutral-400 text-xs">
+        <div className="flex items-center gap-2 text-neutral-400 text-xs shrink-0">
           <button 
             onClick={handleExportPdf}
             disabled={isExportingPdf}
-            className="hover:text-neutral-900 transition-colors flex items-center gap-1.5 text-[11px] font-semibold bg-neutral-100 hover:bg-neutral-200/80 px-2.5 py-1 rounded-md text-neutral-800 cursor-pointer disabled:opacity-50" 
+            className="hover:text-neutral-900 transition-colors flex items-center gap-1.5 text-[11px] font-semibold bg-neutral-100 hover:bg-neutral-200/80 px-2 sm:px-2.5 py-1 rounded-md text-neutral-800 cursor-pointer disabled:opacity-50" 
             title="Download PDF as displayed"
           >
             {isExportingPdf ? (
@@ -136,7 +137,8 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
             ) : (
               <>
                 <Download className="w-3.5 h-3.5 text-[#e0644e]" />
-                <span>Export PDF</span>
+                <span className="hidden xs:inline sm:inline">Export PDF</span>
+                <span className="xs:hidden sm:hidden">PDF</span>
               </>
             )}
           </button>
@@ -146,7 +148,7 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
       {/* Main Body */}
       <div className="flex flex-col md:flex-row min-h-[580px] bg-white">
         {/* Left Sidebar */}
-        <div className="w-full md:w-60 shrink-0 border-r border-neutral-100 p-4 flex flex-col justify-between bg-white text-xs">
+        <div className="w-full md:w-60 shrink-0 border-b md:border-b-0 md:border-r border-neutral-100 p-4 flex flex-col justify-between bg-white text-xs">
           <div>
             {/* Nav Icon Bar */}
             <div className="flex items-center gap-3 text-neutral-400 mb-6 pb-2 border-b border-neutral-100">
@@ -260,24 +262,24 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
         {/* Right Live Resume Sheet */}
         <div className="flex-1 flex flex-col min-w-0 bg-[#fbfbfb]">
           {/* Document Header Controls */}
-          <div className="h-12 border-b border-neutral-100 px-4 sm:px-6 flex items-center justify-between shrink-0 bg-white">
-            <div className="flex items-center gap-2 cursor-pointer group">
-              <span className="font-semibold text-sm text-neutral-900 group-hover:text-black">
+          <div className="min-h-12 border-b border-neutral-100 px-3 sm:px-6 py-2 sm:py-0 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 shrink-0 bg-white">
+            <div className="flex items-center gap-2 cursor-pointer group min-w-0">
+              <span className="font-semibold text-xs sm:text-sm text-neutral-900 group-hover:text-black truncate max-w-[180px] sm:max-w-none">
                 {profile.fullName || 'Candidate'} · Master Resume
               </span>
-              <ChevronDown className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600" />
+              <ChevronDown className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600 shrink-0" />
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-xs font-semibold">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                <span>ATS Score: 98/100</span>
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
+              <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-[11px] sm:text-xs font-semibold">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span><span className="hidden xs:inline">ATS Score: </span>98/100</span>
               </div>
 
               <div className="relative">
                 <button
                   onClick={() => setTemplateDropdownOpen(!templateDropdownOpen)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-neutral-700 hover:text-neutral-950 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-md transition-colors"
+                  className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 text-xs font-medium text-neutral-700 hover:text-neutral-950 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-md transition-colors"
                 >
                   <span className="capitalize">{activeTemplate} Template</span>
                   <ChevronDown className="w-3 h-3 text-neutral-400" />
@@ -310,21 +312,21 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
           </div>
 
           {/* Actual Resume Document Paper */}
-          <div className="p-4 sm:p-6 overflow-y-auto max-h-[500px]">
+          <div className="p-3 sm:p-6 overflow-y-auto max-h-[500px]">
             <div 
               id="hero-resume-paper-to-export"
-              className="bg-white border border-neutral-200 rounded-xl p-6 sm:p-8 shadow-xs max-w-2xl mx-auto space-y-6"
+              className="bg-white border border-neutral-200 rounded-xl p-4 sm:p-6 md:p-8 shadow-xs max-w-2xl mx-auto space-y-6"
               style={{ backgroundColor: '#ffffff', color: '#111827' }}
             >
               {/* Header Details */}
               <div className="border-b border-neutral-100 pb-4">
-                <h2 className="text-2xl font-bold text-neutral-950 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-bold text-neutral-950 tracking-tight">
                   {profile.fullName || 'Candidate Profile'}
                 </h2>
                 <p className="text-xs font-semibold text-neutral-700 mt-0.5">
                   {profile.targetRole || 'Staff Systems Engineer'}
                 </p>
-                <div className="flex items-center gap-3 text-[11px] text-neutral-500 mt-2 flex-wrap font-sans">
+                <div className="flex items-center gap-2 sm:gap-3 text-[10.5px] sm:text-[11px] text-neutral-500 mt-2 flex-wrap font-sans">
                   <span>{profile.location || 'Remote'}</span>
                   <span>·</span>
                   <span>{profile.email || 'hello@cvume.ai'}</span>
@@ -361,14 +363,14 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
                         onClick={() => setSelectedExp(exp)}
                         className="p-3 rounded-lg border border-neutral-100 hover:border-neutral-200 hover:bg-neutral-50/50 transition-all cursor-pointer group"
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
+                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-0.5 sm:gap-2">
+                          <div className="min-w-0">
                             <span className="text-xs font-bold text-neutral-900">
                               {exp.role}
                             </span>
                             <span className="text-xs text-neutral-600 font-medium"> · {exp.company}</span>
                           </div>
-                          <span className="text-[10.5px] font-mono text-neutral-400 shrink-0">
+                          <span className="text-[10px] sm:text-[10.5px] font-mono text-neutral-400 shrink-0">
                             {exp.period}
                           </span>
                         </div>
@@ -459,7 +461,7 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
               </div>
               <button 
                 onClick={() => setEditingBullet(null)}
-                className="text-neutral-400 hover:text-neutral-600 rounded p-1"
+                className="text-neutral-400 hover:text-neutral-600 rounded p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -487,13 +489,13 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
                 <button
                   type="button"
                   onClick={() => setEditingBullet(null)}
-                  className="px-3 py-1.5 text-xs text-neutral-600 hover:text-neutral-900"
+                  className="px-3 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 text-xs font-medium text-white bg-neutral-900 rounded-md hover:bg-neutral-800"
+                  className="px-4 py-1.5 text-xs font-medium text-white bg-neutral-900 rounded-md hover:bg-neutral-800 cursor-pointer"
                 >
                   Save Bullet
                 </button>

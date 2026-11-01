@@ -156,23 +156,23 @@ export const AssistantSection: React.FC = () => {
             }`}
           >
             <div className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded bg-neutral-100 border border-neutral-200/80 flex items-center justify-center shrink-0 mt-0.5">
-                <TrendingUp className="w-3.5 h-3.5 text-neutral-700" />
-              </div>
+              <span className="w-6 h-6 rounded bg-neutral-100 border border-neutral-200/80 font-mono text-xs flex items-center justify-center font-medium text-neutral-700 shrink-0 mt-0.5">
+                %
+              </span>
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900 leading-tight">
                   Quantify metrics & business impact
                 </h3>
                 {activeFeature === 'travel' && (
                   <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
-                    Prompts you with smart estimation questions to back every responsibility with real business data.
+                    Turns vague responsibilities into metric-backed proof of revenue, velocity, or cost savings.
                   </p>
                 )}
               </div>
             </div>
           </button>
 
-          {/* Feature 5: Live split-screen preview */}
+          {/* Feature 5: Split-screen margin & layout inspector */}
           <button
             onClick={() => setActiveFeature('menubar')}
             className={`w-full text-left p-4 rounded-xl transition-all cursor-pointer ${
@@ -187,11 +187,11 @@ export const AssistantSection: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-neutral-900 leading-tight">
-                  Live split-screen preview
+                  Split-screen layout inspector
                 </h3>
                 {activeFeature === 'menubar' && (
                   <p className="text-xs text-neutral-500 mt-1.5 leading-relaxed">
-                    Instant rendering shows page height, margin balance, and typographic rhythm as you type.
+                    View real-time margin thresholds and verify your single-page constraint in high-res preview.
                   </p>
                 )}
               </div>
@@ -226,21 +226,23 @@ export const AssistantSection: React.FC = () => {
         </div>
 
         {/* Right Preview Box (Lavender container) with DYNAMIC CONTENT FOR ALL 6 BUTTONS */}
-        <div className="lg:col-span-7 bg-[#F4F1F9] border border-[#e4dff2] rounded-2xl p-6 sm:p-7 relative min-h-[440px] flex flex-col justify-between shadow-xs">
+        <div className="lg:col-span-7 bg-[#F4F1F9] border border-[#e4dff2] rounded-2xl p-4 sm:p-6 lg:p-7 relative min-h-[440px] flex flex-col justify-between shadow-xs">
           {/* Top Bar with Replay */}
-          <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#e4dff2]/70">
-            <span className="text-[11px] font-semibold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-purple-600" />
-              {activeFeature === 'assistant' && 'AI XYZ-Format Bullet Optimization'}
-              {activeFeature === 'clashes' && 'Action Verb Linter & Weak Phrase Detector'}
-              {activeFeature === 'colleague' && 'Tone Calibration: Startup vs Enterprise'}
-              {activeFeature === 'travel' && 'Metric Quantification Engine'}
-              {activeFeature === 'menubar' && 'Split-Screen Page Height & Margin Inspector'}
-              {activeFeature === 'coding' && 'LaTeX, Markdown & JSON Source Export'}
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#e4dff2]/70 gap-2">
+            <span className="text-[11px] font-semibold text-purple-900 uppercase tracking-wider flex items-center gap-1.5 truncate">
+              <span className="w-2 h-2 rounded-full bg-purple-600 shrink-0" />
+              <span className="truncate">
+                {activeFeature === 'assistant' && 'AI XYZ-Format Bullet Optimization'}
+                {activeFeature === 'clashes' && 'Action Verb Linter & Weak Phrase Detector'}
+                {activeFeature === 'colleague' && 'Tone Calibration: Startup vs Enterprise'}
+                {activeFeature === 'travel' && 'Metric Quantification Engine'}
+                {activeFeature === 'menubar' && 'Split-Screen Page Height & Margin Inspector'}
+                {activeFeature === 'coding' && 'LaTeX, Markdown & JSON Source Export'}
+              </span>
             </span>
             <button
               onClick={handleReplay}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-neutral-600 bg-white/90 hover:bg-white border border-neutral-200 rounded-full shadow-2xs transition-all cursor-pointer active:scale-95"
+              className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-neutral-600 bg-white/90 hover:bg-white border border-neutral-200 rounded-full shadow-2xs transition-all cursor-pointer active:scale-95 shrink-0"
             >
               <RotateCcw className="w-3 h-3 text-neutral-500" />
               <span>Reset</span>
@@ -252,7 +254,7 @@ export const AssistantSection: React.FC = () => {
           {/* DESIGN 1: COPILOT BULLET REWRITE (ASSISTANT) */}
           {activeFeature === 'assistant' && (
             <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-xs max-w-md mx-auto w-full relative animate-in fade-in duration-300">
-              <div className="grid grid-cols-2 border-b border-neutral-100 pb-2 text-xs font-semibold text-neutral-700 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 border-b border-neutral-100 pb-2 text-xs font-semibold text-neutral-700 mb-3 gap-1">
                 <div className="text-neutral-500">Original Bullet</div>
                 <div className="text-purple-700">AI Optimized (XYZ Format)</div>
               </div>
@@ -276,18 +278,18 @@ export const AssistantSection: React.FC = () => {
               </div>
 
               {optimizedState && (
-                <div className="mt-4 p-2.5 rounded-xl bg-neutral-50 border border-neutral-200/80 flex items-center justify-between text-xs animate-in fade-in">
-                  <div className="flex items-center gap-2 text-neutral-800">
+                <div className="mt-4 p-2.5 rounded-xl bg-neutral-50 border border-neutral-200/80 flex items-center justify-between text-xs animate-in fade-in gap-2">
+                  <div className="flex items-center gap-2 text-neutral-800 min-w-0">
                     <div className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                       <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
                     </div>
-                    <span className="text-[11.5px] font-medium leading-tight">
+                    <span className="text-[11px] sm:text-[11.5px] font-medium leading-tight truncate">
                       Quantified impact with metric and active verb
                     </span>
                   </div>
                   <button
                     onClick={handleUndo}
-                    className="px-2 py-0.5 text-[11px] font-mono text-neutral-500 hover:text-neutral-900 bg-white border border-neutral-200 rounded shadow-2xs hover:bg-neutral-100 cursor-pointer"
+                    className="px-2 py-0.5 text-[11px] font-mono text-neutral-500 hover:text-neutral-900 bg-white border border-neutral-200 rounded shadow-2xs hover:bg-neutral-100 cursor-pointer shrink-0"
                   >
                     Undo ⌘Z
                   </button>
@@ -314,12 +316,12 @@ export const AssistantSection: React.FC = () => {
                 <div className="text-[11px] font-semibold text-neutral-700 mb-1.5">
                   Select High-Impact Replacement Verb:
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                   {(['Architected', 'Overhauled', 'Championed'] as const).map(v => (
                     <button
                       key={v}
                       onClick={() => setSelectedVerb(v)}
-                      className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                      className={`flex-1 py-1 px-1.5 sm:px-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer truncate ${
                         selectedVerb === v
                           ? 'bg-purple-900 text-white border-purple-900 shadow-2xs'
                           : 'bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50'
@@ -360,10 +362,10 @@ export const AssistantSection: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center gap-1 text-xs font-bold text-neutral-900">
-                    <Rocket className="w-3.5 h-3.5 text-purple-600" />
-                    <span>Early-Stage Startup</span>
+                    <Rocket className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                    <span>Startup</span>
                   </div>
-                  <div className="text-[10px] text-neutral-500 mt-0.5">Velocity, hacking & autonomy</div>
+                  <div className="text-[10px] text-neutral-500 mt-0.5 truncate">Velocity & autonomy</div>
                 </button>
 
                 <button
@@ -375,10 +377,10 @@ export const AssistantSection: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-center gap-1 text-xs font-bold text-neutral-900">
-                    <Building className="w-3.5 h-3.5 text-purple-600" />
+                    <Building className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                     <span>Fortune 500</span>
                   </div>
-                  <div className="text-[10px] text-neutral-500 mt-0.5">Scale, governance & cross-team</div>
+                  <div className="text-[10px] text-neutral-500 mt-0.5 truncate">Scale & governance</div>
                 </button>
               </div>
 
@@ -408,10 +410,10 @@ export const AssistantSection: React.FC = () => {
 
               <div>
                 <div className="text-[11px] text-neutral-500 mb-1.5">Pick Impact Dimension to Highlight:</div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                   <button
                     onClick={() => setSelectedMetric('conversion')}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                    className={`py-1.5 px-1 sm:px-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer truncate ${
                       selectedMetric === 'conversion'
                         ? 'bg-neutral-900 text-white border-neutral-900'
                         : 'bg-neutral-50 text-neutral-700 border-neutral-200'
@@ -421,17 +423,17 @@ export const AssistantSection: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setSelectedMetric('latency')}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                    className={`py-1.5 px-1 sm:px-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer truncate ${
                       selectedMetric === 'latency'
                         ? 'bg-neutral-900 text-white border-neutral-900'
                         : 'bg-neutral-50 text-neutral-700 border-neutral-200'
                     }`}
                   >
-                    -45% Latency
+                    -45% Lat
                   </button>
                   <button
                     onClick={() => setSelectedMetric('revenue')}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                    className={`py-1.5 px-1 sm:px-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer truncate ${
                       selectedMetric === 'revenue'
                         ? 'bg-neutral-900 text-white border-neutral-900'
                         : 'bg-neutral-50 text-neutral-700 border-neutral-200'
@@ -477,18 +479,18 @@ export const AssistantSection: React.FC = () => {
                   <div className="text-xs font-semibold text-neutral-900">Total Page Height Used</div>
                   <div className="text-[11px] text-neutral-500">96.4% · No trailing orphaned lines</div>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs font-mono">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs font-mono shrink-0">
                   96%
                 </div>
               </div>
 
               <div className="space-y-1.5 text-xs text-neutral-600">
                 <div className="flex items-center justify-between p-1.5 rounded bg-white border border-neutral-100">
-                  <span>Balanced Margins (Top/Bottom 0.75")</span>
+                  <span>Balanced Margins (0.75")</span>
                   <span className="text-emerald-600 font-semibold">Calibrated ✓</span>
                 </div>
                 <div className="flex items-center justify-between p-1.5 rounded bg-white border border-neutral-100">
-                  <span>Typographic Rhythm (11pt / 14pt leading)</span>
+                  <span>Typographic Rhythm (11/14pt)</span>
                   <span className="text-emerald-600 font-semibold">Perfect ✓</span>
                 </div>
               </div>

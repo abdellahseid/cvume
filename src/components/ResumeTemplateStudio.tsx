@@ -246,6 +246,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
             el.style.boxShadow = 'none';
             el.style.borderRadius = '0px';
             el.style.outline = 'none';
+            el.style.width = '800px';
+            el.style.minWidth = '800px';
           }
         },
       });
@@ -309,11 +311,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
   const getDensityPadding = () => {
     switch (selectedDensity) {
       case 'compact':
-        return 'p-6 sm:p-7 space-y-4';
+        return 'p-4 sm:p-6 md:p-7 space-y-4';
       case 'spacious':
-        return 'p-10 sm:p-12 space-y-7';
+        return 'p-6 sm:p-10 md:p-12 space-y-7';
       default:
-        return 'p-8 sm:p-10 space-y-6';
+        return 'p-5 sm:p-8 md:p-10 space-y-6';
     }
   };
 
@@ -321,41 +323,43 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
     <div className="min-h-screen bg-neutral-100/70 pb-16">
       {/* Top Bar Navigation & Actions */}
       <div className="sticky top-0 z-30 bg-white border-b border-neutral-200 px-4 sm:px-8 py-3.5 shadow-xs">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               onClick={onBackToStudio}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 transition-colors cursor-pointer border border-neutral-200"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 transition-colors cursor-pointer border border-neutral-200 shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to Job Studio</span>
+              <span className="hidden xs:inline">Back to Studio</span>
+              <span className="xs:hidden">Back</span>
             </button>
-            <div className="h-4 w-px bg-neutral-200" />
-            <div>
-              <h1 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
+            <div className="h-4 w-px bg-neutral-200 shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-sm font-bold text-neutral-900 truncate">
                 <span>Resume Template & Export Studio</span>
               </h1>
-              <p className="text-[11px] text-neutral-500">
+              <p className="text-[10px] sm:text-[11px] text-neutral-500 truncate hidden xs:block">
                 Pick a template design and color palette to export your customized resume.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 justify-end">
+          <div className="flex items-center gap-2.5 justify-end shrink-0 w-full sm:w-auto">
             <button
               onClick={handleExportPdf}
               disabled={isExportingPdf}
-              className="inline-flex items-center gap-2 px-5 py-2 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-60 w-full sm:w-auto"
             >
               {isExportingPdf ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin text-[#e0644e]" />
-                  <span>Rendering Vector PDF...</span>
+                  <span>Rendering PDF...</span>
                 </>
               ) : (
                 <>
                   <Download className="w-4 h-4 text-[#e0644e]" />
-                  <span>Download PDF ({selectedColor.name})</span>
+                  <span className="hidden sm:inline">Download PDF ({selectedColor.name})</span>
+                  <span className="sm:hidden">Download PDF</span>
                 </>
               )}
             </button>
@@ -380,7 +384,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
                 {TEMPLATE_OPTIONS.map((tpl) => {
                   const isSelected = selectedTemplate === tpl.id;
                   return (

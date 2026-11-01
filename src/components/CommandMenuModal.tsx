@@ -43,7 +43,7 @@ export const CommandMenuModal: React.FC<CommandMenuModalProps> = ({
   return (
     <div 
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-neutral-950/40 backdrop-blur-2xs flex items-start justify-center pt-24 p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-neutral-950/40 backdrop-blur-2xs flex items-start justify-center pt-12 sm:pt-24 p-3 sm:p-4 animate-in fade-in duration-150"
     >
       <div 
         onClick={e => e.stopPropagation()}
@@ -62,7 +62,7 @@ export const CommandMenuModal: React.FC<CommandMenuModalProps> = ({
           />
           <button 
             onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-700 p-0.5 rounded"
+            className="text-neutral-400 hover:text-neutral-700 p-0.5 rounded cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -84,7 +84,7 @@ export const CommandMenuModal: React.FC<CommandMenuModalProps> = ({
                     onActionSelect(item.id);
                     onClose();
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-neutral-50 transition-colors text-left group cursor-pointer"
+                  className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-neutral-50 transition-colors text-left group cursor-pointer gap-2"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <IconComponent className="w-4 h-4 text-neutral-400 group-hover:text-neutral-800 shrink-0" />
@@ -92,8 +92,8 @@ export const CommandMenuModal: React.FC<CommandMenuModalProps> = ({
                       {item.title}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] text-neutral-400 group-hover:text-neutral-500 font-sans">
+                  <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <span className="text-[10px] text-neutral-400 group-hover:text-neutral-500 font-sans hidden xs:inline">
                       {item.category}
                     </span>
                     <kbd className="px-1.5 py-0.5 bg-neutral-100 border border-neutral-200/80 rounded font-mono text-[10px] text-neutral-600">
@@ -106,10 +106,17 @@ export const CommandMenuModal: React.FC<CommandMenuModalProps> = ({
           )}
         </div>
 
-        {/* Footer */}
-        <div className="p-2.5 px-4 bg-neutral-50 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400">
-          <span>Navigate with mouse or keyboard</span>
-          <span className="font-mono">Esc to close</span>
+        {/* Bottom Helper Bar */}
+        <div className="p-3 bg-neutral-50 border-t border-neutral-100 px-4 flex items-center justify-between text-[11px] text-neutral-400">
+          <div className="flex items-center gap-2">
+            <span>Navigation:</span>
+            <span className="font-mono bg-white px-1 rounded border border-neutral-200 text-neutral-600">↑↓</span>
+            <span>Select:</span>
+            <span className="font-mono bg-white px-1 rounded border border-neutral-200 text-neutral-600">↵</span>
+          </div>
+          <div>
+            <span>Esc to close</span>
+          </div>
         </div>
       </div>
     </div>

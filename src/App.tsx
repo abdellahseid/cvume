@@ -254,7 +254,7 @@ export default function App() {
         />
         {/* Toast Notification */}
         {toastMessage && (
-          <div className="fixed bottom-6 right-6 z-50 bg-neutral-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg border border-neutral-700 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="fixed bottom-4 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-50 text-center sm:text-left bg-neutral-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg border border-neutral-700 animate-in fade-in slide-in-from-bottom-2 duration-200 max-w-sm sm:max-w-md mx-auto sm:mx-0">
             {toastMessage}
           </div>
         )}

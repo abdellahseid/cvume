@@ -39,11 +39,11 @@ export const SignOutModal: React.FC<SignOutModalProps> = ({
       onClick={() => {
         if (!isLoading) onClose();
       }}
-      className="fixed inset-0 z-50 bg-neutral-950/50 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 bg-neutral-950/50 backdrop-blur-2xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-[390px] bg-white rounded-2xl shadow-2xl border border-neutral-200/90 overflow-hidden animate-in zoom-in-95 duration-200 p-6 sm:p-7 text-center"
+        className="relative w-full max-w-[390px] bg-white rounded-2xl shadow-2xl border border-neutral-200/90 overflow-hidden animate-in zoom-in-95 duration-200 p-5 sm:p-7 text-center"
       >
         {/* Top-Right Close Button */}
         <button

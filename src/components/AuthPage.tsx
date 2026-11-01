@@ -88,7 +88,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   return (
-    <div className="h-screen max-h-screen overflow-hidden bg-white text-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 flex flex-col font-sans">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden bg-white text-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 flex flex-col font-sans">
       {/* Top Navbar */}
       <header className="border-b border-neutral-100 bg-white/95 backdrop-blur-md h-14 shrink-0">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
@@ -115,7 +115,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       </header>
 
       {/* Main Two-Column Layout (Non-scrollable, vertically balanced) */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 relative overflow-hidden">
+      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 relative overflow-y-auto lg:overflow-hidden py-6 lg:py-0">
         {/* Subtle grid guideline marks */}
         <div className="absolute inset-0 pointer-events-none max-w-6xl mx-auto border-x border-neutral-100 flex justify-between">
           <div className="absolute top-0 -left-1.5 text-neutral-300 font-mono text-xs select-none">+</div>
@@ -129,7 +129,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             
             {/* LEFT COLUMN: SIMPLIFIED FORM SECTION */}
             <div className="lg:col-span-6 w-full">
-              <div className=" p-6 sm:p-8">
+              <div className="p-4 sm:p-8">
                 
                 {/* Heading */}
                 <div className="mb-5">

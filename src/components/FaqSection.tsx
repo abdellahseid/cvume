@@ -53,7 +53,7 @@ export const FaqSection: React.FC = () => {
   };
 
   return (
-    <section id="faq" className="py-20 px-4 sm:px-6 relative border-t border-neutral-100">
+    <section id="faq" className="py-14 sm:py-20 px-4 sm:px-6 relative border-t border-neutral-100">
       {/* Guideline crosshairs */}
       <div className="absolute inset-0 pointer-events-none max-w-6xl mx-auto border-x border-neutral-100 flex justify-between">
         <div className="absolute top-0 -left-1.5 text-neutral-300 font-mono text-xs select-none">+</div>
@@ -62,21 +62,21 @@ export const FaqSection: React.FC = () => {
         <div className="absolute bottom-0 -right-1.5 text-neutral-300 font-mono text-xs select-none">+</div>
       </div>
 
-      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12">
+      <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         {/* Left Column: Heading and Illustration */}
         <div className="lg:col-span-4 flex flex-col justify-between">
           <div>
             <div className="text-[11px] font-bold text-[#e0644e] uppercase tracking-[0.2em] mb-3">
               FAQ
             </div>
-            <h2 className="text-3xl font-bold text-neutral-950 tracking-[-0.03em] mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-neutral-950 tracking-[-0.03em] mb-4">
               Frequently asked questions
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500">
               Anything else? Email us at{' '}
               <a
                 href="mailto:abdellahseid0987@gmail.com"
-                className="text-neutral-900 font-medium underline underline-offset-2 hover:text-black"
+                className="text-neutral-900 font-medium underline underline-offset-2 hover:text-black break-all sm:break-normal"
               >
                 abdellahseid0987@gmail.com
               </a>
@@ -84,9 +84,9 @@ export const FaqSection: React.FC = () => {
           </div>
 
           {/* Friendly Purple Speech Bubble Illustration matching screenshot */}
-          <div className="mt-8 pt-4">
+          <div className="mt-6 lg:mt-8 pt-2 lg:pt-4">
             <svg
-              className="w-20 h-20 text-[#d1c4e9]"
+              className="w-16 h-16 sm:w-20 sm:h-20 text-[#d1c4e9]"
               viewBox="0 0 100 100"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +126,7 @@ export const FaqSection: React.FC = () => {
                 </button>
 
                 {isOpen && (
-                  <div className="mt-3 text-xs sm:text-[13px] text-neutral-600 leading-relaxed pr-6 animate-in fade-in duration-150">
+                  <div className="mt-3 text-xs sm:text-[13px] text-neutral-600 leading-relaxed pr-2 sm:pr-6 animate-in fade-in duration-150">
                     {item.answer}
                   </div>
                 )}

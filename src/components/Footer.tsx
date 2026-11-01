@@ -18,9 +18,9 @@ export const Footer: React.FC<FooterProps> = ({ onSignInClick, onDownloadApp }) 
       </div>
 
       <div className="max-w-5xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-16">
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-10 pb-12 md:pb-16">
           {/* Brand info */}
-          <div className="md:col-span-4 space-y-3">
+          <div className="col-span-2 md:col-span-4 space-y-3">
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 rounded-md bg-neutral-900 text-white flex items-center justify-center relative shadow-2xs">
                 <FileText className="w-3 h-3 text-white" />
@@ -36,7 +36,7 @@ export const Footer: React.FC<FooterProps> = ({ onSignInClick, onDownloadApp }) 
           </div>
 
           {/* Links 1: PRODUCT */}
-          <div className="md:col-span-2 space-y-3">
+          <div className="col-span-1 md:col-span-2 space-y-3">
             <div className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider">
               Product
             </div>
@@ -65,9 +65,9 @@ export const Footer: React.FC<FooterProps> = ({ onSignInClick, onDownloadApp }) 
           </div>
 
           {/* Links 2: APPS AND TOOLS */}
-          <div className="md:col-span-3 space-y-3">
+          <div className="col-span-1 md:col-span-3 space-y-3">
             <div className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider">
-              Apps and tools
+              Apps & tools
             </div>
             <ul className="space-y-2 text-xs text-neutral-600">
               <li>
@@ -95,9 +95,9 @@ export const Footer: React.FC<FooterProps> = ({ onSignInClick, onDownloadApp }) 
           </div>
 
           {/* Links 3: LEGAL */}
-          <div className="md:col-span-3 space-y-3">
+          <div className="col-span-2 sm:col-span-1 md:col-span-3 space-y-3">
             <div className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wider">
-              Legal
+              Legal & Support
             </div>
             <ul className="space-y-2 text-xs text-neutral-600">
               <li>
@@ -113,7 +113,7 @@ export const Footer: React.FC<FooterProps> = ({ onSignInClick, onDownloadApp }) 
               <li>
                 <a 
                   href="mailto:abdellahseid0987@gmail.com" 
-                  className="hover:text-neutral-950 transition-colors"
+                  className="hover:text-neutral-950 transition-colors break-all"
                 >
                   abdellahseid0987@gmail.com
                 </a>
@@ -123,8 +123,9 @@ export const Footer: React.FC<FooterProps> = ({ onSignInClick, onDownloadApp }) 
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-6 border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-400">
-          <div>© 2026 CVUME</div>
+        <div className="pt-6 border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-400 gap-2">
+          <div>© 2026 CVUME · All rights reserved.</div>
+          <div className="text-neutral-400 text-[11px]">Pass ATS filters with confidence</div>
         </div>
       </div>
     </footer>

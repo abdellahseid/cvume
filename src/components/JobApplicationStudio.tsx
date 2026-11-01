@@ -341,11 +341,11 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Top Banner / Candidate Profile Indicator */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-neutral-200">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           </div>
           <h1 className="text-lg sm:text-2xl font-bold text-neutral-950 tracking-tight mt-1">
             Job Tailoring & Application Studio
@@ -397,7 +397,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
             <Target className="w-3.5 h-3.5 text-[#e0644e]" />
             <span>Enter Job Post (Paste in full)</span>
           </label>
-          <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+          <div className="flex items-center gap-1.5 text-xs text-neutral-500 flex-wrap">
             <span className="hidden sm:inline">Or try sample:</span>
             {SAMPLE_JOB_POSTS.map((sample, idx) => (
               <button
@@ -441,7 +441,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
           <button
             onClick={handleGenerate}
             disabled={isGenerating || !jobDescription.trim()}
-            className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+            className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer w-full sm:w-auto ${
               isGenerating || !jobDescription.trim()
                 ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
                 : 'bg-neutral-950 hover:bg-neutral-800 text-white shadow-sm'
@@ -466,46 +466,48 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
       {result && (
         <div className="mt-8 space-y-6 animate-in fade-in slide-in-from-bottom-3 duration-300">
           {/* Header & Tabs */}
-          <div className="bg-neutral-50/80 p-1.5 rounded-xl border border-neutral-200 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-1">
+          <div className="bg-neutral-50/80 p-1.5 rounded-xl border border-neutral-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none w-full sm:w-auto shrink-0">
               <button
                 onClick={() => setActiveTab('resume')}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === 'resume'
                     ? 'bg-white text-neutral-950 shadow-xs border border-neutral-200/80'
                     : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100'
                 }`}
               >
-                <FileText className="w-3.5 h-3.5 text-blue-600" />
+                <FileText className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span>1. Resume</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold shrink-0">
                   {result.resume.atsBreakdown.score}% ATS
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('gmail')}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === 'gmail'
                     ? 'bg-white text-neutral-950 shadow-xs border border-neutral-200/80'
                     : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100'
                 }`}
               >
-                <Mail className="w-3.5 h-3.5 text-red-500" />
-                <span>2. Gmail Application Letter</span>
+                <Mail className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                <span className="hidden sm:inline">2. Gmail Application Letter</span>
+                <span className="sm:hidden">2. Cover Letter</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('social')}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                   activeTab === 'social'
                     ? 'bg-white text-neutral-950 shadow-xs border border-neutral-200/80'
                     : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100'
                 }`}
               >
-                <MessageSquare className="w-3.5 h-3.5 text-[#229ED9]" />
-                <span>3. Telegram / Social Media Application</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                <MessageSquare className="w-3.5 h-3.5 text-[#229ED9] shrink-0" />
+                <span className="hidden sm:inline">3. Telegram / Social Media Application</span>
+                <span className="sm:hidden">3. Telegram / DM</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
                   {result.socialMediaDm.wordCount} words
                 </span>
               </button>
@@ -649,9 +651,9 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
               {/* Right Column: Tailored Resume Document Canvas (Targeted for exact PDF export) */}
               <div className="lg:col-span-8 space-y-3">
                 {/* Canvas Controls Bar (Outside of the exported PDF paper) */}
-                <div className="bg-white rounded-xl border border-neutral-200 p-3 sm:px-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+                <div className="bg-white rounded-xl border border-neutral-200 p-3 sm:px-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-2xs">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-neutral-500" />
+                    <FileText className="w-4 h-4 text-neutral-500 shrink-0" />
                     <div>
                       <span className="text-xs font-bold text-neutral-900 block">
                         ATS Resume Canvas (A4 Display)
@@ -662,7 +664,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
                     <button
                       onClick={() => copyToClipboard(result.resume.formattedPlainText, 'ATS Plain Text Resume', 'resume-copy-top')}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200/80 text-neutral-700 text-xs font-medium rounded-lg transition-colors cursor-pointer"
@@ -683,10 +685,11 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
 
                     <button
                       onClick={handleProceedToTemplateSelection}
-                      className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs group"
+                      className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs group"
                     >
                       <Download className="w-3.5 h-3.5 text-[#e0644e] group-hover:translate-y-0.5 transition-transform" />
-                      <span>Download Resume (Choose Template)</span>
+                      <span className="hidden sm:inline">Download Resume (Choose Template)</span>
+                      <span className="sm:hidden">Templates & PDF</span>
                     </button>
                   </div>
                 </div>
@@ -695,7 +698,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                 <div className="bg-neutral-100/90 p-2 sm:p-5 rounded-2xl flex justify-center border border-neutral-200/80 overflow-x-auto shadow-inner">
                   <div 
                     id="resume-document-to-export" 
-                    className="bg-white p-8 sm:p-10 font-sans text-neutral-900 w-full max-w-[850px] border-0 rounded-none shadow-none outline-none"
+                    className="bg-white p-4 sm:p-8 md:p-10 font-sans text-neutral-900 w-full max-w-[850px] border-0 rounded-none shadow-none outline-none"
                     style={{ backgroundColor: '#ffffff', color: '#111827', border: 'none', borderRadius: '0px', boxShadow: 'none', outline: 'none' }}
                   >
                   {/* Header (Candidate Profile & Target Role) */}
@@ -906,7 +909,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
 
                 <button
                   onClick={() => copyToClipboard(result.socialMediaDm.text, 'Telegram application text', 'social-copy')}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#229ED9] hover:bg-[#1d8cc2] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer shrink-0"
+                  className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 bg-[#229ED9] hover:bg-[#1d8cc2] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm transition-all cursor-pointer w-full sm:w-auto shrink-0"
                 >
                   {copiedKey === 'social-copy' ? (
                     <>

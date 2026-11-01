@@ -220,7 +220,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-neutral-200">
         <div>
@@ -234,37 +234,47 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 w-full sm:w-auto">
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-75 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-75 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex-1 sm:flex-none shrink-0 sm:shrink"
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
-                <span>Saving to Database...</span>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-white shrink-0" />
+                <span className="truncate">
+                  <span className="sm:hidden">Saving...</span>
+                  <span className="hidden sm:inline">Saving to Database...</span>
+                </span>
               </>
             ) : isSaved ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3]" />
-                <span>Saved to Database</span>
+                <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3] shrink-0" />
+                <span className="truncate">
+                  <span className="sm:hidden">Saved</span>
+                  <span className="hidden sm:inline">Saved to Database</span>
+                </span>
               </>
             ) : (
               <>
-                <Save className="w-3.5 h-3.5" />
-                <span>Save</span>
+                <Save className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">
+                  Save<span className="hidden sm:inline"> profile changes</span>
+                </span>
               </>
             )}
           </button>
 
           <button
             onClick={onGoToGenerator}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#e0644e] hover:bg-[#d45640] text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 bg-[#e0644e] hover:bg-[#d45640] text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex-1 sm:flex-none shrink-0 sm:shrink"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Generate Application</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">
+              Generate<span className="hidden sm:inline"> Application</span>
+            </span>
+            <ArrowRight className="w-3.5 h-3.5 shrink-0" />
           </button>
         </div>
       </div>
@@ -274,90 +284,90 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
         {/* Navigation Sidebar */}
         <div className="md:col-span-3">
           <div className="sticky top-20 space-y-4">
-            <div className="bg-neutral-50/80 rounded-xl border border-neutral-200/80 p-2 space-y-1">
+            <div className="flex md:flex-col overflow-x-auto md:overflow-visible gap-1.5 p-1.5 md:p-2 bg-neutral-50/80 rounded-xl border border-neutral-200/80 scrollbar-none shrink-0">
               <button
                 onClick={() => setActiveTab('personal')}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                className={`flex items-center gap-2 sm:gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left whitespace-nowrap md:whitespace-normal shrink-0 md:shrink md:w-full ${
                   activeTab === 'personal'
                     ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
                     : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
                 }`}
               >
-                <User className="w-4 h-4 text-[#e0644e]" />
+                <User className="w-4 h-4 text-[#e0644e] shrink-0" />
                 <span>Personal & Contact</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('experience')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                className={`flex items-center justify-between gap-2 sm:gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left whitespace-nowrap md:whitespace-normal shrink-0 md:shrink md:w-full ${
                   activeTab === 'experience'
                     ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
                     : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
-                  <Briefcase className="w-4 h-4 text-blue-600" />
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <Briefcase className="w-4 h-4 text-blue-600 shrink-0" />
                   <span>Work Experience</span>
                 </div>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700 ml-1.5">
                   {profile.experiences.length}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('skills')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                className={`flex items-center justify-between gap-2 sm:gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left whitespace-nowrap md:whitespace-normal shrink-0 md:shrink md:w-full ${
                   activeTab === 'skills'
                     ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
                     : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
-                  <Code className="w-4 h-4 text-emerald-600" />
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <Code className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Core Skills</span>
                 </div>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700 ml-1.5">
                   {profile.skills.length}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('education')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                className={`flex items-center justify-between gap-2 sm:gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left whitespace-nowrap md:whitespace-normal shrink-0 md:shrink md:w-full ${
                   activeTab === 'education'
                     ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
                     : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
-                  <GraduationCap className="w-4 h-4 text-purple-600" />
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <GraduationCap className="w-4 h-4 text-purple-600 shrink-0" />
                   <span>Education</span>
                 </div>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700 ml-1.5">
                   {profile.education.length}
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('projects')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left ${
+                className={`flex items-center justify-between gap-2 sm:gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer text-left whitespace-nowrap md:whitespace-normal shrink-0 md:shrink md:w-full ${
                   activeTab === 'projects'
                     ? 'bg-white text-neutral-950 font-semibold shadow-xs border border-neutral-200/80'
                     : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-100/60'
                 }`}
               >
-                <div className="flex items-center gap-2.5">
-                  <FolderGit2 className="w-4 h-4 text-amber-600" />
+                <div className="flex items-center gap-2 sm:gap-2.5">
+                  <FolderGit2 className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>Projects</span>
                 </div>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700">
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-neutral-200/60 text-neutral-700 ml-1.5">
                   {profile.projects.length}
                 </span>
               </button>
             </div>
 
-            {/* Quick AI Tip card — now sticks along with the buttons */}
-            <div className="p-3.5 rounded-xl bg-[#e0644e]/5 border border-[#e0644e]/15 text-neutral-700">
+            {/* Quick AI Tip card — now sticks along with the buttons, hidden on mobile */}
+            <div className="hidden md:block p-3.5 rounded-xl bg-[#e0644e]/5 border border-[#e0644e]/15 text-neutral-700">
               <div className="flex items-center gap-1.5 text-xs font-bold text-[#e0644e] mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>How AI uses this</span>
@@ -548,19 +558,24 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
           {/* TAB 2: WORK EXPERIENCE */}
           {activeTab === 'experience' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-3 pb-1 border-b border-neutral-100 sm:border-b-0 sm:pb-0">
+                <div className="min-w-0 flex-1">
                   <h2 className="text-base font-bold text-neutral-950">Work Experiences</h2>
-                  <p className="text-xs text-neutral-500">Add your previous roles. AI will rewrite and quantify the bullets to match each target job description.</p>
+                  <p className="text-xs text-neutral-500 hidden sm:block">
+                    Add your previous roles. AI will rewrite and quantify the bullets to match each target job description.
+                  </p>
                 </div>
                 <button
                   onClick={handleAddExperience}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shrink-0 whitespace-nowrap shadow-xs"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
                   <span>Add Role</span>
                 </button>
               </div>
+              <p className="text-xs text-neutral-500 sm:hidden -mt-2">
+                Add your previous roles. AI will rewrite and quantify the bullets to match each target job description.
+              </p>
 
               {profile.experiences.map((exp, expIdx) => (
                 <div key={exp.id} className="bg-white rounded-xl border border-neutral-200 p-5 space-y-4 relative group">
@@ -683,14 +698,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
                   type="text"
                   value={newSkill}
                   onChange={e => setNewSkill(e.target.value)}
-                  placeholder="Type a skill and press Enter (e.g. Next.js, Kubernetes, System Design)..."
-                  className="flex-1 px-3 py-2 text-xs rounded-lg border border-neutral-200 focus:outline-none focus:border-neutral-900"
+                  placeholder="Type a skill (e.g. Next.js, Kubernetes)..."
+                  className="flex-1 min-w-0 px-3 py-2 text-xs rounded-lg border border-neutral-200 focus:outline-none focus:border-neutral-900"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="px-3 sm:px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap shadow-xs"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
                   <span>Add Skill</span>
                 </button>
               </form>
@@ -742,20 +757,21 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
 
           {/* TAB 4: EDUCATION */}
           {activeTab === 'education' && (
-            <div className="bg-white rounded-xl border border-neutral-200 p-6 space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
-                <div>
+            <div className="bg-white rounded-xl border border-neutral-200 p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between gap-3 pb-2 border-b border-neutral-100">
+                <div className="min-w-0 flex-1">
                   <h2 className="text-base font-bold text-neutral-950">Degrees & Certifications</h2>
-                  <p className="text-xs text-neutral-500">Academic background and accredited credentials.</p>
+                  <p className="text-xs text-neutral-500 hidden sm:block">Academic background and accredited credentials.</p>
                 </div>
                 <button
                   onClick={handleAddEducation}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shrink-0 whitespace-nowrap shadow-xs"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
                   <span>Add Degree</span>
                 </button>
               </div>
+              <p className="text-xs text-neutral-500 sm:hidden -mt-2">Academic background and accredited credentials.</p>
 
               {profile.education.map((edu) => (
                 <div key={edu.id} className="p-4 rounded-lg border border-neutral-200 flex items-start justify-between gap-4">
@@ -801,11 +817,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
 
           {/* TAB 5: PROJECTS */}
           {activeTab === 'projects' && (
-            <div className="bg-white rounded-xl border border-neutral-200 p-6 space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
-                <div>
+            <div className="bg-white rounded-xl border border-neutral-200 p-4 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between gap-3 pb-2 border-b border-neutral-100">
+                <div className="min-w-0 flex-1">
                   <h2 className="text-base font-bold text-neutral-950">Featured Projects & Open Source</h2>
-                  <p className="text-xs text-neutral-500">Highlight portfolio links, open source packages, and flagship builds.</p>
+                  <p className="text-xs text-neutral-500 hidden sm:block">Highlight portfolio links, open source packages, and flagship builds.</p>
                 </div>
                 <button
                   onClick={() => {
@@ -819,12 +835,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
                     setProfile(updated);
                     saveStoredProfile(updated);
                   }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shrink-0 whitespace-nowrap shadow-xs"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 shrink-0" />
                   <span>Add Project</span>
                 </button>
               </div>
+              <p className="text-xs text-neutral-500 sm:hidden -mt-2">Highlight portfolio links, open source packages, and flagship builds.</p>
 
               {profile.projects.map((proj) => (
                 <div key={proj.id} className="p-4 rounded-lg border border-neutral-200 space-y-3">
@@ -884,17 +901,40 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
           )}
 
           {/* Bottom Save Reminder */}
-          <div className="flex items-center justify-between pt-4 pb-12">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 pb-12">
             <span className="text-xs text-neutral-400">
               Changes are saved locally in your browser workspace.
             </span>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 onClick={handleSave}
-                className="px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer inline-flex items-center gap-2"
+                disabled={isSaving}
+                className="w-full sm:w-auto justify-center px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-75 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer inline-flex items-center gap-2"
               >
-                {isSaved ? <Check className="w-4 h-4 text-emerald-400" /> : <Save className="w-4 h-4" />}
-                <span>Save Profile Changes</span>
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : isSaved ? (
+                  <Check className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                <span>
+                  {isSaving ? (
+                    <>
+                      <span className="sm:hidden">Saving...</span>
+                      <span className="hidden sm:inline">Saving to Database...</span>
+                    </>
+                  ) : isSaved ? (
+                    <>
+                      <span className="sm:hidden">Saved</span>
+                      <span className="hidden sm:inline">Saved to Database</span>
+                    </>
+                  ) : (
+                    <>
+                      Save<span className="hidden sm:inline"> Profile Changes</span>
+                    </>
+                  )}
+                </span>
               </button>
             </div>
           </div>

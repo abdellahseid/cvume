@@ -20,7 +20,7 @@ export const MoreFeaturesSection: React.FC<MoreFeaturesSectionProps> = ({
   onOpenCommand 
 }) => {
   return (
-    <section className="py-20 px-4 sm:px-6 relative border-t border-neutral-100">
+    <section className="py-14 sm:py-20 px-4 sm:px-6 relative border-t border-neutral-100">
       {/* Guideline crosshairs */}
       <div className="absolute inset-0 pointer-events-none max-w-6xl mx-auto border-x border-neutral-100 flex justify-between">
         <div className="absolute top-0 -left-1.5 text-neutral-300 font-mono text-xs select-none">+</div>
@@ -30,17 +30,17 @@ export const MoreFeaturesSection: React.FC<MoreFeaturesSectionProps> = ({
       </div>
 
       {/* Header */}
-      <div className="max-w-3xl mx-auto text-center mb-16">
+      <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-16">
         <div className="text-[11px] font-bold text-[#e0644e] uppercase tracking-[0.2em] mb-3">
           THE DETAILS
         </div>
-        <h2 className="text-3xl sm:text-4xl font-bold text-neutral-950 tracking-[-0.03em]">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-950 tracking-[-0.03em]">
           More features you will use to stand out
         </h2>
       </div>
 
       {/* 2-Column Grid */}
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5 sm:gap-y-8">
         {/* 1. Connect all your career profiles */}
         <div className="flex items-start gap-3.5 p-2 rounded-xl hover:bg-neutral-50/60 transition-colors">
           <div className="w-7 h-7 rounded-lg bg-neutral-100 border border-neutral-200/80 flex items-center justify-center shrink-0 mt-0.5">

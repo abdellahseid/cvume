@@ -26,13 +26,13 @@ export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, onClose 
   return (
     <div 
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-neutral-950/40 backdrop-blur-2xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-neutral-950/40 backdrop-blur-2xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150"
     >
       <div 
         onClick={e => e.stopPropagation()}
         className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-neutral-200 overflow-hidden animate-in zoom-in-95 duration-150"
       >
-        <div className="p-4 px-6 border-b border-neutral-100 flex items-center justify-between">
+        <div className="p-4 px-4 sm:px-6 border-b border-neutral-100 flex items-center justify-between">
           <h3 className="font-semibold text-neutral-900 text-sm">Keyboard Shortcuts</h3>
           <button 
             onClick={onClose}
@@ -42,11 +42,11 @@ export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({ isOpen, onClose 
           </button>
         </div>
 
-        <div className="p-6 max-h-[70vh] overflow-y-auto divide-y divide-neutral-100">
+        <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto divide-y divide-neutral-100">
           {shortcuts.map((s, idx) => (
-            <div key={idx} className="py-2.5 flex items-center justify-between text-xs">
-              <span className="text-neutral-600">{s.desc}</span>
-              <kbd className="px-2 py-1 bg-neutral-100 border border-neutral-200/80 rounded font-mono font-medium text-neutral-800">
+            <div key={idx} className="py-2.5 flex items-center justify-between text-xs gap-3">
+              <span className="text-neutral-600 min-w-0 pr-1">{s.desc}</span>
+              <kbd className="px-2 py-1 bg-neutral-100 border border-neutral-200/80 rounded font-mono font-medium text-neutral-800 shrink-0 text-right">
                 {s.key}
               </kbd>
             </div>

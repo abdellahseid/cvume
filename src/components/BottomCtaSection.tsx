@@ -19,11 +19,11 @@ export const BottomCtaSection: React.FC<BottomCtaSectionProps> = ({
         <div className="absolute bottom-0 -right-1.5 text-neutral-300 font-mono text-xs select-none">+</div>
       </div>
 
-      <div className="max-w-5xl mx-auto bg-[#FAF5EE] border border-[#f0e3d2] rounded-3xl p-8 sm:p-12 relative shadow-xs flex flex-col md:flex-row items-center justify-between gap-8">
+      <div className="max-w-5xl mx-auto bg-[#FAF5EE] border border-[#f0e3d2] rounded-3xl p-6 sm:p-8 md:p-12 relative shadow-xs flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
         {/* Left: Cute Resume Document Illustration */}
         <div className="shrink-0 flex items-center justify-center">
           <svg
-            className="w-24 h-24 transform -rotate-3 hover:rotate-0 transition-transform"
+            className="w-20 h-20 sm:w-24 sm:h-24 transform -rotate-3 hover:rotate-0 transition-transform"
             viewBox="0 0 100 100"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -65,7 +65,7 @@ export const BottomCtaSection: React.FC<BottomCtaSectionProps> = ({
 
         {/* Center Content */}
         <div className="text-center md:text-left flex-1 max-w-lg">
-          <h3 className="text-2xl sm:text-3xl font-bold text-neutral-950 tracking-[-0.03em] leading-snug mb-2">
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-neutral-950 tracking-[-0.03em] leading-snug mb-2">
             Start building your dream resume with Cvume
           </h3>
           <p className="text-xs sm:text-sm text-neutral-600 mb-6">
@@ -91,7 +91,7 @@ export const BottomCtaSection: React.FC<BottomCtaSectionProps> = ({
         {/* Right: Cute Green Checkmark Badge */}
         <div className="shrink-0 flex items-center justify-center">
           <svg
-            className="w-20 h-20 transform rotate-3 hover:rotate-0 transition-transform"
+            className="w-16 h-16 sm:w-20 sm:h-20 transform rotate-3 hover:rotate-0 transition-transform"
             viewBox="0 0 100 100"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"

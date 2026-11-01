@@ -117,21 +117,23 @@ export const ShareTimeSection: React.FC = () => {
       {/* 2-Column Content */}
       <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Interactive Live Resume Card (Sage/Mint container) */}
-        <div className="lg:col-span-7 bg-[#EDF5F2] border border-[#d2e6df] rounded-2xl p-6 sm:p-7 relative min-h-[460px] flex flex-col justify-between shadow-xs">
+        <div className="lg:col-span-7 bg-[#EDF5F2] border border-[#d2e6df] rounded-2xl p-4 sm:p-6 lg:p-7 relative min-h-[460px] flex flex-col justify-between shadow-xs">
           {/* Top Bar with Replay */}
-          <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#d2e6df]/70">
-            <span className="text-[11px] font-semibold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-600" />
-              {activeFeature === 'booking' && 'Live Public Profile & Handle'}
-              {activeFeature === 'guests' && 'Recruiter PDF & DOCX Export Studio'}
-              {activeFeature === 'onetime' && 'One-Time Company Application Link'}
-              {activeFeature === 'everyone' && 'Salary & Role Preferences Filter'}
-              {activeFeature === 'double' && 'ATS Strict Parser Validator'}
-              {activeFeature === 'accounts' && 'LinkedIn & Greenhouse Auto-Fill'}
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#d2e6df]/70 gap-2">
+            <span className="text-[11px] font-semibold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5 truncate">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 shrink-0" />
+              <span className="truncate">
+                {activeFeature === 'booking' && 'Live Public Profile & Handle'}
+                {activeFeature === 'guests' && 'Recruiter PDF & DOCX Export Studio'}
+                {activeFeature === 'onetime' && 'One-Time Company Application Link'}
+                {activeFeature === 'everyone' && 'Salary & Role Preferences Filter'}
+                {activeFeature === 'double' && 'ATS Strict Parser Validator'}
+                {activeFeature === 'accounts' && 'LinkedIn & Greenhouse Auto-Fill'}
+              </span>
             </span>
             <button
               onClick={handleReplay}
-              className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-neutral-600 bg-white/90 hover:bg-white border border-neutral-200 rounded-full shadow-2xs transition-all cursor-pointer active:scale-95"
+              className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-neutral-600 bg-white/90 hover:bg-white border border-neutral-200 rounded-full shadow-2xs transition-all cursor-pointer active:scale-95 shrink-0"
             >
               <RotateCcw className="w-3 h-3 text-neutral-500" />
               <span>Reset</span>
@@ -143,7 +145,7 @@ export const ShareTimeSection: React.FC = () => {
           {/* DESIGN 1: LIVE RESUME LINK (BOOKING) */}
           {activeFeature === 'booking' && (
             <div className="space-y-4 my-auto animate-in fade-in duration-300">
-              <div className="bg-white border border-neutral-200/90 rounded-2xl p-5 shadow-xs max-w-sm mx-auto w-full">
+              <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-xs max-w-sm mx-auto w-full">
                 {/* Candidate info */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -203,7 +205,7 @@ export const ShareTimeSection: React.FC = () => {
           {/* DESIGN 2: DOWNLOAD PDF OR WORD (GUESTS) */}
           {activeFeature === 'guests' && (
             <div className="space-y-4 my-auto animate-in fade-in duration-300">
-              <div className="bg-white border border-neutral-200/90 rounded-2xl p-5 shadow-xs max-w-md mx-auto w-full space-y-4">
+              <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-xs max-w-md mx-auto w-full space-y-4">
                 <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
                   <div>
                     <div className="font-bold text-xs text-neutral-900">Format Selection</div>
@@ -257,15 +259,15 @@ export const ShareTimeSection: React.FC = () => {
                 </div>
 
                 {/* File Details */}
-                <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 flex items-center justify-between">
-                  <div>
-                    <div className="font-semibold text-neutral-900">Alex_Rivera_Resume.{selectedFormat.toLowerCase()}</div>
+                <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-neutral-900 truncate">Alex_Rivera_Resume.{selectedFormat.toLowerCase()}</div>
                     <div className="text-[10px] text-neutral-400">1 Page · 240 KB · High Resolution Vector</div>
                   </div>
                   <button
                     onClick={handleSimulateExport}
                     disabled={isExporting}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-xs transition-colors cursor-pointer disabled:opacity-50"
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-xs transition-colors cursor-pointer disabled:opacity-50 shrink-0"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>{isExporting ? 'Generating...' : exportComplete ? 'Downloaded!' : 'Export File'}</span>
@@ -278,7 +280,7 @@ export const ShareTimeSection: React.FC = () => {
           {/* DESIGN 3: ONE-TIME APPLICATION LINKS (ONETIME) */}
           {activeFeature === 'onetime' && (
             <div className="space-y-4 my-auto animate-in fade-in duration-300">
-              <div className="bg-white border border-neutral-200/90 rounded-2xl p-5 shadow-xs max-w-md mx-auto w-full space-y-3.5">
+              <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-xs max-w-md mx-auto w-full space-y-3.5">
                 <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
                   <div className="flex items-center gap-2">
                     <Lock className="w-4 h-4 text-emerald-600" />
@@ -290,38 +292,39 @@ export const ShareTimeSection: React.FC = () => {
                 </div>
 
                 {/* Company Selector */}
-                <div className="flex gap-2">
+                <div className="flex gap-1.5 sm:gap-2">
                   {(['stripe', 'linear', 'airbnb'] as const).map(c => (
                     <button
                       key={c}
                       onClick={() => setSelectedCompany(c)}
-                      className={`flex-1 py-1 px-2 rounded-lg text-xs font-semibold capitalize border transition-all cursor-pointer ${
+                      className={`flex-1 py-1 px-1.5 sm:px-2 rounded-lg text-xs font-semibold capitalize border transition-all cursor-pointer truncate ${
                         selectedCompany === c
                           ? 'bg-emerald-50 border-emerald-500 text-emerald-950'
                           : 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'
                       }`}
                     >
-                      {c} Application
+                      <span className="hidden sm:inline">{c} Application</span>
+                      <span className="sm:hidden">{c}</span>
                     </button>
                   ))}
                 </div>
 
                 <div className="p-3 rounded-xl bg-neutral-50 border border-neutral-200/90 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-mono text-neutral-700 text-[11px]">
+                  <div className="flex flex-col xs:flex-row xs:items-center justify-between text-xs gap-1">
+                    <span className="font-mono text-neutral-700 text-[11px] truncate">
                       cvume/apply/{selectedCompany}-9a84f
                     </span>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded self-start xs:self-auto shrink-0">
                       Active
                     </span>
                   </div>
                   <div className="text-[11px] text-neutral-500 space-y-1">
                     <div className="flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-emerald-600" />
+                      <Check className="w-3 h-3 text-emerald-600 shrink-0" />
                       <span>Notifies your phone when hiring manager opens</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Check className="w-3 h-3 text-emerald-600" />
+                      <Check className="w-3 h-3 text-emerald-600 shrink-0" />
                       <span>Tracks read duration per experience bullet</span>
                     </div>
                   </div>
@@ -333,7 +336,7 @@ export const ShareTimeSection: React.FC = () => {
           {/* DESIGN 4: SALARY & ROLE PREFERENCES (EVERYONE) */}
           {activeFeature === 'everyone' && (
             <div className="space-y-4 my-auto animate-in fade-in duration-300">
-              <div className="bg-white border border-neutral-200/90 rounded-2xl p-5 shadow-xs max-w-md mx-auto w-full space-y-4">
+              <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-xs max-w-md mx-auto w-full space-y-4">
                 <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
                   <span className="font-bold text-xs text-neutral-900">Inbound Recruiter Filter</span>
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
@@ -355,6 +358,7 @@ export const ShareTimeSection: React.FC = () => {
                     value={targetSalary}
                     onChange={(e) => setTargetSalary(parseInt(e.target.value))}
                     className="w-full accent-emerald-600 cursor-pointer h-1.5 bg-neutral-200 rounded-lg appearance-none"
+                    aria-label="Minimum base compensation"
                   />
                   <div className="flex justify-between text-[10px] font-mono text-neutral-400 mt-1">
                     <span>$150k</span>
@@ -368,11 +372,11 @@ export const ShareTimeSection: React.FC = () => {
                   <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-950 font-semibold">
                     ✓ Remote
                   </div>
-                  <div className="p-2 rounded-lg bg-neutral-50 border border-neutral-200 text-neutral-600">
-                    Hybrid SF/NYC
+                  <div className="p-2 rounded-lg bg-white border border-neutral-200 text-neutral-600">
+                    Hybrid
                   </div>
-                  <div className="p-2 rounded-lg bg-neutral-50 border border-neutral-200 text-neutral-400">
-                    On-site (Filtered)
+                  <div className="p-2 rounded-lg bg-neutral-100 border border-neutral-200 text-neutral-400 line-through">
+                    On-site
                   </div>
                 </div>
               </div>
@@ -382,7 +386,7 @@ export const ShareTimeSection: React.FC = () => {
           {/* DESIGN 5: AVOID ATS REJECTIONS (DOUBLE) */}
           {activeFeature === 'double' && (
             <div className="space-y-4 my-auto animate-in fade-in duration-300">
-              <div className="bg-white border border-neutral-200/90 rounded-2xl p-5 shadow-xs max-w-md mx-auto w-full space-y-3">
+              <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-xs max-w-md mx-auto w-full space-y-3">
                 <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
                   <span className="font-bold text-xs text-neutral-900">ATS Parsing Verification</span>
                   <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
@@ -400,13 +404,13 @@ export const ShareTimeSection: React.FC = () => {
                   <div className="p-2.5 rounded-lg bg-neutral-50 border border-neutral-200 flex items-center justify-between">
                     <span className="font-medium text-neutral-800">Workday Recruitment Engine</span>
                     <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> 100% Section Match
+                      <Check className="w-3.5 h-3.5" /> 100% Match
                     </span>
                   </div>
                   <div className="p-2.5 rounded-lg bg-neutral-50 border border-neutral-200 flex items-center justify-between">
                     <span className="font-medium text-neutral-800">Lever Intelligence</span>
                     <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> 18 Skills Parsed
+                      <Check className="w-3.5 h-3.5" /> 18 Skills
                     </span>
                   </div>
                 </div>
@@ -417,11 +421,11 @@ export const ShareTimeSection: React.FC = () => {
           {/* DESIGN 6: SYNC WITH LINKEDIN & GREENHOUSE (ACCOUNTS) */}
           {activeFeature === 'accounts' && (
             <div className="space-y-4 my-auto animate-in fade-in duration-300">
-              <div className="bg-white border border-neutral-200/90 rounded-2xl p-5 shadow-xs max-w-md mx-auto w-full space-y-3.5">
+              <div className="bg-white border border-neutral-200/90 rounded-2xl p-4 sm:p-5 shadow-xs max-w-md mx-auto w-full space-y-3.5">
                 <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
-                  <span className="font-bold text-xs text-neutral-900">1-Click ATS Application Auto-Fill</span>
+                  <span className="font-bold text-xs text-neutral-900">1-Click ATS Form Fill</span>
                   <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
-                    Browser Extension Ready
+                    Browser Extension
                   </span>
                 </div>
 

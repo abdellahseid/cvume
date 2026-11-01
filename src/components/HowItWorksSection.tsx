@@ -15,7 +15,7 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ onSignInCl
   };
 
   return (
-    <section className="py-20 px-4 sm:px-6 relative border-t border-neutral-100">
+    <section className="py-14 sm:py-20 px-4 sm:px-6 relative border-t border-neutral-100">
       {/* Guideline crosshairs */}
       <div className="absolute inset-0 pointer-events-none max-w-6xl mx-auto border-x border-neutral-100 flex justify-between">
         <div className="absolute top-0 -left-1.5 text-neutral-300 font-mono text-xs select-none">+</div>
@@ -25,11 +25,11 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ onSignInCl
       </div>
 
       {/* Header */}
-      <div className="max-w-3xl mx-auto text-center mb-16">
+      <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-16">
         <div className="text-[11px] font-bold text-[#e0644e] uppercase tracking-[0.2em] mb-3">
           HOW IT WORKS
         </div>
-        <h2 className="text-3xl sm:text-4xl font-bold text-neutral-950 tracking-[-0.03em] mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-950 tracking-[-0.03em] mb-3 sm:mb-4">
           Get hired in three steps
         </h2>
         <p className="text-sm sm:text-base text-neutral-600">
@@ -38,10 +38,10 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ onSignInCl
       </div>
 
       {/* 3 Steps Grid */}
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
         {/* Step 1 */}
         <div className="flex flex-col justify-between">
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <div className="w-6 h-6 rounded-full bg-neutral-900 text-white font-mono text-xs font-bold flex items-center justify-center mb-3">
               1
             </div>
@@ -91,7 +91,7 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ onSignInCl
 
         {/* Step 2 */}
         <div className="flex flex-col justify-between">
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <div className="w-6 h-6 rounded-full bg-neutral-900 text-white font-mono text-xs font-bold flex items-center justify-center mb-3">
               2
             </div>
@@ -133,7 +133,7 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ onSignInCl
 
         {/* Step 3 */}
         <div className="flex flex-col justify-between">
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <div className="w-6 h-6 rounded-full bg-neutral-900 text-white font-mono text-xs font-bold flex items-center justify-center mb-3">
               3
             </div>
@@ -146,11 +146,11 @@ export const HowItWorksSection: React.FC<HowItWorksSectionProps> = ({ onSignInCl
           </div>
 
           {/* Visual Card 3 */}
-          <div className="bg-[#FAF5EE] border border-[#f0e3d2] rounded-xl p-4 sm:p-5 flex flex-col justify-center min-h-[190px] relative shadow-2xs">
+          <div className="bg-[#FAF5EE] border border-[#f0e3d2] rounded-xl p-4 sm:p-5 flex flex-col justify-center min-h-[190px] relative shadow-2xs mb-2 md:mb-0">
             <div className="bg-white/90 p-3 rounded-lg border border-neutral-200/60 space-y-2.5">
               <div className="text-[11px] font-semibold text-neutral-800 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-neutral-500" />
-                <span>Alex Rivera · Resume (ATS Pass)</span>
+                <span className="truncate">Alex Rivera · Resume (ATS Pass)</span>
               </div>
 
               {/* Format selection */}

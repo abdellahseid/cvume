@@ -62,8 +62,8 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onStartTrial }) 
       </div>
 
       {/* Pricing Card (Warm sand container) */}
-      <div className="max-w-4xl mx-auto bg-[#FAF5EE] border border-[#f0e3d2] rounded-2xl p-8 sm:p-12 shadow-xs">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+      <div className="max-w-4xl mx-auto bg-[#FAF5EE] border border-[#f0e3d2] rounded-2xl p-5 sm:p-8 md:p-12 shadow-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 items-center">
           {/* Left Column: Price & Button */}
           <div className="space-y-6">
             <div>
@@ -71,7 +71,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onStartTrial }) 
                 {billingCycle === 'monthly' ? 'Monthly plan' : 'Yearly plan'}
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-extrabold text-neutral-950 tracking-tight font-mono">
+                <span className="text-4xl sm:text-5xl font-extrabold text-neutral-950 tracking-tight font-mono">
                   {price}
                 </span>
                 <span className="text-sm text-neutral-500 font-medium">a month</span>

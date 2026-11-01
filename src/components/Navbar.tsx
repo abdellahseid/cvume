@@ -66,17 +66,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               <User className="w-3.5 h-3.5 text-blue-600" />
               <span>Candidate Profile</span>
             </button>
-            <button
-              onClick={() => onNavigateTab?.('templates')}
-              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                currentAppTab === 'templates'
-                  ? 'bg-white text-neutral-950 shadow-xs'
-                  : 'text-neutral-600 hover:text-neutral-950'
-              }`}
-            >
-              <Palette className="w-3.5 h-3.5 text-purple-600" />
-              <span>Resume Templates & PDF</span>
-            </button>
           </div>
         ) : (
           <nav className="hidden md:flex items-center gap-8 text-[14px] font-medium text-neutral-600">

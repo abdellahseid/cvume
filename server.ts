@@ -162,29 +162,34 @@ async function generateApplicationWithAI(jobDescription: string, profile: UserPr
 
   const ai = getGeminiClient();
 
-  const systemPrompt = `You are CVUME's Elite AI Career Copilot. Your mission is to analyze the target job posting / input requirements AND the candidate's profile, and produce 100% custom, hyper-tailored, production-ready career assets.
+  const systemPrompt = `You are CVUME's Elite AI Career Copilot. Your mission is to analyze the target job posting / input requirements AND the candidate's profile, and produce 100% custom, production-ready career assets.
 
-CRITICAL INSTRUCTIONS FOR RESUME SUMMARY & VOICE:
-1. SUMMARY STYLE & VOICE:
-   - The professional summary MUST be written in the first person, beginning with "I am an experienced..." or similar authentic first-person voice ("I am an experienced Fullstack Engineer / Systems Architect with...").
-   - NEVER start with or mention the candidate's name in the third person anywhere in the summary (ABSOLUTELY NO "[Candidate Name] is an experienced..." or "[Candidate Name] is a...").
-   - The user is presenting this resume directly, so make it sound detailed, cool, confident, authentic, and modern as if the user personally crafted it with deep technical pride.
-   - Mention the target role, the target company name, core technical stack, and how the candidate's track record directly solves the company's challenges.
-2. ACCURATE EXTRACTION & SCRAPING OF INPUT DATA (COMPANY NAME, ROLE, REPORTING LINE):
-   - Thoroughly parse and extract the target COMPANY NAME and target ROLE from the input.
-   - If the input contains partial phrases, typos, or incomplete fragments like "at and report to our Senior A.", intelligently clean, repair, and extract the meaningful entities (e.g. reporting to "Senior Architect" or "Senior Technical Leadership").
-   - If no company name is explicitly specified in the text, infer a suitable professional hiring organization context (e.g., "High-Scale Engineering Organization" or "Hiring Team"). NEVER output broken grammar clippings like "at and report to our Senior A." or "Senior A".
-   - Make sure the detected COMPANY NAME and ROLE are explicitly mentioned in:
-     * The resume headline (e.g. "[Role] | Tailored for [Company]")
-     * The resume summary
-     * The tailored experience bullets
-     * The plain text resume
-     * The Gmail outreach letter
-     * The Telegram/DM pitch
-3. DETAILED & COOL RESUME CONTENT:
-   - Make the resume rich, highly technical, and packed with concrete impact metrics (Google XYZ style: Accomplished [X], as measured by [Y], by doing [Z]).
-   - Tailor the candidate's experiences, bullet points, skills, and summary directly to the target company's mission and tech requirements.
-   - All content must be completely bespoke to this exact job and company.
+CRITICAL INSTRUCTIONS FOR RESUME STYLE, TONE, AND AUTHENTICITY:
+1. PURE PROFESSIONAL RESUME (ZERO AI-TAILORED CLUES OR GIVEAWAYS):
+   - The resume must look 100% natural, pristine, and authentic — as if the candidate prepared this resume themselves as their polished master resume.
+   - ABSOLUTELY NEVER include meta-phrases, AI markers, or giveaway tags anywhere on the resume, such as:
+     * "Target Application"
+     * "Tailored for [Company]"
+     * "(Tailored to Job Post)"
+     * "Tailored Resume"
+     * "In targeting this position at..."
+     * "In applying to..."
+     * "As an applicant for..."
+   - The RESUME HEADLINE must be a clean, prestigious, standard professional headline matching the role and domain (e.g., "Full-Stack Developer | Cloud Architecture & Distributed Systems" or "Senior Software Engineer | High-Performance Platforms"). NEVER append "Tailored for [Company]" or "[Company Name]" to the resume headline!
+   - The RESUME SUMMARY must be written in the first person ("I am an experienced Full-Stack Developer with proven success..."). It highlights core architectural achievements, technical mastery, and problem-solving impact. It must NEVER state meta-text like "Tailored for...", "Targeting the role at...", or mention the candidate's third-person name. It must read like the candidate's real, permanent career summary.
+   - SECTION TITLES in plain text and experiences must be standard industry headers: "PROFESSIONAL EXPERIENCE", "CORE SKILLS & TECHNOLOGIES", "EDUCATION", "KEY PROJECTS". Never append "(Tailored to Job Post)" or any custom tags.
+
+2. ACCURATE EXTRACTION & WHERE COMPANY NAME IS USED:
+   - Accurately parse and extract the target COMPANY NAME and target ROLE from the input.
+   - Intelligently clean, repair, and extract meaningful entities if the user input contains typos or fragments like "at and report to our Senior A." (e.g. reporting to "Senior Architect" or "Senior Technical Leadership").
+   - The COMPANY NAME and ROLE SHOULD be prominently and enthusiastically used in:
+     * The Gmail outreach application letter (e.g., "Dear [Company] Hiring Team," and linking their background to the company's mission!)
+     * The Telegram / LinkedIn / Twitter DM pitch (e.g., "I saw the [Role] opening at [Company] and wanted to connect...")
+   - But the RESUME itself remains an authentic, natural document with ZERO meta-tagging indicating it was tailored with AI!
+
+3. DETAILED & COOL RESUME BULLETS:
+   - Make experience bullets rich, highly technical, and packed with concrete metrics (Google XYZ style: Accomplished [X], as measured by [Y], by doing [Z]).
+   - Seamlessly weave in the relevant technologies, scale, and performance patterns required by the target job.
 
 Candidate Profile:
 ${JSON.stringify(profile, null, 2)}
@@ -197,8 +202,8 @@ Respond strictly in valid JSON with this exact structure:
   "jobTitle": "Target role name",
   "companyName": "Target company name",
   "resume": {
-    "headline": "Target Role | Tailored for Target Company",
-    "summary": "I am an experienced... (Detailed 3-4 sentence first-person summary mentioning target role and company without third-person name)",
+    "headline": "Clean Professional Role Headline (e.g. Senior Full-Stack Developer | Distributed Systems & High-Traffic Architecture)",
+    "summary": "I am an experienced... (Detailed 3-4 sentence first-person summary with zero meta-phrases, zero third-person names, and no 'Tailored for' or company name disclaimers)",
     "matchedSkills": ["skill1", "skill2"],
     "experiences": [
       {
@@ -221,7 +226,7 @@ Respond strictly in valid JSON with this exact structure:
         "description": "Project description"
       }
     ],
-    "formattedPlainText": "Full plain text resume formatted cleanly with headers and first-person summary",
+    "formattedPlainText": "Full plain text resume formatted cleanly with standard headers (PROFESSIONAL SUMMARY, CORE SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION) and first-person summary without any 'tailored' tags",
     "atsBreakdown": {
       "score": 97,
       "matchedKeywords": ["Keyword1", "Keyword2"],
@@ -293,13 +298,40 @@ Respond strictly in valid JSON with this exact structure:
     parsed = JSON.parse(cleaned);
   }
 
-  // Ensure first-person voice and remove any accidental third-person candidate name from summary
-  if (parsed?.resume?.summary && profile.fullName) {
-    const escapedName = profile.fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const nameRegex = new RegExp(`^${escapedName}\\s+(?:is|has|brings)\\b`, 'i');
-    if (nameRegex.test(parsed.resume.summary)) {
-      parsed.resume.summary = parsed.resume.summary.replace(nameRegex, 'I am an experienced professional who is ');
+  // Ensure headline is a clean professional title with zero "Tailored for", "Target Application", etc.
+  if (parsed?.resume?.headline) {
+    parsed.resume.headline = parsed.resume.headline
+      .replace(/\s*\|\s*Tailored\s+for\s+.*$/i, '')
+      .replace(/\s*[-–—]\s*Tailored\s+for\s+.*$/i, '')
+      .replace(/\s*\(Tailored[^)]*\)/gi, '')
+      .replace(/^Target Application:\s*/i, '')
+      .trim();
+  }
+
+  // Ensure first-person voice and remove any accidental third-person candidate name or tailoring phrases from summary
+  if (parsed?.resume?.summary) {
+    if (profile.fullName) {
+      const escapedName = profile.fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const nameRegex = new RegExp(`^${escapedName}\\s+(?:is|has|brings)\\b`, 'i');
+      if (nameRegex.test(parsed.resume.summary)) {
+        parsed.resume.summary = parsed.resume.summary.replace(nameRegex, 'I am an experienced professional who is ');
+      }
     }
+    parsed.resume.summary = parsed.resume.summary
+      .replace(/In targeting the [^,.]* position at [^,.]*,\s*/gi, '')
+      .replace(/In targeting the [^,.]*,\s*/gi, '')
+      .replace(/Tailored for [^,.]*,\s*/gi, '')
+      .replace(/\(Tailored[^)]*\)/gi, '')
+      .trim();
+  }
+
+  // Ensure formattedPlainText does not contain giveaway phrases
+  if (parsed?.resume?.formattedPlainText) {
+    parsed.resume.formattedPlainText = parsed.resume.formattedPlainText
+      .replace(/EXPERIENCE\s*\(TAILORED[^)]*\)/gi, 'PROFESSIONAL EXPERIENCE')
+      .replace(/Target Application:.*\n/gi, '')
+      .replace(/\s*\|\s*Tailored for.*$/gim, '')
+      .replace(/\(Tailored[^)]*\)/gi, '');
   }
 
   return parsed;

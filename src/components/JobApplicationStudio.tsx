@@ -453,7 +453,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                 }`}
               >
                 <FileText className="w-3.5 h-3.5 text-blue-600" />
-                <span>1. Tailored Resume</span>
+                <span>1. Resume</span>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
                   {result.resume.atsBreakdown.score}% ATS
                 </span>
@@ -489,7 +489,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
 
             <div className="flex items-center gap-2 pr-1">
               <span className="text-[11px] text-neutral-500 font-medium hidden md:inline">
-                Tailored for: <strong className="text-neutral-800">{result.jobTitle}</strong> at <strong className="text-neutral-800">{result.companyName}</strong>
+                Targeting: <strong className="text-neutral-800">{result.jobTitle}</strong> at <strong className="text-neutral-800">{result.companyName}</strong>
               </span>
 
               <button
@@ -699,16 +699,8 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                       {profile.fullName}
                     </h2>
                     <div className="text-sm font-semibold mt-1" style={{ color: '#e0644e' }}>
-                      {result.resume.headline || `${result.jobTitle} • ${result.companyName}`}
+                      {result.resume.headline || result.jobTitle || profile.targetRole}
                     </div>
-                    {result.companyName && (
-                      <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-semibold bg-neutral-100 text-neutral-800 border border-neutral-200">
-                        <span className="text-neutral-500 font-normal">Target Application:</span>
-                        <span className="font-bold">{result.jobTitle}</span>
-                        <span className="text-neutral-400">•</span>
-                        <span className="font-bold text-[#e0644e]">{result.companyName}</span>
-                      </div>
-                    )}
                     <div className="text-xs mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1" style={{ color: '#4b5563' }}>
                       <span>{profile.email}</span>
                       <span>•</span>
@@ -743,7 +735,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                   {/* Core Skills */}
                   <div className="mb-6">
                     <h3 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
-                      Relevant Skills & Technologies
+                      Core Skills & Technologies
                     </h3>
                     <div className="flex flex-wrap gap-1.5">
                       {result.resume.matchedSkills.map((skill, idx) => (
@@ -758,10 +750,10 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                     </div>
                   </div>
 
-                  {/* Tailored Experience */}
+                  {/* Experience */}
                   <div className="mb-6">
                     <h3 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
-                      Experience (Tailored to Job Post)
+                      Professional Experience
                     </h3>
 
                     <div className="space-y-4">

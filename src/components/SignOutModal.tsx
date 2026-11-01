@@ -72,25 +72,6 @@ export const SignOutModal: React.FC<SignOutModalProps> = ({
           </p>
         </div>
 
-        {/* Active Account Pill */}
-        {userEmail && (
-          <div className="mt-4 mx-auto max-w-[310px] p-2 px-3 rounded-xl bg-neutral-50 border border-neutral-200/80 flex items-center gap-2.5 text-left">
-            <div className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono shrink-0">
-              {(userName || userEmail).charAt(0).toUpperCase()}
-            </div>
-            <div className="overflow-hidden min-w-0">
-              {userName && (
-                <div className="text-xs font-semibold text-neutral-900 truncate">
-                  {userName}
-                </div>
-              )}
-              <div className="text-[11px] text-neutral-500 truncate">
-                {userEmail}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Action Buttons */}
         <div className="mt-6 grid grid-cols-2 gap-3">
           <button

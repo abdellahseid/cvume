@@ -18,7 +18,6 @@ import {
   ShieldCheck,
   AlertCircle,
   FileCode,
-  Edit3,
   Printer,
   FolderOpen,
   Database,
@@ -26,7 +25,8 @@ import {
   Trash2,
   Clock,
   X,
-  Loader2
+  Loader2,
+  ChevronRight
 } from 'lucide-react';
 import { UserProfile, ApplicationGenerationResult } from '../types/profile';
 import { getStoredProfile, syncProfileWithDatabase } from '../services/profileService';
@@ -364,30 +364,29 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
             <span>Saved({savedApps.length})</span>
           </button>
 
-          {/* Profile Pill Badge */}
-          <div className="flex items-center gap-2.5 bg-neutral-50 border border-neutral-200/90 rounded-xl p-2 sm:px-3">
-            <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center text-xs font-bold font-mono">
+          {/* Enhanced Clickable Candidate Profile Button (Click to open profile) */}
+          <button
+            onClick={onOpenProfile}
+            type="button"
+            title="Click to view and edit Candidate Profile"
+            className="group flex items-center gap-2.5 bg-neutral-50 hover:bg-white active:scale-[0.99] border border-neutral-200/90 hover:border-neutral-300 rounded-xl p-2 sm:px-3 text-left transition-all cursor-pointer shadow-2xs hover:shadow-xs"
+          >
+            <div className="w-8 h-8 rounded-lg bg-neutral-900 group-hover:bg-[#e0644e] text-white flex items-center justify-center text-xs font-bold font-mono transition-colors shrink-0 shadow-2xs">
               {profile.fullName.charAt(0) || 'U'}
             </div>
             <div className="text-left">
-              <div className="text-xs font-bold text-neutral-900 flex items-center gap-1.5">
-                <span>{profile.fullName || 'Candidate Profile'}</span>
-                <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-neutral-200/70 text-neutral-700">
+              <div className="text-xs font-bold text-neutral-900 group-hover:text-neutral-950 flex items-center gap-1.5 transition-colors">
+                <span className="truncate max-w-[140px] sm:max-w-[180px]">{profile.fullName || 'Candidate Profile'}</span>
+                <span className="text-[10px] font-normal px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/60 font-mono shrink-0">
                   Active
                 </span>
               </div>
-              <div className="text-[11px] text-neutral-500 truncate max-w-[160px]">
+              <div className="text-[11px] text-neutral-500 group-hover:text-neutral-700 truncate max-w-[140px] sm:max-w-[180px] transition-colors">
                 {profile.targetRole || 'Profile configured'}
               </div>
             </div>
-            <button
-              onClick={onOpenProfile}
-              className="ml-1 inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-neutral-700 hover:text-neutral-950 bg-white hover:bg-neutral-100 border border-neutral-200 rounded-lg transition-colors cursor-pointer"
-            >
-              <Edit3 className="w-3 h-3 text-[#e0644e]" />
-              <span>Edit</span>
-            </button>
-          </div>
+            <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-neutral-900 group-hover:translate-x-0.5 transition-all ml-1 shrink-0" />
+          </button>
         </div>
       </div>
 

@@ -191,6 +191,11 @@ CRITICAL INSTRUCTIONS FOR RESUME STYLE, TONE, AND AUTHENTICITY:
    - Make experience bullets rich, highly technical, and packed with concrete metrics (Google XYZ style: Accomplished [X], as measured by [Y], by doing [Z]).
    - Seamlessly weave in the relevant technologies, scale, and performance patterns required by the target job.
 
+4. MANDATORY CONTACT INFO IN EMAIL & DM OUTPUT:
+   - In the Gmail application letter AND the Telegram / Social Media DM, you MUST include the candidate's PORTFOLIO WEBSITE (${profile.portfolioUrl || 'portfolio URL'}) and PHONE NUMBER (${profile.phone || 'phone number'}).
+   - In Gmail letter: Conclude with a professional sign-off with candidate's full name, phone number, email, and portfolio website link.
+   - In Telegram / DM: Include the candidate's portfolio website and phone number directly within the message.
+
 Candidate Profile:
 ${JSON.stringify(profile, null, 2)}
 
@@ -238,12 +243,12 @@ Respond strictly in valid JSON with this exact structure:
   "gmailLetter": {
     "subject": "Application: Target Role - Candidate Name",
     "salutation": "Dear Target Company Hiring Team,",
-    "body": "Body text with paragraphs separated by newlines",
+    "body": "Body text with paragraphs separated by newlines, ending with sign-off including Name, Phone, Email, and Portfolio link",
     "fullText": "Full formatted email text ready to send"
   },
   "socialMediaDm": {
     "platform": "Telegram / LinkedIn / Twitter DM",
-    "text": "Short message strictly under 120 words",
+    "text": "Short message strictly under 120 words including portfolio link and phone number",
     "wordCount": 95,
     "bulletPoints": ["Bullet 1", "Bullet 2"]
   }
@@ -332,6 +337,59 @@ Respond strictly in valid JSON with this exact structure:
       .replace(/Target Application:.*\n/gi, '')
       .replace(/\s*\|\s*Tailored for.*$/gim, '')
       .replace(/\(Tailored[^)]*\)/gi, '');
+  }
+
+  // Ensure portfolio and phone number are in Gmail letter
+  if (parsed?.gmailLetter) {
+    const portfolio = profile.portfolioUrl ? profile.portfolioUrl.trim() : '';
+    const phone = profile.phone ? profile.phone.trim() : '';
+    const email = profile.email ? profile.email.trim() : '';
+    const name = profile.fullName ? profile.fullName.trim() : 'Candidate';
+
+    let body = (parsed.gmailLetter.body || '').trim();
+    const hasPhone = phone && body.includes(phone);
+    const hasPortfolio = portfolio && body.includes(portfolio);
+
+    if (!hasPhone || !hasPortfolio) {
+      const contactItems: string[] = [];
+      if (phone && !hasPhone) contactItems.push(`Phone: ${phone}`);
+      if (email && !body.includes(email)) contactItems.push(`Email: ${email}`);
+      if (portfolio && !hasPortfolio) contactItems.push(`Portfolio: ${portfolio}`);
+
+      if (contactItems.length > 0) {
+        if (body.includes(name)) {
+          body = body.replace(new RegExp(`(${name}[^\\n]*)$`, 'm'), `$1\n${contactItems.join(' | ')}`);
+        } else {
+          body += `\n\nWarm regards,\n\n${name}\n${contactItems.join(' | ')}`;
+        }
+        parsed.gmailLetter.body = body;
+      }
+    }
+
+    const salutation = parsed.gmailLetter.salutation || `Dear ${parsed.companyName || 'Hiring'} Team,`;
+    const subject = parsed.gmailLetter.subject || `Application: ${parsed.jobTitle || 'Position'} - ${name}`;
+    parsed.gmailLetter.fullText = `${subject}\n\n${salutation}\n\n${parsed.gmailLetter.body}`;
+  }
+
+  // Ensure portfolio and phone number are in Social Media / Telegram DM
+  if (parsed?.socialMediaDm) {
+    const portfolio = profile.portfolioUrl ? profile.portfolioUrl.trim() : '';
+    const phone = profile.phone ? profile.phone.trim() : '';
+    let dmText = (parsed.socialMediaDm.text || '').trim();
+
+    const missingAdditions: string[] = [];
+    if (portfolio && !dmText.includes(portfolio)) {
+      missingAdditions.push(`Portfolio: ${portfolio}`);
+    }
+    if (phone && !dmText.includes(phone)) {
+      missingAdditions.push(`Phone: ${phone}`);
+    }
+
+    if (missingAdditions.length > 0) {
+      dmText += `\n${missingAdditions.join(' | ')}`;
+      parsed.socialMediaDm.text = dmText;
+      parsed.socialMediaDm.wordCount = dmText.trim().split(/\s+/).length;
+    }
   }
 
   return parsed;

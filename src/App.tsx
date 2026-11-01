@@ -13,6 +13,7 @@ import { BottomCtaSection } from './components/BottomCtaSection';
 import { Footer } from './components/Footer';
 import { ShortcutsModal } from './components/ShortcutsModal';
 import { CommandMenuModal } from './components/CommandMenuModal';
+import { SignOutModal } from './components/SignOutModal';
 import { AuthPage } from './components/AuthPage';
 import { JobApplicationStudio } from './components/JobApplicationStudio';
 import { ProfilePage } from './components/ProfilePage';
@@ -35,6 +36,8 @@ export default function App() {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [commandMenuOpen, setCommandMenuOpen] = useState(false);
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
+  const [signOutModalOpen, setSignOutModalOpen] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [user, setUser] = useState<{ email: string; name?: string } | null>(() => getCachedUser());
 
@@ -154,12 +157,24 @@ export default function App() {
     );
   };
 
-  const handleSignOut = async () => {
-    setUser(null);
-    await api.logout();
-    setCurrentView('landing');
-    window.location.hash = '';
-    showToast('Signed out of CVUME.');
+  const handleRequestSignOut = () => {
+    setSignOutModalOpen(true);
+  };
+
+  const handleConfirmSignOut = async () => {
+    setIsSigningOut(true);
+    try {
+      await api.logout();
+    } catch (e) {
+      console.error('Logout error:', e);
+    } finally {
+      setUser(null);
+      setIsSigningOut(false);
+      setSignOutModalOpen(false);
+      setCurrentView('landing');
+      window.location.hash = '';
+      showToast('Signed out of CVUME.');
+    }
   };
 
   // Global Keyboard shortcuts
@@ -262,7 +277,7 @@ export default function App() {
             setCurrentAppTab(tab);
             window.location.hash = `#${tab}`;
           }}
-          onSignOut={handleSignOut}
+          onSignOut={handleRequestSignOut}
           onNavigateHome={navigateToHome}
         />
 
@@ -325,7 +340,7 @@ export default function App() {
               </button>
               <span>•</span>
               <button
-                onClick={handleSignOut}
+                onClick={handleRequestSignOut}
                 className="hover:text-neutral-950 transition-colors cursor-pointer"
               >
                 Sign Out
@@ -333,6 +348,15 @@ export default function App() {
             </div>
           </div>
         </footer>
+
+        {/* Sign Out Confirmation Modal */}
+        <SignOutModal
+          isOpen={signOutModalOpen}
+          onClose={() => setSignOutModalOpen(false)}
+          onConfirm={handleConfirmSignOut}
+          userEmail={user?.email}
+          isLoading={isSigningOut}
+        />
 
         {/* Toast Notification */}
         {toastMessage && (
@@ -352,7 +376,7 @@ export default function App() {
         onSignInClick={handleSignIn}
         onSignUpClick={handleStartTrial}
         user={user}
-        onSignOut={handleSignOut}
+        onSignOut={handleRequestSignOut}
         onOpenStudio={() => {
           setCurrentView('app');
           setCurrentAppTab('generator');
@@ -420,6 +444,15 @@ export default function App() {
       <ShortcutsModal
         isOpen={shortcutsModalOpen}
         onClose={() => setShortcutsModalOpen(false)}
+      />
+
+      {/* Sign Out Confirmation Modal */}
+      <SignOutModal
+        isOpen={signOutModalOpen}
+        onClose={() => setSignOutModalOpen(false)}
+        onConfirm={handleConfirmSignOut}
+        userEmail={user?.email}
+        isLoading={isSigningOut}
       />
 
       {/* Toast Notification */}

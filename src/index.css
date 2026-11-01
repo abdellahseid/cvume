@@ -37,17 +37,21 @@
   body * {
     visibility: hidden;
   }
-  #resume-document-to-export, #resume-document-to-export * {
+  #resume-document-to-export, #resume-document-to-export *,
+  #export-resume-paper, #export-resume-paper * {
     visibility: visible;
   }
-  #resume-document-to-export {
+  #resume-document-to-export,
+  #export-resume-paper {
     position: absolute;
     left: 0;
     top: 0;
     width: 100% !important;
     max-width: 100% !important;
     border: none !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
+    outline: none !important;
     padding: 0 !important;
     margin: 0 !important;
   }

@@ -1,13 +1,13 @@
 import React from 'react';
-import { FileText, Sparkles, User, LogOut } from 'lucide-react';
+import { FileText, Sparkles, User, LogOut, Palette } from 'lucide-react';
 
 interface NavbarProps {
   onSignInClick: () => void;
   onSignUpClick?: () => void;
   onOpenCommand?: () => void;
   user?: { email: string; name?: string } | null;
-  currentAppTab?: 'generator' | 'profile';
-  onNavigateTab?: (tab: 'generator' | 'profile') => void;
+  currentAppTab?: 'generator' | 'profile' | 'templates';
+  onNavigateTab?: (tab: 'generator' | 'profile' | 'templates') => void;
   onSignOut?: () => void;
   isLoggedInView?: boolean;
   onNavigateHome?: () => void;
@@ -43,10 +43,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Center Navigation */}
         {isLoggedInView ? (
-          <div className="flex items-center gap-2 bg-neutral-100/80 p-1 rounded-xl border border-neutral-200/80">
+          <div className="flex items-center gap-1 sm:gap-2 bg-neutral-100/80 p-1 rounded-xl border border-neutral-200/80">
             <button
               onClick={() => onNavigateTab?.('generator')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 currentAppTab === 'generator'
                   ? 'bg-white text-neutral-950 shadow-xs'
                   : 'text-neutral-600 hover:text-neutral-950'
@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
             <button
               onClick={() => onNavigateTab?.('profile')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 currentAppTab === 'profile'
                   ? 'bg-white text-neutral-950 shadow-xs'
                   : 'text-neutral-600 hover:text-neutral-950'
@@ -65,6 +65,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <User className="w-3.5 h-3.5 text-blue-600" />
               <span>Candidate Profile</span>
+            </button>
+            <button
+              onClick={() => onNavigateTab?.('templates')}
+              className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                currentAppTab === 'templates'
+                  ? 'bg-white text-neutral-950 shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-950'
+              }`}
+            >
+              <Palette className="w-3.5 h-3.5 text-purple-600" />
+              <span>Resume Templates & PDF</span>
             </button>
           </div>
         ) : (

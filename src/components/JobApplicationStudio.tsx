@@ -34,6 +34,7 @@ import { api, SavedApplication } from '../services/api';
 
 interface JobApplicationStudioProps {
   onOpenProfile: () => void;
+  onOpenTemplates?: (result: ApplicationGenerationResult) => void;
   onToast: (msg: string) => void;
 }
 
@@ -105,6 +106,7 @@ Qualifications:
 
 export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
   onOpenProfile,
+  onOpenTemplates,
   onToast,
 }) => {
   const [profile, setProfile] = useState<UserProfile>(() => getStoredProfile());
@@ -246,6 +248,23 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
     }
   };
 
+  const handleProceedToTemplateSelection = () => {
+    if (!result) {
+      onToast('Please generate a tailored application first before selecting templates.');
+      return;
+    }
+    try {
+      localStorage.setItem('cvume_active_export_result', JSON.stringify(result));
+    } catch (e) {
+      console.error('Error saving active export result', e);
+    }
+    if (onOpenTemplates) {
+      onOpenTemplates(result);
+    } else {
+      window.location.hash = '#templates';
+    }
+  };
+
   const handleDownloadPdf = async () => {
     if (!result) return;
     const element = document.getElementById('resume-document-to-export');
@@ -263,6 +282,15 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          const el = clonedDoc.getElementById('resume-document-to-export');
+          if (el) {
+            el.style.border = 'none';
+            el.style.boxShadow = 'none';
+            el.style.borderRadius = '0px';
+            el.style.outline = 'none';
+          }
+        },
       });
 
       const imgData = canvas.toDataURL('image/png', 1.0);
@@ -274,15 +302,12 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
 
       const pageWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
-      const margin = 8; // 8mm margin
-      const printWidth = pageWidth - (margin * 2);
+      const printWidth = pageWidth; // Full bleed 210mm width - zero outer margins or border outlines
       const printHeight = (canvas.height * printWidth) / canvas.width;
 
-      const printableHeight = pageHeight - (margin * 2);
-
-      if (printHeight <= printableHeight) {
-        // Fits entirely on a single page
-        pdf.addImage(imgData, 'PNG', margin, margin, printWidth, printHeight, undefined, 'FAST');
+      if (printHeight <= pageHeight) {
+        // Fits entirely on a single page: edge-to-edge without outer card/page border
+        pdf.addImage(imgData, 'PNG', 0, 0, printWidth, printHeight, undefined, 'FAST');
       } else {
         // Multi-page slicing for longer resumes
         let heightLeft = printHeight;
@@ -292,9 +317,9 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
           if (pageNumber > 0) {
             pdf.addPage();
           }
-          const position = margin - (pageNumber * printableHeight);
-          pdf.addImage(imgData, 'PNG', margin, position, printWidth, printHeight, undefined, 'FAST');
-          heightLeft -= printableHeight;
+          const position = -(pageNumber * pageHeight);
+          pdf.addImage(imgData, 'PNG', 0, position, printWidth, printHeight, undefined, 'FAST');
+          heightLeft -= pageHeight;
           pageNumber++;
         }
       }
@@ -613,21 +638,11 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                   </button>
 
                   <button
-                    onClick={handleDownloadPdf}
-                    disabled={isExportingPdf}
-                    className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-sm"
+                    onClick={handleProceedToTemplateSelection}
+                    className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-sm group"
                   >
-                    {isExportingPdf ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#e0644e]" />
-                        <span>Rendering PDF Document...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Download className="w-3.5 h-3.5 text-[#e0644e]" />
-                        <span>Download Resume (PDF)</span>
-                      </>
-                    )}
+                    <Download className="w-3.5 h-3.5 text-[#e0644e] group-hover:translate-y-0.5 transition-transform" />
+                    <span>Download Resume (Select Template & PDF)</span>
                   </button>
                 </div>
               </div>
@@ -668,31 +683,22 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                     </button>
 
                     <button
-                      onClick={handleDownloadPdf}
-                      disabled={isExportingPdf}
-                      className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs disabled:opacity-60"
+                      onClick={handleProceedToTemplateSelection}
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white text-xs font-semibold rounded-lg transition-all cursor-pointer shadow-xs group"
                     >
-                      {isExportingPdf ? (
-                        <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#e0644e]" />
-                          <span>Generating PDF...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-3.5 h-3.5 text-[#e0644e]" />
-                          <span>Download PDF</span>
-                        </>
-                      )}
+                      <Download className="w-3.5 h-3.5 text-[#e0644e] group-hover:translate-y-0.5 transition-transform" />
+                      <span>Download Resume (Choose Template)</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Actual Clean Resume Paper Document (Captured for PDF) */}
-                <div 
-                  id="resume-document-to-export" 
-                  className="bg-white rounded-xl border border-neutral-200 shadow-sm p-8 sm:p-10 font-sans text-neutral-900 max-w-[850px] mx-auto"
-                  style={{ backgroundColor: '#ffffff', color: '#111827' }}
-                >
+                <div className="bg-neutral-100/90 p-2 sm:p-5 rounded-2xl flex justify-center border border-neutral-200/80 overflow-x-auto shadow-inner">
+                  <div 
+                    id="resume-document-to-export" 
+                    className="bg-white p-8 sm:p-10 font-sans text-neutral-900 w-full max-w-[850px] border-0 rounded-none shadow-none outline-none"
+                    style={{ backgroundColor: '#ffffff', color: '#111827', border: 'none', borderRadius: '0px', boxShadow: 'none', outline: 'none' }}
+                  >
                   {/* Header (Candidate Profile & Target Role) */}
                   <div className="border-b pb-5 mb-5 text-center" style={{ borderColor: '#e5e7eb' }}>
                     <h2 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: '#111827' }}>
@@ -813,6 +819,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                       </div>
                     </div>
                   )}
+                </div>
                 </div>
               </div>
             </div>

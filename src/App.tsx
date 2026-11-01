@@ -16,12 +16,22 @@ import { CommandMenuModal } from './components/CommandMenuModal';
 import { AuthPage } from './components/AuthPage';
 import { JobApplicationStudio } from './components/JobApplicationStudio';
 import { ProfilePage } from './components/ProfilePage';
+import { ResumeTemplateStudio } from './components/ResumeTemplateStudio';
+import { ApplicationGenerationResult } from './types/profile';
 import { getStoredProfile, saveStoredProfile, syncProfileWithDatabase } from './services/profileService';
 import { api, getCachedUser } from './services/api';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'app'>('landing');
-  const [currentAppTab, setCurrentAppTab] = useState<'generator' | 'profile'>('generator');
+  const [currentAppTab, setCurrentAppTab] = useState<'generator' | 'profile' | 'templates'>('generator');
+  const [activeExportResult, setActiveExportResult] = useState<ApplicationGenerationResult | null>(() => {
+    try {
+      const cached = localStorage.getItem('cvume_active_export_result');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [commandMenuOpen, setCommandMenuOpen] = useState(false);
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
@@ -66,6 +76,9 @@ export default function App() {
       } else if (hash === '#profile') {
         setCurrentView('app');
         setCurrentAppTab('profile');
+      } else if (hash === '#templates' || hash === '#resume-templates') {
+        setCurrentView('app');
+        setCurrentAppTab('templates');
       } else if (hash === '' || hash === '#home' || hash === '#features' || hash === '#pricing' || hash === '#faq' || hash === '#tailoring') {
         setCurrentView('landing');
       }
@@ -190,10 +203,11 @@ export default function App() {
       showToast('Live resume link copied: cvume/@alex');
     } else if (actionId === 'ats_scan') {
       showToast('ATS Score: 98/100 — 14 keywords matched, 0 format warnings');
-    } else if (actionId === 'export_pdf') {
+    } else if (actionId === 'export_pdf' || actionId.startsWith('template_')) {
       if (user) {
         setCurrentView('app');
-        setCurrentAppTab('generator');
+        setCurrentAppTab('templates');
+        window.location.hash = '#templates';
       } else {
         navigateToAuth('login');
       }
@@ -260,13 +274,34 @@ export default function App() {
                 setCurrentAppTab('profile');
                 window.location.hash = '#profile';
               }}
+              onOpenTemplates={(applicationResult) => {
+                setActiveExportResult(applicationResult);
+                try {
+                  localStorage.setItem('cvume_active_export_result', JSON.stringify(applicationResult));
+                } catch (e) {
+                  console.error('Error saving active export result', e);
+                }
+                setCurrentAppTab('templates');
+                window.location.hash = '#templates';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               onToast={showToast}
             />
-          ) : (
+          ) : currentAppTab === 'profile' ? (
             <ProfilePage
               onGoToGenerator={() => {
                 setCurrentAppTab('generator');
                 window.location.hash = '#generator';
+              }}
+              onToast={showToast}
+            />
+          ) : (
+            <ResumeTemplateStudio
+              initialResult={activeExportResult}
+              onBackToStudio={() => {
+                setCurrentAppTab('generator');
+                window.location.hash = '#generator';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               onToast={showToast}
             />

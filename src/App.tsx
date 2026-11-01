@@ -355,6 +355,7 @@ export default function App() {
           onClose={() => setSignOutModalOpen(false)}
           onConfirm={handleConfirmSignOut}
           userEmail={user?.email}
+          userName={user?.name}
           isLoading={isSigningOut}
         />
 
@@ -452,6 +453,7 @@ export default function App() {
         onClose={() => setSignOutModalOpen(false)}
         onConfirm={handleConfirmSignOut}
         userEmail={user?.email}
+        userName={user?.name}
         isLoading={isSigningOut}
       />
 

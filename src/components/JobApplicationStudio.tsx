@@ -231,15 +231,16 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
       });
 
       if (!response.ok) {
-        throw new Error(`Server returned error ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData?.error || `Server returned error ${response.status}`);
       }
 
       const data: ApplicationGenerationResult = await response.json();
       setResult(data);
-      onToast('AI generated your tailored Resume, Gmail letter, and Social Media pitch!');
+      onToast(`AI generated tailored application for ${data.jobTitle} at ${data.companyName}!`);
     } catch (err: any) {
       console.error('Generation error:', err);
-      onToast('Error contacting AI service. Please try again.');
+      onToast(err?.message || 'Error generating tailored application. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -698,8 +699,16 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                       {profile.fullName}
                     </h2>
                     <div className="text-sm font-semibold mt-1" style={{ color: '#e0644e' }}>
-                      {result.resume.headline || profile.targetRole}
+                      {result.resume.headline || `${result.jobTitle} • ${result.companyName}`}
                     </div>
+                    {result.companyName && (
+                      <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-semibold bg-neutral-100 text-neutral-800 border border-neutral-200">
+                        <span className="text-neutral-500 font-normal">Target Application:</span>
+                        <span className="font-bold">{result.jobTitle}</span>
+                        <span className="text-neutral-400">•</span>
+                        <span className="font-bold text-[#e0644e]">{result.companyName}</span>
+                      </div>
+                    )}
                     <div className="text-xs mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1" style={{ color: '#4b5563' }}>
                       <span>{profile.email}</span>
                       <span>•</span>

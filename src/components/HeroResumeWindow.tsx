@@ -21,12 +21,15 @@ import {
   INITIAL_EXPERIENCE, 
   COLOR_STYLES 
 } from '../types/resume';
+import { getStoredProfile } from '../services/profileService';
+import { UserProfile } from '../types/profile';
 
 interface HeroResumeWindowProps {
   onBulletClick?: (bulletText: string) => void;
 }
 
 export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClick }) => {
+  const [profile, setProfile] = useState<UserProfile>(() => getStoredProfile());
   const [sections, setSections] = useState<SectionItem[]>(INITIAL_SECTIONS);
   const [experiences, setExperiences] = useState<ExperienceItem[]>(INITIAL_EXPERIENCE);
   const [activeTemplate, setActiveTemplate] = useState<'modern' | 'minimal' | 'executive'>('modern');
@@ -36,6 +39,11 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
   const [selectedExp, setSelectedExp] = useState<ExperienceItem | null>(null);
   const [editingBullet, setEditingBullet] = useState<{ expId: string; bulletId: string; text: string } | null>(null);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  // Keep synced with profile changes in local storage or profile edits
+  React.useEffect(() => {
+    setProfile(getStoredProfile());
+  }, []);
 
   const handleExportPdf = async () => {
     const el = document.getElementById('hero-resume-paper-to-export');
@@ -56,7 +64,8 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
       const printHeight = (canvas.height * printWidth) / canvas.width;
 
       pdf.addImage(imgData, 'PNG', margin, margin, printWidth, Math.min(printHeight, pageHeight - margin * 2));
-      pdf.save('Alex_Rivera_CVUME_Resume.pdf');
+      const pdfFileName = `${(profile.fullName || 'Candidate').replace(/\s+/g, '_')}_Resume.pdf`;
+      pdf.save(pdfFileName);
     } catch (e) {
       console.error('PDF export error:', e);
       window.print();
@@ -254,7 +263,7 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
           <div className="h-12 border-b border-neutral-100 px-4 sm:px-6 flex items-center justify-between shrink-0 bg-white">
             <div className="flex items-center gap-2 cursor-pointer group">
               <span className="font-semibold text-sm text-neutral-900 group-hover:text-black">
-                Alex Rivera · Master Resume
+                {profile.fullName || 'Candidate'} · Master Resume
               </span>
               <ChevronDown className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-600" />
             </div>
@@ -310,19 +319,27 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
               {/* Header Details */}
               <div className="border-b border-neutral-100 pb-4">
                 <h2 className="text-2xl font-bold text-neutral-950 tracking-tight">
-                  Alex Rivera
+                  {profile.fullName || 'Candidate Profile'}
                 </h2>
                 <p className="text-xs font-semibold text-neutral-700 mt-0.5">
-                  Staff Product Designer & Systems Architect
+                  {profile.targetRole || 'Staff Systems Engineer'}
                 </p>
                 <div className="flex items-center gap-3 text-[11px] text-neutral-500 mt-2 flex-wrap font-sans">
-                  <span>San Francisco, CA</span>
+                  <span>{profile.location || 'Remote'}</span>
                   <span>·</span>
-                  <span>alex@rivera.design</span>
-                  <span>·</span>
-                  <span>linkedin.com/in/alexrivera</span>
-                  <span>·</span>
-                  <span>github.com/arivera</span>
+                  <span>{profile.email || 'hello@cvume.ai'}</span>
+                  {profile.linkedinUrl && (
+                    <>
+                      <span>·</span>
+                      <span>{profile.linkedinUrl.replace(/^https?:\/\//, '')}</span>
+                    </>
+                  )}
+                  {profile.githubUrl && (
+                    <>
+                      <span>·</span>
+                      <span>{profile.githubUrl.replace(/^https?:\/\//, '')}</span>
+                    </>
+                  )}
                 </div>
               </div>
 

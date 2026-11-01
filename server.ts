@@ -154,203 +154,58 @@ interface UserProfile {
   projects: Array<{ id: string; name: string; description: string; link?: string }>;
 }
 
-function generateFallbackApplication(jobDescription: string, profile: UserProfile) {
-  // Extract key terms or company hints from job description
-  const cleanJd = jobDescription.trim();
-  const firstLine = cleanJd.split('\n')[0].replace(/[#*]/g, '').trim();
-  
-  // Try to parse company or title from first lines
-  const companyMatch = cleanJd.match(/(?:at|company|team|with)\s+([A-Z][a-zA-Z0-9&.\s]{1,25})/i);
-  const detectedCompany = companyMatch ? companyMatch[1].trim() : 'Hiring Team';
+async function generateApplicationWithAI(jobDescription: string, profile: UserProfile) {
+  const apiKey = loadApiKey();
+  if (!apiKey) {
+    throw new Error('Gemini API key is not configured. Please set GEMINI_API_KEY in .env or .env.local to enable live AI generation.');
+  }
 
-  const titleMatch = cleanJd.match(/(?:engineer|developer|designer|manager|architect|lead|specialist|consultant)/i);
-  const targetRole = titleMatch ? `${profile.targetRole || 'Senior Engineer'}` : (profile.targetRole || 'Staff Engineer');
+  const ai = getGeminiClient();
 
-  const matchedSkills = profile.skills.slice(0, 8);
-  const missingKeywords = ['Distributed Caching', 'Sub-second SLAs', 'Cross-functional OKRs'];
+  const systemPrompt = `You are CVUME's Elite AI Career Copilot. Your mission is to analyze the target job posting / input requirements AND the candidate's profile, and produce 100% custom, hyper-tailored, production-ready career assets.
 
-  const tailoredBullets1 = profile.experiences[0]?.bullets?.map(b => 
-    b.includes('Architected') ? b : `Engineered and scaled core systems aligning directly with ${detectedCompany}'s architectural requirements, cutting latency by 35%.`
-  ) || [
-    `Spearheaded high-performance systems supporting mission-critical workflows with 99.99% reliability.`,
-    `Partnered across product and engineering to deliver sub-150ms user interactions and clean APIs.`
-  ];
-
-  const tailoredBullets2 = profile.experiences[1]?.bullets || [
-    `Delivered distributed web platforms handling high-throughput production traffic with zero downtime.`,
-    `Standardized modern development practices and automated CI/CD deployment pipelines.`
-  ];
-
-  const resume = {
-    headline: `${targetRole} | Specialized in Modern High-Scale Systems`,
-    summary: `${profile.fullName} is an experienced ${targetRole} with proven success delivering resilient, high-impact products. Background includes spearheading high-traffic platforms, optimizing performance, and aligning technical execution with strategic goals at ${detectedCompany}.`,
-    matchedSkills: matchedSkills,
-    experiences: [
-      {
-        role: profile.experiences[0]?.role || targetRole,
-        company: profile.experiences[0]?.company || 'Acme Tech',
-        period: `${profile.experiences[0]?.startDate || '2023'} – ${profile.experiences[0]?.endDate || 'Present'}`,
-        bullets: tailoredBullets1,
-      },
-      {
-        role: profile.experiences[1]?.role || 'Senior Software Engineer',
-        company: profile.experiences[1]?.company || 'Stripe Ecosystem',
-        period: `${profile.experiences[1]?.startDate || '2020'} – ${profile.experiences[1]?.endDate || '2023'}`,
-        bullets: tailoredBullets2,
-      },
-    ],
-    education: profile.education.map(e => ({
-      degree: e.degree,
-      school: e.school,
-      year: e.year,
-    })),
-    projects: profile.projects.slice(0, 2).map(p => ({
-      name: p.name,
-      description: p.description,
-    })),
-    formattedPlainText: `${profile.fullName.toUpperCase()}
-${profile.email} | ${profile.phone} | ${profile.location}
-Portfolio: ${profile.portfolioUrl || 'cvume.com/@you'} | GitHub: ${profile.githubUrl || ''} | LinkedIn: ${profile.linkedinUrl || ''}
-
-PROFESSIONAL SUMMARY
-${profile.fullName} is a ${targetRole} with extensive experience architecting high-availability systems. Proven record of optimizing performance metrics and accelerating team delivery.
-
-CORE SKILLS
-${matchedSkills.join(' • ')}
-
-EXPERIENCE
-${profile.experiences.map(e => `${e.role.toUpperCase()} | ${e.company} (${e.startDate} – ${e.endDate})
-${e.bullets.map(b => `• ${b}`).join('\n')}`).join('\n\n')}
-
-EDUCATION
-${profile.education.map(e => `${e.degree} — ${e.school} (${e.year})`).join('\n')}`,
-    atsBreakdown: {
-      score: 96,
-      matchedKeywords: matchedSkills,
-      missingKeywords: missingKeywords,
-      strengths: [
-        'Direct alignment of core tech stack with job requirements',
-        'Quantifiable impact metrics (ARR, conversion %, latency ms) in every experience bullet',
-        'Clean ATS-parsable format with standard section nomenclature',
-      ],
-      recommendations: [
-        `Explicitly mention experience with ${detectedCompany}'s industry domain in interview intro`,
-        'Highlight collaborative leadership and mentoring track record',
-      ],
-    },
-  };
-
-  const subject = `Application: ${targetRole} - ${profile.fullName}`;
-  const salutation = `Dear ${detectedCompany} Hiring Team,`;
-  const emailBody = `I am writing to express my strong enthusiasm for the ${targetRole} position at ${detectedCompany}. Having closely reviewed the responsibilities and tech stack outlined in your job posting, I am confident that my background in ${profile.skills.slice(0, 3).join(', ')} directly aligns with your team's immediate priorities.
-
-In my recent work as ${profile.experiences[0]?.role || targetRole} at ${profile.experiences[0]?.company || 'Acme Platform'}, I spearheaded the architecture of mission-critical systems supporting millions of active users while improving core conversion by 28%. I thrive in high-ownership environments where engineering velocity and user experience standard matter equally.
-
-What excites me most about ${detectedCompany} is your commitment to delivering world-class products. I would welcome the opportunity to discuss how my hands-on background and technical leadership can accelerate your roadmap.
-
-Thank you for your time and consideration. You can review my live portfolio and projects at ${profile.portfolioUrl || 'cvume.com/@you'}.
-
-Warm regards,
-
-${profile.fullName}
-${profile.phone} | ${profile.email}
-${profile.portfolioUrl || ''}`;
-
-  const telegramDm = `Hi ${detectedCompany} team! 👋
-
-I saw the ${targetRole} opening and wanted to reach out directly. I'm ${profile.fullName}, a ${targetRole} specializing in ${profile.skills.slice(0, 4).join(', ')}.
-
-Quick highlights:
-• ${profile.experiences[0]?.bullets[0] || 'Architected platforms serving 2M+ users with sub-150ms latency.'}
-• ${profile.experiences[1]?.bullets[0] || 'Led production engineering for $140M+ ARR workflows.'}
-
-Full profile & code: ${profile.portfolioUrl || 'cvume.com/@alex'}
-Would love to chat for 10 mins if you have an open calendar!`;
-
-  return {
-    jobTitle: targetRole,
-    companyName: detectedCompany,
-    resume,
-    gmailLetter: {
-      subject,
-      salutation,
-      body: emailBody,
-      fullText: `${subject}\n\n${salutation}\n\n${emailBody}`,
-    },
-    socialMediaDm: {
-      platform: 'Telegram / LinkedIn / Twitter DM',
-      text: telegramDm,
-      wordCount: telegramDm.split(/\s+/).filter(Boolean).length,
-      bulletPoints: [
-        profile.experiences[0]?.bullets[0] || 'Architected high-scale platforms with 28% conversion lift',
-        `Deep expertise in ${profile.skills.slice(0, 3).join(', ')}`,
-        `Direct link to live resume: ${profile.portfolioUrl || 'cvume.com/@you'}`,
-      ],
-    },
-  };
-}
-
-// API Route for AI Generation
-app.post('/api/generate-application', async (req: Request, res: Response) => {
-  try {
-    const { jobDescription, profile } = req.body;
-
-    if (!jobDescription || !jobDescription.trim()) {
-      return res.status(400).json({ error: 'Job description is required.' });
-    }
-
-    if (!profile) {
-      return res.status(400).json({ error: 'Candidate profile is required.' });
-    }
-
-    // If no API key configured, use our tailored fallback generator
-    const apiKey = loadApiKey();
-    if (!apiKey) {
-      console.log('No GEMINI_API_KEY found, using local tailored application generator.');
-      const result = generateFallbackApplication(jobDescription, profile);
-      return res.json(result);
-    }
-
-    console.log(`[AI Application Studio] Generating tailored CV using live Gemini (gemini-3.8-flash)...`);
-
-    const systemPrompt = `You are CVUME's AI Career Copilot. Your job is to take a complete job description and a candidate's saved profile, and generate 3 tailored, production-ready application assets:
-
-1. A TAILORED ATS-OPTIMIZED RESUME:
-- Match candidate profile experiences, skills, and summary to the specific requirements and keywords in the job post.
-- Emphasize quantifiable metrics (Google XYZ style: Accomplished [X], as measured by [Y], by doing [Z]).
-- Calculate an ATS Match Score (85-99) and list matched and missing keywords.
-- Generate a clean, complete plain text version of the resume.
-
-2. A GMAIL APPLICATION LETTER:
-- Professional subject line (Application: [Role] - [Candidate Name]).
-- Salutation and 3 tight, compelling paragraphs linking the candidate's exact track record to the company's pain points in the JD.
-- Professional sign-off with candidate contact links.
-
-3. A SOCIAL MEDIA APPLICATION (TELEGRAM / WHATSAPP / LINKEDIN DM):
-- Ultra-short, punchy elevator message (STRICTLY UNDER 120 WORDS).
-- Perfect for copy-pasting into Telegram job channels, Twitter DMs, or recruiter LinkedIn messages.
-- Starts with an engaging hook, has 2 concise metric bullets, candidate's link, and a polite CTA for a brief 10-minute chat.
+CRITICAL INSTRUCTIONS FOR RESUME SUMMARY & VOICE:
+1. SUMMARY STYLE & VOICE:
+   - The professional summary MUST be written in the first person, beginning with "I am an experienced..." or similar authentic first-person voice ("I am an experienced Fullstack Engineer / Systems Architect with...").
+   - NEVER start with or mention the candidate's name in the third person anywhere in the summary (ABSOLUTELY NO "[Candidate Name] is an experienced..." or "[Candidate Name] is a...").
+   - The user is presenting this resume directly, so make it sound detailed, cool, confident, authentic, and modern as if the user personally crafted it with deep technical pride.
+   - Mention the target role, the target company name, core technical stack, and how the candidate's track record directly solves the company's challenges.
+2. ACCURATE EXTRACTION & SCRAPING OF INPUT DATA (COMPANY NAME, ROLE, REPORTING LINE):
+   - Thoroughly parse and extract the target COMPANY NAME and target ROLE from the input.
+   - If the input contains partial phrases, typos, or incomplete fragments like "at and report to our Senior A.", intelligently clean, repair, and extract the meaningful entities (e.g. reporting to "Senior Architect" or "Senior Technical Leadership").
+   - If no company name is explicitly specified in the text, infer a suitable professional hiring organization context (e.g., "High-Scale Engineering Organization" or "Hiring Team"). NEVER output broken grammar clippings like "at and report to our Senior A." or "Senior A".
+   - Make sure the detected COMPANY NAME and ROLE are explicitly mentioned in:
+     * The resume headline (e.g. "[Role] | Tailored for [Company]")
+     * The resume summary
+     * The tailored experience bullets
+     * The plain text resume
+     * The Gmail outreach letter
+     * The Telegram/DM pitch
+3. DETAILED & COOL RESUME CONTENT:
+   - Make the resume rich, highly technical, and packed with concrete impact metrics (Google XYZ style: Accomplished [X], as measured by [Y], by doing [Z]).
+   - Tailor the candidate's experiences, bullet points, skills, and summary directly to the target company's mission and tech requirements.
+   - All content must be completely bespoke to this exact job and company.
 
 Candidate Profile:
 ${JSON.stringify(profile, null, 2)}
 
-Target Job Posting:
+Target Job Input:
 ${jobDescription}
 
 Respond strictly in valid JSON with this exact structure:
 {
   "jobTitle": "Target role name",
-  "companyName": "Company name detected or inferred",
+  "companyName": "Target company name",
   "resume": {
-    "headline": "Professional headline",
-    "summary": "Tailored 3-4 sentence summary",
-    "matchedSkills": ["skill1", "skill2", "skill3"],
+    "headline": "Target Role | Tailored for Target Company",
+    "summary": "I am an experienced... (Detailed 3-4 sentence first-person summary mentioning target role and company without third-person name)",
+    "matchedSkills": ["skill1", "skill2"],
     "experiences": [
       {
         "role": "Role title",
         "company": "Company name",
-        "period": "2023 - Present",
-        "bullets": ["Bullet 1 with metrics", "Bullet 2 with metrics"]
+        "period": "Period",
+        "bullets": ["Detailed high-impact bullet 1", "Detailed high-impact bullet 2"]
       }
     ],
     "education": [
@@ -366,18 +221,18 @@ Respond strictly in valid JSON with this exact structure:
         "description": "Project description"
       }
     ],
-    "formattedPlainText": "Full plain text resume ready to copy",
+    "formattedPlainText": "Full plain text resume formatted cleanly with headers and first-person summary",
     "atsBreakdown": {
-      "score": 96,
-      "matchedKeywords": ["TypeScript", "Next.js"],
-      "missingKeywords": ["GraphQL"],
-      "strengths": ["Strengths list"],
-      "recommendations": ["Recommendations list"]
+      "score": 97,
+      "matchedKeywords": ["Keyword1", "Keyword2"],
+      "missingKeywords": ["Keyword3"],
+      "strengths": ["Strength 1", "Strength 2"],
+      "recommendations": ["Recommendation 1"]
     }
   },
   "gmailLetter": {
-    "subject": "Subject line",
-    "salutation": "Dear Hiring Team,",
+    "subject": "Application: Target Role - Candidate Name",
+    "salutation": "Dear Target Company Hiring Team,",
     "body": "Body text with paragraphs separated by newlines",
     "fullText": "Full formatted email text ready to send"
   },
@@ -389,40 +244,87 @@ Respond strictly in valid JSON with this exact structure:
   }
 }`;
 
-    // Call Gemini with a 30-second timeout to allow complete generation of tailored application assets
-    const ai = getGeminiClient();
-    const geminiCall = ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: systemPrompt,
-      config: {
-        responseMimeType: 'application/json',
-      },
-    });
+  const candidateModels = [
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+    'gemini-flash-latest',
+    'gemini-3.1-flash-lite'
+  ];
 
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('Gemini API request timed out after 30s')), 30000)
-    );
+  let lastError: any = null;
+  let responseText = '';
 
-    const response = await Promise.race([geminiCall, timeoutPromise]);
-    const responseText = response.text;
-    if (!responseText) {
-      throw new Error('Empty response received from Gemini API');
-    }
-
+  for (const model of candidateModels) {
     try {
-      const parsed = JSON.parse(responseText);
-      return res.json(parsed);
-    } catch {
-      // If JSON parsing of raw output fails, clean code block markers if any
-      const cleaned = responseText.replace(/```json\n?|\n?```/g, '').trim();
-      const parsed = JSON.parse(cleaned);
-      return res.json(parsed);
+      console.log(`[AI Application Studio] Generating tailored CV using ${model}...`);
+      const geminiCall = ai.models.generateContent({
+        model,
+        contents: systemPrompt,
+        config: {
+          responseMimeType: 'application/json',
+        },
+      });
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout with model ${model} after 25s`)), 25000)
+      );
+
+      const response = await Promise.race([geminiCall, timeoutPromise]);
+      responseText = response.text || '';
+      if (responseText.trim()) {
+        console.log(`[AI Application Studio] Successfully generated application with ${model}`);
+        break;
+      }
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[AI Application Studio] Model ${model} failed:`, err?.message || err);
     }
+  }
+
+  if (!responseText.trim()) {
+    throw new Error(`AI generation failed across all models. Last error: ${lastError?.message || 'No response from AI service'}`);
+  }
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch {
+    const cleaned = responseText.replace(/```json\n?|\n?```/g, '').trim();
+    parsed = JSON.parse(cleaned);
+  }
+
+  // Ensure first-person voice and remove any accidental third-person candidate name from summary
+  if (parsed?.resume?.summary && profile.fullName) {
+    const escapedName = profile.fullName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const nameRegex = new RegExp(`^${escapedName}\\s+(?:is|has|brings)\\b`, 'i');
+    if (nameRegex.test(parsed.resume.summary)) {
+      parsed.resume.summary = parsed.resume.summary.replace(nameRegex, 'I am an experienced professional who is ');
+    }
+  }
+
+  return parsed;
+}
+
+// API Route for AI Generation
+app.post('/api/generate-application', async (req: Request, res: Response) => {
+  try {
+    const { jobDescription, profile } = req.body;
+
+    if (!jobDescription || !jobDescription.trim()) {
+      return res.status(400).json({ error: 'Job description or target role requirements are required.' });
+    }
+
+    if (!profile) {
+      return res.status(400).json({ error: 'Candidate profile is required.' });
+    }
+
+    const result = await generateApplicationWithAI(jobDescription, profile);
+    return res.json(result);
   } catch (err: any) {
-    console.warn('Handling /api/generate-application via instant tailored generator:', err?.message || err);
-    // Graceful fallback to guaranteed tailored result so user experience never breaks
-    const fallback = generateFallbackApplication(req.body.jobDescription || '', req.body.profile || {});
-    return res.json(fallback);
+    console.error('Error in /api/generate-application:', err);
+    return res.status(500).json({
+      error: err?.message || 'Failed to generate tailored application. Please check your Gemini API key and try again.'
+    });
   }
 });
 

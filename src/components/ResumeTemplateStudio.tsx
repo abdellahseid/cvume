@@ -343,15 +343,6 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
           <div className="flex items-center gap-2.5 justify-end">
             <button
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-neutral-100 hover:bg-neutral-200/80 text-neutral-800 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-              title="System Print or Save to PDF"
-            >
-              <Printer className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Print / System PDF</span>
-            </button>
-
-            <button
               onClick={handleExportPdf}
               disabled={isExportingPdf}
               className="inline-flex items-center gap-2 px-5 py-2 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-60"

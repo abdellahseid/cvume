@@ -8,8 +8,12 @@ export default defineConfig(() => {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve('.'),
+        'html2canvas': 'html2canvas-pro',
       },
+    },
+    optimizeDeps: {
+      include: ['html2canvas-pro', 'jspdf'],
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.

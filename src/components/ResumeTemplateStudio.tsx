@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas-pro';
+import { exportElementToPdf } from '../services/pdfExportService';
 import { 
   ArrowLeft, 
   Download, 
@@ -230,63 +229,21 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
       return;
     }
 
+    const candidateName = (profile.fullName || 'Candidate').trim().replace(/\s+/g, '_');
+    const filename = `${candidateName}_Resume_${selectedTemplate}.pdf`;
+
     setIsExportingPdf(true);
     onToast(`Generating ${selectedTemplate.toUpperCase()} vector PDF in ${selectedColor.name}...`);
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2.5, // 2.5x retina clarity for razor-sharp typography
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        onclone: (clonedDoc) => {
-          const el = clonedDoc.getElementById('export-resume-paper');
-          if (el) {
-            el.style.border = 'none';
-            el.style.boxShadow = 'none';
-            el.style.borderRadius = '0px';
-            el.style.outline = 'none';
-            el.style.width = '800px';
-            el.style.minWidth = '800px';
-          }
-        },
+      await exportElementToPdf({
+        elementId: 'export-resume-paper',
+        fileName: filename,
+        scale: 2,
+        targetWidthPx: 794,
+        singlePageTolerance: 1.08,
+        onStatusChange: (status) => onToast(status),
       });
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const pageWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const printWidth = pageWidth; // Full bleed 210mm width - zero outer margins or border outlines
-      const printHeight = (canvas.height * printWidth) / canvas.width;
-
-      if (printHeight <= pageHeight) {
-        // Fits entirely on single page: clean edge-to-edge without outer side/edge borders
-        pdf.addImage(imgData, 'PNG', 0, 0, printWidth, printHeight, undefined, 'FAST');
-      } else {
-        // Multi-page slicing for longer resumes
-        let heightLeft = printHeight;
-        let pageNumber = 0;
-
-        while (heightLeft > 0) {
-          if (pageNumber > 0) {
-            pdf.addPage();
-          }
-          const position = -(pageNumber * pageHeight);
-          pdf.addImage(imgData, 'PNG', 0, position, printWidth, printHeight, undefined, 'FAST');
-          heightLeft -= pageHeight;
-          pageNumber++;
-        }
-      }
-
-      const candidateName = (profile.fullName || 'Candidate').trim().replace(/\s+/g, '_');
-      const filename = `${candidateName}_Resume_${selectedTemplate}.pdf`;
-
-      pdf.save(filename);
       onToast('PDF downloaded successfully!');
     } catch (err) {
       console.error('Error rendering PDF canvas:', err);
@@ -345,6 +302,17 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
           </div>
 
           <div className="flex items-center gap-2.5 justify-end shrink-0 w-full sm:w-auto">
+            <button
+              onClick={() => window.print()}
+              disabled={isExportingPdf}
+              className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-neutral-100 hover:bg-neutral-200/80 active:scale-98 text-neutral-800 text-xs font-semibold rounded-xl border border-neutral-200 transition-all cursor-pointer"
+              title="Print or Save via System Dialog (Exact Vector PDF)"
+            >
+              <Printer className="w-4 h-4 text-neutral-600" />
+              <span className="hidden sm:inline">Print / Vector PDF</span>
+              <span className="sm:hidden">Print</span>
+            </button>
+
             <button
               onClick={handleExportPdf}
               disabled={isExportingPdf}
@@ -551,7 +519,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
             <div className="bg-neutral-100/90 p-2 sm:p-5 rounded-2xl flex justify-center border border-neutral-200/80 overflow-x-auto shadow-inner">
               <div
                 id="export-resume-paper"
-                className={`bg-white w-full max-w-[800px] text-neutral-900 border-0 rounded-none shadow-none outline-none ${getFontFamilyClass()} ${getDensityPadding()}`}
+                className={`bg-white w-full max-w-[800px] text-neutral-900 border-0 rounded-none shadow-none outline-none ${getFontFamilyClass()} ${selectedTemplate === 'accent_banner' ? 'p-0 space-y-0' : getDensityPadding()}`}
                 style={{
                   backgroundColor: '#ffffff',
                   color: '#111827',
@@ -609,7 +577,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Professional Summary */}
                   <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.lightBg }}>
+                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                       Professional Summary
                     </h2>
                     <p className="text-xs leading-relaxed text-neutral-700">
@@ -619,7 +587,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Skills */}
                   <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.lightBg }}>
+                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                       Core Skills & Technologies
                     </h2>
                     <div className="flex flex-wrap gap-1.5">
@@ -641,7 +609,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Professional Experience */}
                   <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3.5" style={{ color: selectedColor.primary, borderColor: selectedColor.lightBg }}>
+                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                       Professional Experience
                     </h2>
                     <div className="space-y-4">
@@ -668,7 +636,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Key Projects */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.lightBg }}>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Key Projects & Engineering Highlights
                       </h2>
                       <div className="space-y-2">
@@ -692,7 +660,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.lightBg }}>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Education
                       </h2>
                       <div className="space-y-1">
@@ -1112,10 +1080,10 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               {/* TEMPLATE 6: CONTEMPORARY ACCENT BANNER */}
               {/* ======================================================== */}
               {selectedTemplate === 'accent_banner' && (
-                <div className="space-y-6">
-                  {/* Top Colored Banner */}
+                <div className="w-full">
+                  {/* Top Colored Banner - Edge-to-edge full bleed */}
                   <div
-                    className="-mx-8 -mt-8 sm:-mx-10 sm:-mt-10 p-7 sm:p-8 rounded-none"
+                    className="p-6 sm:p-8 rounded-none w-full"
                     style={{ backgroundColor: selectedColor.primary, color: '#ffffff' }}
                   >
                     <h1 className="text-3xl font-extrabold tracking-tight text-white">
@@ -1133,101 +1101,103 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     </div>
                   </div>
 
-                  {/* Summary */}
-                  <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                      Professional Summary
-                    </h2>
-                    <p className="text-xs leading-relaxed text-neutral-700">
-                      {displaySummary}
-                    </p>
-                  </div>
-
-                  {/* Skills Chips */}
-                  <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                      Core Skills & Technologies
-                    </h2>
-                    <div className="flex flex-wrap gap-1.5">
-                      {displaySkills.map((s, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[11px] px-2.5 py-0.5 rounded font-medium border"
-                          style={{
-                            backgroundColor: selectedColor.lightBg,
-                            borderColor: selectedColor.border,
-                            color: selectedColor.primary,
-                          }}
-                        >
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Experience with Accent Left Callouts */}
-                  <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                      Professional Experience
-                    </h2>
-                    <div className="space-y-4">
-                      {displayExperiences.map((exp, idx) => (
-                        <div
-                          key={idx}
-                          className="pl-3.5 border-l-2 space-y-1.5"
-                          style={{ borderColor: selectedColor.secondary }}
-                        >
-                          <div className="flex items-baseline justify-between text-xs font-bold">
-                            <span style={{ color: selectedColor.primary }}>
-                              {exp.role} <span className="font-normal text-neutral-600">— {exp.company}</span>
-                            </span>
-                            <span className="text-[11px] font-mono font-normal text-neutral-500">
-                              {exp.period}
-                            </span>
-                          </div>
-                          <ul className="space-y-1 text-xs list-disc list-outside pl-4 leading-relaxed text-neutral-700">
-                            {exp.bullets.map((b, bIdx) => (
-                              <li key={bIdx}>{b}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Projects */}
-                  {displayProjects?.length > 0 && (
-                    <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                        Projects
-                      </h2>
-                      <div className="space-y-2">
-                        {displayProjects.map((p, idx) => (
-                          <div key={idx} className="text-xs">
-                            <div className="font-semibold text-neutral-900">{p.name}</div>
-                            <p className="text-[11px] text-neutral-600">{p.description}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Education */}
-                  {displayEducation?.length > 0 && (
+                  <div className={getDensityPadding()}>
+                    {/* Summary */}
                     <div>
                       <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                        Education
+                        Professional Summary
                       </h2>
-                      <div className="space-y-1">
-                        {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs text-neutral-800">
-                            <span className="font-medium">{edu.degree} — {edu.school}</span>
-                            <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
+                      <p className="text-xs leading-relaxed text-neutral-700">
+                        {displaySummary}
+                      </p>
+                    </div>
+
+                    {/* Skills Chips */}
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Core Skills & Technologies
+                      </h2>
+                      <div className="flex flex-wrap gap-1.5">
+                        {displaySkills.map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[11px] px-2.5 py-0.5 rounded font-medium border"
+                            style={{
+                              backgroundColor: selectedColor.lightBg,
+                              borderColor: selectedColor.border,
+                              color: selectedColor.primary,
+                            }}
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Experience with Accent Left Callouts */}
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Professional Experience
+                      </h2>
+                      <div className="space-y-4">
+                        {displayExperiences.map((exp, idx) => (
+                          <div
+                            key={idx}
+                            className="pl-3.5 border-l-2 space-y-1.5"
+                            style={{ borderColor: selectedColor.secondary }}
+                          >
+                            <div className="flex items-baseline justify-between text-xs font-bold">
+                              <span style={{ color: selectedColor.primary }}>
+                                {exp.role} <span className="font-normal text-neutral-600">— {exp.company}</span>
+                              </span>
+                              <span className="text-[11px] font-mono font-normal text-neutral-500">
+                                {exp.period}
+                              </span>
+                            </div>
+                            <ul className="space-y-1 text-xs list-disc list-outside pl-4 leading-relaxed text-neutral-700">
+                              {exp.bullets.map((b, bIdx) => (
+                                <li key={bIdx}>{b}</li>
+                              ))}
+                            </ul>
                           </div>
                         ))}
                       </div>
                     </div>
-                  )}
+
+                    {/* Projects */}
+                    {displayProjects?.length > 0 && (
+                      <div>
+                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                          Projects
+                        </h2>
+                        <div className="space-y-2">
+                          {displayProjects.map((p, idx) => (
+                            <div key={idx} className="text-xs">
+                              <div className="font-semibold text-neutral-900">{p.name}</div>
+                              <p className="text-[11px] text-neutral-600">{p.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Education */}
+                    {displayEducation?.length > 0 && (
+                      <div>
+                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                          Education
+                        </h2>
+                        <div className="space-y-1">
+                          {displayEducation.map((edu, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-xs text-neutral-800">
+                              <span className="font-medium">{edu.degree} — {edu.school}</span>
+                              <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

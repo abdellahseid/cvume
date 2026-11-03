@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas-pro';
+import { exportElementToPdf } from '../services/pdfExportService';
 import { 
   Sparkles, 
   FileText, 
@@ -273,62 +272,22 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
       return;
     }
 
+    const candidateName = profile.fullName.trim().replace(/\s+/g, '_') || 'Candidate';
+    const companyTag = (result.companyName || 'Application').replace(/[^a-zA-Z0-9]/g, '_');
+    const filename = `${candidateName}_Resume_${companyTag}.pdf`;
+
     setIsExportingPdf(true);
     onToast('Rendering high-resolution PDF document...');
 
     try {
-      const canvas = await html2canvas(element, {
-        scale: 2.5, // 2.5x retina resolution for razor-sharp typography
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        onclone: (clonedDoc) => {
-          const el = clonedDoc.getElementById('resume-document-to-export');
-          if (el) {
-            el.style.border = 'none';
-            el.style.boxShadow = 'none';
-            el.style.borderRadius = '0px';
-            el.style.outline = 'none';
-          }
-        },
+      await exportElementToPdf({
+        elementId: 'resume-document-to-export',
+        fileName: filename,
+        scale: 2,
+        targetWidthPx: 794,
+        singlePageTolerance: 1.08,
+        onStatusChange: (status) => onToast(status),
       });
-
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const pageWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const printWidth = pageWidth; // Full bleed 210mm width - zero outer margins or border outlines
-      const printHeight = (canvas.height * printWidth) / canvas.width;
-
-      if (printHeight <= pageHeight) {
-        // Fits entirely on a single page: edge-to-edge without outer card/page border
-        pdf.addImage(imgData, 'PNG', 0, 0, printWidth, printHeight, undefined, 'FAST');
-      } else {
-        // Multi-page slicing for longer resumes
-        let heightLeft = printHeight;
-        let pageNumber = 0;
-
-        while (heightLeft > 0) {
-          if (pageNumber > 0) {
-            pdf.addPage();
-          }
-          const position = -(pageNumber * pageHeight);
-          pdf.addImage(imgData, 'PNG', 0, position, printWidth, printHeight, undefined, 'FAST');
-          heightLeft -= pageHeight;
-          pageNumber++;
-        }
-      }
-
-      const candidateName = profile.fullName.trim().replace(/\s+/g, '_') || 'Candidate';
-      const companyTag = (result.companyName || 'Application').replace(/[^a-zA-Z0-9]/g, '_');
-      const filename = `${candidateName}_Resume_${companyTag}.pdf`;
-
-      pdf.save(filename);
       onToast('Resume PDF downloaded successfully!');
     } catch (err) {
       console.error('Error rendering PDF canvas:', err);

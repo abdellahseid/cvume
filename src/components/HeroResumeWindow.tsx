@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas-pro';
+import { exportElementToPdf } from '../services/pdfExportService';
 import { 
   FileText, 
   Briefcase, 
@@ -50,22 +49,14 @@ export const HeroResumeWindow: React.FC<HeroResumeWindowProps> = ({ onBulletClic
     if (!el) return;
     setIsExportingPdf(true);
     try {
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-      });
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const margin = 10;
-      const printWidth = pageWidth - (margin * 2);
-      const printHeight = (canvas.height * printWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', margin, margin, printWidth, Math.min(printHeight, pageHeight - margin * 2));
       const pdfFileName = `${(profile.fullName || 'Candidate').replace(/\s+/g, '_')}_Resume.pdf`;
-      pdf.save(pdfFileName);
+      await exportElementToPdf({
+        elementId: 'hero-resume-paper-to-export',
+        fileName: pdfFileName,
+        scale: 2,
+        targetWidthPx: 794,
+        singlePageTolerance: 1.08,
+      });
     } catch (e) {
       console.error('PDF export error:', e);
       window.print();

@@ -63,9 +63,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
   }, []);
 
   const handleSave = async () => {
+    if (isSaving) return;
     setIsSaving(true);
     try {
-      await persistProfileToDatabase(profile);
+      const minDelay = new Promise((resolve) => setTimeout(resolve, 600));
+      await Promise.all([
+        persistProfileToDatabase(profile),
+        minDelay,
+      ]);
       setIsSaved(true);
       onToast('Profile updated & saved to database! AI generator will use your latest details.');
       setTimeout(() => setIsSaved(false), 2500);
@@ -236,44 +241,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
 
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 w-full sm:w-auto">
           <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-75 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex-1 sm:flex-none shrink-0 sm:shrink"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-white shrink-0" />
-                <span className="truncate">
-                  <span className="sm:hidden">Saving...</span>
-                  <span className="hidden sm:inline">Saving to Database...</span>
-                </span>
-              </>
-            ) : isSaved ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-400 stroke-[3] shrink-0" />
-                <span className="truncate">
-                  <span className="sm:hidden">Saved</span>
-                  <span className="hidden sm:inline">Saved to Database</span>
-                </span>
-              </>
-            ) : (
-              <>
-                <Save className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">
-                  Save<span className="hidden sm:inline"> profile changes</span>
-                </span>
-              </>
-            )}
-          </button>
-
-          <button
             onClick={onGoToGenerator}
-            className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-3 sm:px-4 py-2 bg-[#e0644e] hover:bg-[#d45640] text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex-1 sm:flex-none shrink-0 sm:shrink"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-[#e0644e] hover:bg-[#d45640] text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer w-full sm:w-auto"
           >
             <Sparkles className="w-3.5 h-3.5 shrink-0" />
-            <span className="truncate">
-              Generate<span className="hidden sm:inline"> Application</span>
-            </span>
+            <span>Generate Application</span>
             <ArrowRight className="w-3.5 h-3.5 shrink-0" />
           </button>
         </div>
@@ -907,34 +879,33 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
             </span>
             <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
+                type="button"
                 onClick={handleSave}
                 disabled={isSaving}
-                className="w-full sm:w-auto justify-center px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-75 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer inline-flex items-center gap-2"
+                className={`w-full sm:w-auto justify-center px-5 py-2.5 text-xs font-semibold rounded-lg shadow-sm transition-all duration-200 inline-flex items-center gap-2 ${
+                  isSaving
+                    ? 'bg-neutral-800 text-neutral-300 cursor-wait opacity-90'
+                    : isSaved
+                    ? 'bg-emerald-700 hover:bg-emerald-800 text-white cursor-default'
+                    : 'bg-neutral-900 hover:bg-neutral-800 text-white cursor-pointer active:scale-[0.98]'
+                }`}
               >
                 {isSaving ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white shrink-0" />
+                    <span>Saving to Database...</span>
+                  </>
                 ) : isSaved ? (
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <>
+                    <Check className="w-4 h-4 text-emerald-300 stroke-[2.5] shrink-0" />
+                    <span>Saved to Database</span>
+                  </>
                 ) : (
-                  <Save className="w-4 h-4" />
+                  <>
+                    <Save className="w-4 h-4 shrink-0" />
+                    <span>Save Profile Changes</span>
+                  </>
                 )}
-                <span>
-                  {isSaving ? (
-                    <>
-                      <span className="sm:hidden">Saving...</span>
-                      <span className="hidden sm:inline">Saving to Database...</span>
-                    </>
-                  ) : isSaved ? (
-                    <>
-                      <span className="sm:hidden">Saved</span>
-                      <span className="hidden sm:inline">Saved to Database</span>
-                    </>
-                  ) : (
-                    <>
-                      Save<span className="hidden sm:inline"> Profile Changes</span>
-                    </>
-                  )}
-                </span>
               </button>
             </div>
           </div>

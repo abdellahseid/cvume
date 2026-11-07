@@ -839,11 +839,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
                               href={proj.link}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
-                              title="See project live"
+                              className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-transform hover:scale-110 cursor-pointer p-0.5"
+                              title="Open project live"
                             >
-                              <span>See Project Live</span>
-                              <ExternalLink className="w-2.5 h-2.5 stroke-[2.5]" />
+                              <ExternalLink className="w-3.5 h-3.5 stroke-[2.2]" />
                             </a>
                           )}
                         </div>

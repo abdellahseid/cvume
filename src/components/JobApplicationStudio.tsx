@@ -712,21 +712,51 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                       {result.resume.headline || result.jobTitle || profile.targetRole}
                     </div>
                     <div className="text-xs mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1" style={{ color: '#4b5563' }}>
-                      <span>{profile.email}</span>
-                      <span>•</span>
-                      <span>{profile.phone}</span>
-                      <span>•</span>
-                      <span>{profile.location}</span>
+                      {profile.email && (
+                        <a href={`mailto:${profile.email}`} className="hover:underline" style={{ color: '#4b5563' }}>
+                          {profile.email}
+                        </a>
+                      )}
+                      {profile.phone && (
+                        <>
+                          <span>•</span>
+                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline" style={{ color: '#4b5563' }}>
+                            {profile.phone}
+                          </a>
+                        </>
+                      )}
+                      {profile.location && (
+                        <>
+                          <span>•</span>
+                          <span>{profile.location}</span>
+                        </>
+                      )}
                       {profile.portfolioUrl && (
                         <>
                           <span>•</span>
-                          <span style={{ color: '#2563eb' }}>{profile.portfolioUrl}</span>
+                          <a
+                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium"
+                            style={{ color: '#2563eb' }}
+                          >
+                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
+                          </a>
                         </>
                       )}
                       {profile.linkedinUrl && (
                         <>
                           <span>•</span>
-                          <span style={{ color: '#0a66c2' }}>{profile.linkedinUrl}</span>
+                          <a
+                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                            style={{ color: '#0a66c2' }}
+                          >
+                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
+                          </a>
                         </>
                       )}
                     </div>
@@ -805,7 +835,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                         <h3 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
                           Key Projects & Technical Highlights
                         </h3>
-                        <div className="space-y-2.5">
+                        <div className="space-y-2">
                           {activeProjects.map((proj: any, idx: number) => {
                             const projectLink = (proj.link || '').trim()
                               || profile.projects?.find((p: any) => p.name?.toLowerCase() === proj.name?.toLowerCase())?.link
@@ -813,24 +843,21 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                               || `https://github.com/alexrivera-eng/${(proj.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
 
                             return (
-                              <div
-                                key={idx}
-                                className="text-xs p-2.5 rounded-lg border border-neutral-100 hover:border-neutral-300 hover:bg-neutral-50/70 transition-all duration-150 group/proj"
-                              >
+                              <div key={idx} className="text-xs">
                                 <div className="font-semibold flex items-center justify-between gap-2" style={{ color: '#111827' }}>
-                                  <div className="flex items-center gap-2 min-w-0">
+                                  <div className="flex items-center gap-1.5 min-w-0">
                                     <span className="text-neutral-900 font-semibold">{proj.name}</span>
                                     {projectLink && (
                                       <a
                                         href={projectLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold text-blue-700 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-200 hover:border-blue-600 rounded-md transition-all shrink-0 cursor-pointer shadow-2xs group-hover/proj:scale-105"
-                                        title={`View live project / repository for ${proj.name}`}
+                                        className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
+                                        style={{ color: '#e0644e' }}
+                                        title={`Open live project / repository for ${proj.name}`}
                                         onClick={(e) => e.stopPropagation()}
                                       >
-                                        <span>See Live</span>
-                                        <ExternalLink className="w-2.5 h-2.5 stroke-[2.5]" />
+                                        <ExternalLink className="w-3 h-3 stroke-[2.2]" />
                                       </a>
                                     )}
                                   </div>
@@ -840,7 +867,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-[11px] mt-1 leading-relaxed" style={{ color: '#4b5563' }}>{proj.description}</p>
+                                <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: '#4b5563' }}>{proj.description}</p>
                               </div>
                             );
                           })}

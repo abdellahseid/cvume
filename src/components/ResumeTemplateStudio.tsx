@@ -572,11 +572,17 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                     {/* Contact row */}
                     <div className="text-xs mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-neutral-600">
-                      {profile.email && <span>{profile.email}</span>}
+                      {profile.email && (
+                        <a href={`mailto:${profile.email}`} className="hover:underline">
+                          {profile.email}
+                        </a>
+                      )}
                       {profile.phone && (
                         <>
                           <span>•</span>
-                          <span>{profile.phone}</span>
+                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">
+                            {profile.phone}
+                          </a>
                         </>
                       )}
                       {profile.location && (
@@ -588,13 +594,28 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       {profile.portfolioUrl && (
                         <>
                           <span>•</span>
-                          <span style={{ color: selectedColor.secondary }}>{profile.portfolioUrl.replace(/^https?:\/\//, '')}</span>
+                          <a
+                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium"
+                            style={{ color: selectedColor.secondary }}
+                          >
+                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
+                          </a>
                         </>
                       )}
                       {profile.linkedinUrl && (
                         <>
                           <span>•</span>
-                          <span>{profile.linkedinUrl.replace(/^https?:\/\//, '')}</span>
+                          <a
+                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
+                          </a>
                         </>
                       )}
                     </div>
@@ -677,11 +698,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                                       href={projectLink}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 font-medium transition-colors"
-                                      title="Open live project"
+                                      className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
+                                      style={{ color: selectedColor.primary }}
+                                      title={`View ${p.name} live`}
                                     >
-                                      <span>Live</span>
-                                      <ExternalLink className="w-2.5 h-2.5" />
+                                      <ExternalLink className="w-3 h-3 stroke-[2.2]" />
                                     </a>
                                   )}
                                 </div>
@@ -732,11 +753,44 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       {displayHeadline}
                     </div>
                     <div className="text-[11px] mt-2 flex flex-wrap items-center justify-center gap-x-3 text-neutral-600 font-sans">
-                      {profile.email && <span>{profile.email}</span>}
-                      {profile.phone && <span>| {profile.phone}</span>}
+                      {profile.email && (
+                        <a href={`mailto:${profile.email}`} className="hover:underline">
+                          {profile.email}
+                        </a>
+                      )}
+                      {profile.phone && (
+                        <span>
+                          | <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">{profile.phone}</a>
+                        </span>
+                      )}
                       {profile.location && <span>| {profile.location}</span>}
-                      {profile.portfolioUrl && <span style={{ color: selectedColor.secondary }}>| {profile.portfolioUrl.replace(/^https?:\/\//, '')}</span>}
-                      {profile.linkedinUrl && <span>| {profile.linkedinUrl.replace(/^https?:\/\//, '')}</span>}
+                      {profile.portfolioUrl && (
+                        <span>
+                          |{' '}
+                          <a
+                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium"
+                            style={{ color: selectedColor.secondary }}
+                          >
+                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        </span>
+                      )}
+                      {profile.linkedinUrl && (
+                        <span>
+                          |{' '}
+                          <a
+                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -803,11 +857,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                                       href={projectLink}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-0.5 text-[10px] font-sans text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200/80 px-1.5 py-0.2 rounded font-medium transition-colors"
-                                      title="Open live project"
+                                      className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
+                                      style={{ color: selectedColor.primary }}
+                                      title={`View ${p.name} live`}
                                     >
-                                      <span>Live</span>
-                                      <ExternalLink className="w-2.5 h-2.5" />
+                                      <ExternalLink className="w-3 h-3 stroke-[2.2]" />
                                     </a>
                                   )}
                                 </div>
@@ -863,13 +917,44 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     {/* Contact List */}
                     <div className="space-y-2 text-[11px] text-neutral-700">
                       <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
-                        Contact
+                        Contact & Links
                       </span>
-                      {profile.email && <div className="break-all">{profile.email}</div>}
-                      {profile.phone && <div>{profile.phone}</div>}
+                      {profile.email && (
+                        <div className="break-all">
+                          <a href={`mailto:${profile.email}`} className="hover:underline">{profile.email}</a>
+                        </div>
+                      )}
+                      {profile.phone && (
+                        <div>
+                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">{profile.phone}</a>
+                        </div>
+                      )}
                       {profile.location && <div>{profile.location}</div>}
-                      {profile.portfolioUrl && <div className="break-all font-medium" style={{ color: selectedColor.secondary }}>{profile.portfolioUrl.replace(/^https?:\/\//, '')}</div>}
-                      {profile.linkedinUrl && <div className="break-all">{profile.linkedinUrl.replace(/^https?:\/\//, '')}</div>}
+                      {profile.portfolioUrl && (
+                        <div className="break-all font-medium">
+                          <a
+                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                            style={{ color: selectedColor.secondary }}
+                          >
+                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        </div>
+                      )}
+                      {profile.linkedinUrl && (
+                        <div className="break-all">
+                          <a
+                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        </div>
+                      )}
                     </div>
 
                     {/* Skills Column */}
@@ -969,11 +1054,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                                         href={projectLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 font-medium transition-colors"
-                                        title="Open live project"
+                                        className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
+                                        style={{ color: selectedColor.primary }}
+                                        title={`View ${p.name} live`}
                                       >
-                                        <span>Live</span>
-                                        <ExternalLink className="w-2.5 h-2.5" />
+                                        <ExternalLink className="w-3 h-3 stroke-[2.2]" />
                                       </a>
                                     )}
                                   </div>
@@ -1005,10 +1090,30 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       </div>
                     </div>
                     <div className="text-right text-[11px] font-mono text-neutral-500 space-y-0.5">
-                      {profile.email && <div>{profile.email}</div>}
-                      {profile.phone && <div>{profile.phone}</div>}
+                      {profile.email && (
+                        <div>
+                          <a href={`mailto:${profile.email}`} className="hover:underline">{profile.email}</a>
+                        </div>
+                      )}
+                      {profile.phone && (
+                        <div>
+                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">{profile.phone}</a>
+                        </div>
+                      )}
                       {profile.location && <div>{profile.location}</div>}
-                      {profile.portfolioUrl && <div style={{ color: selectedColor.secondary }}>{profile.portfolioUrl.replace(/^https?:\/\//, '')}</div>}
+                      {profile.portfolioUrl && (
+                        <div>
+                          <a
+                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium"
+                            style={{ color: selectedColor.secondary }}
+                          >
+                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1078,11 +1183,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                                       href={projectLink}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-0.5 text-[10px] font-mono text-neutral-500 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 px-1.5 py-0.2 rounded transition-colors"
-                                      title="Open live project"
+                                      className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
+                                      style={{ color: selectedColor.primary }}
+                                      title={`View ${p.name} live`}
                                     >
-                                      <span>Live</span>
-                                      <ExternalLink className="w-2.5 h-2.5" />
+                                      <ExternalLink className="w-3 h-3 stroke-[2.2]" />
                                     </a>
                                   )}
                                 </div>
@@ -1133,11 +1238,42 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       {displayHeadline}
                     </div>
                     <div className="text-[10.5px] mt-1 text-neutral-600 font-sans flex items-center justify-center gap-2 flex-wrap">
-                      {profile.email && <span>{profile.email}</span>}
-                      {profile.phone && <span>• {profile.phone}</span>}
+                      {profile.email && (
+                        <a href={`mailto:${profile.email}`} className="hover:underline">{profile.email}</a>
+                      )}
+                      {profile.phone && (
+                        <span>
+                          • <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">{profile.phone}</a>
+                        </span>
+                      )}
                       {profile.location && <span>• {profile.location}</span>}
-                      {profile.portfolioUrl && <span>• {profile.portfolioUrl.replace(/^https?:\/\//, '')}</span>}
-                      {profile.linkedinUrl && <span>• {profile.linkedinUrl.replace(/^https?:\/\//, '')}</span>}
+                      {profile.portfolioUrl && (
+                        <span>
+                          •{' '}
+                          <a
+                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium"
+                            style={{ color: selectedColor.primary }}
+                          >
+                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        </span>
+                      )}
+                      {profile.linkedinUrl && (
+                        <span>
+                          •{' '}
+                          <a
+                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -1200,11 +1336,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                                   href={projectLink}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-0.5 ml-1 text-[10px] text-blue-600 hover:underline font-normal"
-                                  title="Open live project"
+                                  className="inline-flex items-center align-middle ml-1 transition-transform hover:scale-110 cursor-pointer"
+                                  style={{ color: selectedColor.primary }}
+                                  title={`View ${p.name} live`}
                                 >
-                                  <span>[Live]</span>
-                                  <ExternalLink className="w-2.5 h-2.5 inline" />
+                                  <ExternalLink className="w-2.5 h-2.5 stroke-[2.2]" />
                                 </a>
                               )}
                               <span>: </span>
@@ -1251,12 +1387,47 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     <div className="text-sm font-medium mt-1 text-white/90">
                       {displayHeadline}
                     </div>
-                    <div className="text-[11px] mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-white/80 font-sans">
-                      {profile.email && <span>{profile.email}</span>}
-                      {profile.phone && <span>• {profile.phone}</span>}
+                    <div className="text-[11px] mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-white/90 font-sans">
+                      {profile.email && (
+                        <a href={`mailto:${profile.email}`} className="hover:underline text-white font-medium">
+                          {profile.email}
+                        </a>
+                      )}
+                      {profile.phone && (
+                        <span>
+                          •{' '}
+                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline text-white">
+                            {profile.phone}
+                          </a>
+                        </span>
+                      )}
                       {profile.location && <span>• {profile.location}</span>}
-                      {profile.portfolioUrl && <span>• {profile.portfolioUrl.replace(/^https?:\/\//, '')}</span>}
-                      {profile.linkedinUrl && <span>• {profile.linkedinUrl.replace(/^https?:\/\//, '')}</span>}
+                      {profile.portfolioUrl && (
+                        <span>
+                          •{' '}
+                          <a
+                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-white font-bold underline underline-offset-2"
+                          >
+                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        </span>
+                      )}
+                      {profile.linkedinUrl && (
+                        <span>
+                          •{' '}
+                          <a
+                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-white"
+                          >
+                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -1342,11 +1513,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                                         href={projectLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 font-medium transition-colors"
-                                        title="Open live project"
+                                        className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
+                                        style={{ color: selectedColor.primary }}
+                                        title={`View ${p.name} live`}
                                       >
-                                        <span>Live</span>
-                                        <ExternalLink className="w-2.5 h-2.5" />
+                                        <ExternalLink className="w-3 h-3 stroke-[2.2]" />
                                       </a>
                                     )}
                                   </div>

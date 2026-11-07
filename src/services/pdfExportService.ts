@@ -11,7 +11,33 @@ export interface PdfExportOptions {
 }
 
 /**
- * Extracts all CSS rules from loaded document stylesheets so they can be
+ * Normalizes URLs for PDF link annotations (handling emails, phone numbers, and web links)
+ */
+function normalizePdfUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed || trimmed === '#' || trimmed.startsWith('javascript:')) return '';
+  if (trimmed.startsWith('mailto:') || trimmed.startsWith('tel:') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  if (trimmed.includes('@') && !trimmed.includes('/')) {
+    return `mailto:${trimmed}`;
+  }
+  if (/^[\d+\s().-]{7,}$/.test(trimmed)) {
+    return `tel:${trimmed.replace(/[^\d+]/g, '')}`;
+  }
+  return `https://${trimmed.replace(/^\/\//, '')}`;
+}
+
+interface ExtractedPdfLink {
+  href: string;
+  xPercent: number;
+  yPercent: number;
+  wPercent: number;
+  hPercent: number;
+}
+
+/**
+ * Extracts and bundles all stylesheets currently active in the document so they can be
  * inlined synchronously into cloned iframe documents during canvas rendering.
  * This guarantees that in production and deployed environments (e.g. Vercel),
  * where styles reside in external bundled CSS files, the cloned iframe renders
@@ -77,6 +103,37 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
   const element = document.getElementById(elementId);
   if (!element) {
     throw new Error(`Resume element with id "${elementId}" not found.`);
+  }
+
+  // 1. Extract all clickable links, URLs, and coordinates relative to the resume element
+  const links: ExtractedPdfLink[] = [];
+  try {
+    const elRect = element.getBoundingClientRect();
+    if (elRect.width > 0 && elRect.height > 0) {
+      const anchors = element.querySelectorAll('a[href]');
+      anchors.forEach((anchor) => {
+        const rawHref = anchor.getAttribute('href') || '';
+        const href = normalizePdfUrl(rawHref);
+        if (!href) return;
+
+        const aRect = anchor.getBoundingClientRect();
+        const relX = aRect.left - elRect.left;
+        const relY = aRect.top - elRect.top;
+        // Ensure a comfortable touch/click target in the exported PDF
+        const width = Math.max(aRect.width, 14);
+        const height = Math.max(aRect.height, 14);
+
+        links.push({
+          href,
+          xPercent: relX / elRect.width,
+          yPercent: relY / elRect.height,
+          wPercent: width / elRect.width,
+          hPercent: height / elRect.height,
+        });
+      });
+    }
+  } catch (err) {
+    console.warn('Error extracting links for PDF:', err);
   }
 
   onStatusChange?.('Preparing high-resolution PDF...');
@@ -193,11 +250,25 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
   if (printHeight <= pageHeight) {
     // Fits cleanly on a single page
     pdf.addImage(imgData, 'PNG', 0, 0, printWidth, printHeight, undefined, 'FAST');
+    for (const link of links) {
+      const linkX = link.xPercent * printWidth;
+      const linkY = link.yPercent * printHeight;
+      const linkW = link.wPercent * printWidth;
+      const linkH = link.hPercent * printHeight;
+      pdf.link(linkX, linkY, linkW, linkH, { url: link.href });
+    }
   } else if (printHeight <= pageHeight * singlePageTolerance) {
     // Fits within single page tolerance - scale slightly so it fits cleanly on 1 page
     const scaledWidth = (pageHeight / printHeight) * printWidth;
     const offsetX = (pageWidth - scaledWidth) / 2;
     pdf.addImage(imgData, 'PNG', offsetX, 0, scaledWidth, pageHeight, undefined, 'FAST');
+    for (const link of links) {
+      const linkX = offsetX + link.xPercent * scaledWidth;
+      const linkY = link.yPercent * pageHeight;
+      const linkW = link.wPercent * scaledWidth;
+      const linkH = link.hPercent * pageHeight;
+      pdf.link(linkX, linkY, linkW, linkH, { url: link.href });
+    }
   } else {
     // Multi-page export with clean slicing
     let heightLeft = printHeight;
@@ -211,6 +282,21 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
       pdf.addImage(imgData, 'PNG', 0, position, printWidth, printHeight, undefined, 'FAST');
       heightLeft -= pageHeight;
       pageNumber++;
+    }
+
+    // Embed links on their corresponding pages
+    for (const link of links) {
+      const globalY = link.yPercent * printHeight;
+      const pageIndex = Math.floor(globalY / pageHeight);
+      const pageY = globalY - pageIndex * pageHeight;
+      const linkX = link.xPercent * printWidth;
+      const linkW = link.wPercent * printWidth;
+      const linkH = link.hPercent * printHeight;
+
+      if (pageIndex < pageNumber) {
+        pdf.setPage(pageIndex + 1);
+        pdf.link(linkX, pageY, linkW, linkH, { url: link.href });
+      }
     }
   }
 

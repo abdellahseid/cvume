@@ -832,16 +832,44 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onGoToGenerator, onToa
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-neutral-600 mb-1">Project Link / Repo</label>
-                        <input
-                          type="text"
-                          value={proj.link || ''}
-                          onChange={e => {
-                            const updatedProjs = profile.projects.map(p => p.id === proj.id ? { ...p, link: e.target.value } : p);
-                            setProfile({ ...profile, projects: updatedProjs });
-                          }}
-                          className="w-full px-2.5 py-1.5 text-xs rounded border border-neutral-200 focus:outline-none focus:border-neutral-900"
-                        />
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-[11px] font-medium text-neutral-600">Project Link / Repo</label>
+                          {proj.link && (
+                            <a
+                              href={proj.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                              title="See project live"
+                            >
+                              <span>See Project Live</span>
+                              <ExternalLink className="w-2.5 h-2.5 stroke-[2.5]" />
+                            </a>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={proj.link || ''}
+                            onChange={e => {
+                              const updatedProjs = profile.projects.map(p => p.id === proj.id ? { ...p, link: e.target.value } : p);
+                              setProfile({ ...profile, projects: updatedProjs });
+                            }}
+                            className="w-full px-2.5 py-1.5 text-xs rounded border border-neutral-200 focus:outline-none focus:border-neutral-900 pr-8 font-mono text-[11px]"
+                            placeholder="https://github.com/..."
+                          />
+                          {proj.link && (
+                            <a
+                              href={proj.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-blue-600 transition-colors"
+                              title="See project live"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <button

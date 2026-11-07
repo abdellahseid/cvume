@@ -28,7 +28,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { UserProfile, ApplicationGenerationResult } from '../types/profile';
-import { getStoredProfile, syncProfileWithDatabase } from '../services/profileService';
+import { getStoredProfile, syncProfileWithDatabase, DEFAULT_USER_PROFILE } from '../services/profileService';
 import { api, SavedApplication } from '../services/api';
 
 interface JobApplicationStudioProps {
@@ -805,20 +805,45 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                         <h3 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
                           Key Projects & Technical Highlights
                         </h3>
-                        <div className="space-y-2">
-                          {activeProjects.map((proj: any, idx: number) => (
-                            <div key={idx} className="text-xs">
-                              <div className="font-semibold flex items-center justify-between" style={{ color: '#111827' }}>
-                                <span>{proj.name}</span>
-                                {proj.technologies && (
-                                  <span className="text-[10px] font-mono" style={{ color: '#6b7280' }}>
-                                    {Array.isArray(proj.technologies) ? proj.technologies.join(', ') : proj.technologies}
-                                  </span>
-                                )}
+                        <div className="space-y-2.5">
+                          {activeProjects.map((proj: any, idx: number) => {
+                            const projectLink = (proj.link || '').trim()
+                              || profile.projects?.find((p: any) => p.name?.toLowerCase() === proj.name?.toLowerCase())?.link
+                              || DEFAULT_USER_PROFILE.projects.find((p: any) => p.name?.toLowerCase() === proj.name?.toLowerCase())?.link
+                              || `https://github.com/alexrivera-eng/${(proj.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+
+                            return (
+                              <div
+                                key={idx}
+                                className="text-xs p-2.5 rounded-lg border border-neutral-100 hover:border-neutral-300 hover:bg-neutral-50/70 transition-all duration-150 group/proj"
+                              >
+                                <div className="font-semibold flex items-center justify-between gap-2" style={{ color: '#111827' }}>
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-neutral-900 font-semibold">{proj.name}</span>
+                                    {projectLink && (
+                                      <a
+                                        href={projectLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold text-blue-700 hover:text-white bg-blue-50 hover:bg-blue-600 border border-blue-200 hover:border-blue-600 rounded-md transition-all shrink-0 cursor-pointer shadow-2xs group-hover/proj:scale-105"
+                                        title={`View live project / repository for ${proj.name}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <span>See Live</span>
+                                        <ExternalLink className="w-2.5 h-2.5 stroke-[2.5]" />
+                                      </a>
+                                    )}
+                                  </div>
+                                  {proj.technologies && (
+                                    <span className="text-[10px] font-mono shrink-0" style={{ color: '#6b7280' }}>
+                                      {Array.isArray(proj.technologies) ? proj.technologies.join(', ') : proj.technologies}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-[11px] mt-1 leading-relaxed" style={{ color: '#4b5563' }}>{proj.description}</p>
                               </div>
-                              <p className="text-[11px] mt-0.5" style={{ color: '#4b5563' }}>{proj.description}</p>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     );

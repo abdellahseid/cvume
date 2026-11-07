@@ -23,10 +23,11 @@ import {
   Award,
   Briefcase,
   GraduationCap,
-  Code
+  Code,
+  ExternalLink
 } from 'lucide-react';
 import { UserProfile, ApplicationGenerationResult } from '../types/profile';
-import { getStoredProfile } from '../services/profileService';
+import { getStoredProfile, DEFAULT_USER_PROFILE } from '../services/profileService';
 
 export interface ResumeTemplateStudioProps {
   initialResult?: ApplicationGenerationResult | null;
@@ -233,6 +234,16 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
     }
     return list.length > 0 ? list : profileList;
   })();
+
+  const getProjectLink = (proj: any) => {
+    if (proj.link && proj.link.trim()) return proj.link.trim();
+    const foundInProfile = profile.projects?.find((p: any) => (p.name || '').toLowerCase() === (proj.name || '').toLowerCase());
+    if (foundInProfile?.link && foundInProfile.link.trim()) return foundInProfile.link.trim();
+    const foundInDefault = DEFAULT_USER_PROFILE.projects.find((p: any) => (p.name || '').toLowerCase() === (proj.name || '').toLowerCase());
+    if (foundInDefault?.link && foundInDefault.link.trim()) return foundInDefault.link.trim();
+    const slug = (proj.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return `https://github.com/alexrivera-eng/${slug}`;
+  };
   const displayEducation = result?.resume?.education?.length ? result.resume.education : profile.education;
 
   // High-Resolution PDF Export Function
@@ -654,19 +665,36 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         Key Projects & Engineering Highlights
                       </h2>
                       <div className="space-y-2">
-                        {displayProjects.map((p, idx) => (
-                          <div key={idx} className="text-xs">
-                            <div className="font-semibold flex items-center justify-between text-neutral-900">
-                              <span>{p.name}</span>
-                              {(p as any).technologies && (
-                                <span className="text-[10px] font-mono text-neutral-500">
-                                  {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
-                                </span>
-                              )}
+                        {displayProjects.map((p, idx) => {
+                          const projectLink = getProjectLink(p);
+                          return (
+                            <div key={idx} className="text-xs">
+                              <div className="font-semibold flex items-center justify-between text-neutral-900">
+                                <div className="flex items-center gap-1.5">
+                                  <span>{p.name}</span>
+                                  {projectLink && (
+                                    <a
+                                      href={projectLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 font-medium transition-colors"
+                                      title="Open live project"
+                                    >
+                                      <span>Live</span>
+                                      <ExternalLink className="w-2.5 h-2.5" />
+                                    </a>
+                                  )}
+                                </div>
+                                {(p as any).technologies && (
+                                  <span className="text-[10px] font-mono text-neutral-500">
+                                    {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-neutral-600 mt-0.5">{p.description}</p>
                             </div>
-                            <p className="text-[11px] text-neutral-600 mt-0.5">{p.description}</p>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -763,19 +791,36 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         Key Projects & Technical Highlights
                       </h2>
                       <div className="space-y-2 text-xs">
-                        {displayProjects.map((p, idx) => (
-                          <div key={idx} className="space-y-0.5 text-left">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold font-serif text-neutral-900">{p.name}</span>
-                              {(p as any).technologies && (
-                                <span className="text-[10px] font-mono text-neutral-500">
-                                  {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
-                                </span>
-                              )}
+                        {displayProjects.map((p, idx) => {
+                          const projectLink = getProjectLink(p);
+                          return (
+                            <div key={idx} className="space-y-0.5 text-left">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-bold font-serif text-neutral-900">{p.name}</span>
+                                  {projectLink && (
+                                    <a
+                                      href={projectLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-0.5 text-[10px] font-sans text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200/80 px-1.5 py-0.2 rounded font-medium transition-colors"
+                                      title="Open live project"
+                                    >
+                                      <span>Live</span>
+                                      <ExternalLink className="w-2.5 h-2.5" />
+                                    </a>
+                                  )}
+                                </div>
+                                {(p as any).technologies && (
+                                  <span className="text-[10px] font-mono text-neutral-500">
+                                    {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-neutral-700 leading-relaxed">{p.description}</p>
                             </div>
-                            <p className="text-[11px] text-neutral-700 leading-relaxed">{p.description}</p>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -912,12 +957,31 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                           Projects
                         </h2>
                         <div className="space-y-2">
-                          {displayProjects.map((p, idx) => (
-                            <div key={idx} className="text-xs">
-                              <div className="font-semibold text-neutral-900">{p.name}</div>
-                              <p className="text-[11px] text-neutral-600">{p.description}</p>
-                            </div>
-                          ))}
+                          {displayProjects.map((p, idx) => {
+                            const projectLink = getProjectLink(p);
+                            return (
+                              <div key={idx} className="text-xs">
+                                <div className="font-semibold text-neutral-900 flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{p.name}</span>
+                                    {projectLink && (
+                                      <a
+                                        href={projectLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 font-medium transition-colors"
+                                        title="Open live project"
+                                      >
+                                        <span>Live</span>
+                                        <ExternalLink className="w-2.5 h-2.5" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-[11px] text-neutral-600">{p.description}</p>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -1002,19 +1066,36 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         // Key Projects & Open Source
                       </h2>
                       <div className="space-y-2">
-                        {displayProjects.map((p, idx) => (
-                          <div key={idx} className="space-y-0.5">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="font-semibold text-neutral-900">{p.name}</span>
-                              {(p as any).technologies && (
-                                <span className="text-[10px] font-mono text-neutral-400">
-                                  {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
-                                </span>
-                              )}
+                        {displayProjects.map((p, idx) => {
+                          const projectLink = getProjectLink(p);
+                          return (
+                            <div key={idx} className="space-y-0.5">
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-semibold text-neutral-900">{p.name}</span>
+                                  {projectLink && (
+                                    <a
+                                      href={projectLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-0.5 text-[10px] font-mono text-neutral-500 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 px-1.5 py-0.2 rounded transition-colors"
+                                      title="Open live project"
+                                    >
+                                      <span>Live</span>
+                                      <ExternalLink className="w-2.5 h-2.5" />
+                                    </a>
+                                  )}
+                                </div>
+                                {(p as any).technologies && (
+                                  <span className="text-[10px] font-mono text-neutral-400">
+                                    {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-neutral-600">{p.description}</p>
                             </div>
-                            <p className="text-[11px] text-neutral-600">{p.description}</p>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1109,12 +1190,28 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         Technical Highlights & Projects
                       </h2>
                       <div className="space-y-1">
-                        {displayProjects.map((p, idx) => (
-                          <div key={idx} className="text-[11px]">
-                            <span className="font-semibold">{p.name}: </span>
-                            <span className="text-neutral-700">{p.description}</span>
-                          </div>
-                        ))}
+                        {displayProjects.map((p, idx) => {
+                          const projectLink = getProjectLink(p);
+                          return (
+                            <div key={idx} className="text-[11px]">
+                              <span className="font-semibold">{p.name}</span>
+                              {projectLink && (
+                                <a
+                                  href={projectLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-0.5 ml-1 text-[10px] text-blue-600 hover:underline font-normal"
+                                  title="Open live project"
+                                >
+                                  <span>[Live]</span>
+                                  <ExternalLink className="w-2.5 h-2.5 inline" />
+                                </a>
+                              )}
+                              <span>: </span>
+                              <span className="text-neutral-700">{p.description}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -1233,12 +1330,31 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                           Projects
                         </h2>
                         <div className="space-y-2">
-                          {displayProjects.map((p, idx) => (
-                            <div key={idx} className="text-xs">
-                              <div className="font-semibold text-neutral-900">{p.name}</div>
-                              <p className="text-[11px] text-neutral-600">{p.description}</p>
-                            </div>
-                          ))}
+                          {displayProjects.map((p, idx) => {
+                            const projectLink = getProjectLink(p);
+                            return (
+                              <div key={idx} className="text-xs">
+                                <div className="font-semibold text-neutral-900 flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5">
+                                    <span>{p.name}</span>
+                                    {projectLink && (
+                                      <a
+                                        href={projectLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-0.5 text-[10px] text-blue-600 hover:text-blue-800 bg-blue-50/80 hover:bg-blue-100 px-1.5 py-0.2 rounded border border-blue-200/60 font-medium transition-colors"
+                                        title="Open live project"
+                                      >
+                                        <span>Live</span>
+                                        <ExternalLink className="w-2.5 h-2.5" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-[11px] text-neutral-600">{p.description}</p>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}

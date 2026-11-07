@@ -68,6 +68,8 @@ export interface TailoredResumeResult {
   projects?: Array<{
     name: string;
     description: string;
+    link?: string;
+    technologies?: string[];
   }>;
   formattedPlainText: string;
   atsBreakdown: AtsBreakdown;

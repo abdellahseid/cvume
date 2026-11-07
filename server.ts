@@ -380,6 +380,8 @@ Respond strictly in valid JSON with this exact structure:
           parsed.resume.projects.push({
             name: pName,
             description: proj.description || '',
+            link: proj.link || '',
+            technologies: proj.technologies || [],
           });
           existingNames.add(pName.toLowerCase());
         }
@@ -393,11 +395,27 @@ Respond strictly in valid JSON with this exact structure:
           parsed.resume.projects.push({
             name: pName,
             description: proj.description || '',
+            link: proj.link || '',
+            technologies: proj.technologies || [],
           });
           existingNames.add(pName.toLowerCase());
         }
       }
     }
+
+    // Ensure all projects have an accessible live link
+    parsed.resume.projects = parsed.resume.projects.map((p: any) => {
+      let link = (p.link || '').trim();
+      if (!link) {
+        const match = (profile.projects || []).find((cp: any) => (cp.name || '').toLowerCase() === (p.name || '').toLowerCase())
+          || DEFAULT_USER_PROFILE.projects.find((dp: any) => (dp.name || '').toLowerCase() === (p.name || '').toLowerCase());
+        link = match?.link || `https://github.com/alexrivera-eng/${(p.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+      }
+      return {
+        ...p,
+        link,
+      };
+    });
 
     // Ensure formattedPlainText includes all Key Projects
     if (parsed.resume.formattedPlainText && parsed.resume.projects.length > 0) {

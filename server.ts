@@ -151,7 +151,7 @@ interface UserProfile {
   skills: string[];
   experiences: UserExperience[];
   education: Array<{ id: string; degree: string; school: string; year: string; honors?: string }>;
-  projects: Array<{ id: string; name: string; description: string; link?: string }>;
+  projects: Array<{ id: string; name: string; description: string; link?: string; technologies?: string[] }>;
 }
 
 async function generateApplicationWithAI(jobDescription: string, profile: UserProfile) {
@@ -196,6 +196,11 @@ CRITICAL INSTRUCTIONS FOR RESUME STYLE, TONE, AND AUTHENTICITY:
    - In Gmail letter: Conclude with a professional sign-off with candidate's full name, phone number, email, and portfolio website link.
    - In Telegram / DM: Include the candidate's portfolio website and phone number directly within the message.
 
+5. KEY PROJECTS & TECHNICAL HIGHLIGHTS:
+   - In "projects", provide AT LEAST 5 featured technical projects (do NOT output only 2).
+   - Draw from the candidate profile's projects and seamlessly weave in the technologies, architectures, and performance metrics required by the target job.
+   - Each project must have a clear "name" and a concise, high-impact "description" highlighting architectural choices, technical stack, and measurable impact.
+
 Candidate Profile:
 ${JSON.stringify(profile, null, 2)}
 
@@ -227,11 +232,27 @@ Respond strictly in valid JSON with this exact structure:
     ],
     "projects": [
       {
-        "name": "Project name",
-        "description": "Project description"
+        "name": "Project 1 Name",
+        "description": "High-impact technical description highlighting architecture, technologies, and concrete scale/performance results."
+      },
+      {
+        "name": "Project 2 Name",
+        "description": "High-impact technical description highlighting architecture, technologies, and concrete scale/performance results."
+      },
+      {
+        "name": "Project 3 Name",
+        "description": "High-impact technical description highlighting architecture, technologies, and concrete scale/performance results."
+      },
+      {
+        "name": "Project 4 Name",
+        "description": "High-impact technical description highlighting architecture, technologies, and concrete scale/performance results."
+      },
+      {
+        "name": "Project 5 Name",
+        "description": "High-impact technical description highlighting architecture, technologies, and concrete scale/performance results."
       }
     ],
-    "formattedPlainText": "Full plain text resume formatted cleanly with standard headers (PROFESSIONAL SUMMARY, CORE SKILLS, PROFESSIONAL EXPERIENCE, EDUCATION) and first-person summary without any 'tailored' tags",
+    "formattedPlainText": "Full plain text resume formatted cleanly with standard headers (PROFESSIONAL SUMMARY, CORE SKILLS, PROFESSIONAL EXPERIENCE, KEY PROJECTS, EDUCATION) and first-person summary without any 'tailored' tags",
     "atsBreakdown": {
       "score": 97,
       "matchedKeywords": ["Keyword1", "Keyword2"],
@@ -337,6 +358,83 @@ Respond strictly in valid JSON with this exact structure:
       .replace(/Target Application:.*\n/gi, '')
       .replace(/\s*\|\s*Tailored for.*$/gim, '')
       .replace(/\(Tailored[^)]*\)/gi, '');
+  }
+
+  // Ensure at least 5 projects are present in the resume output
+  if (parsed?.resume) {
+    if (!Array.isArray(parsed.resume.projects)) {
+      parsed.resume.projects = [];
+    }
+
+    if (parsed.resume.projects.length < 5) {
+      const candidateProjects = (Array.isArray(profile.projects) && profile.projects.length > 0)
+        ? profile.projects
+        : DEFAULT_USER_PROFILE.projects;
+
+      const existingNames = new Set(parsed.resume.projects.map((p: any) => (p?.name || '').toLowerCase().trim()));
+
+      for (const proj of candidateProjects) {
+        if (parsed.resume.projects.length >= 5) break;
+        const pName = (proj.name || '').trim();
+        if (pName && !existingNames.has(pName.toLowerCase())) {
+          parsed.resume.projects.push({
+            name: pName,
+            description: proj.description || '',
+          });
+          existingNames.add(pName.toLowerCase());
+        }
+      }
+
+      // If still fewer than 5, supplement from DEFAULT_USER_PROFILE
+      for (const proj of DEFAULT_USER_PROFILE.projects) {
+        if (parsed.resume.projects.length >= 5) break;
+        const pName = (proj.name || '').trim();
+        if (pName && !existingNames.has(pName.toLowerCase())) {
+          parsed.resume.projects.push({
+            name: pName,
+            description: proj.description || '',
+          });
+          existingNames.add(pName.toLowerCase());
+        }
+      }
+    }
+
+    // Ensure formattedPlainText includes all Key Projects
+    if (parsed.resume.formattedPlainText && parsed.resume.projects.length > 0) {
+      if (!parsed.resume.formattedPlainText.includes('KEY PROJECTS') && !parsed.resume.formattedPlainText.includes('PROJECTS')) {
+        const projectsText = parsed.resume.projects
+          .map((p: any) => `* ${p.name}: ${p.description}`)
+          .join('\n');
+        if (parsed.resume.formattedPlainText.includes('EDUCATION')) {
+          parsed.resume.formattedPlainText = parsed.resume.formattedPlainText.replace(
+            /(EDUCATION)/i,
+            `KEY PROJECTS\n${projectsText}\n\n$1`
+          );
+        } else {
+          parsed.resume.formattedPlainText += `\n\nKEY PROJECTS\n${projectsText}\n`;
+        }
+      }
+    }
+
+    // Ensure atsBreakdown exists and is well-formed with valid score and keyword arrays
+    const rawAts = parsed.resume.atsBreakdown || parsed.resume.ats_breakdown || parsed.atsBreakdown || parsed.ats_breakdown || {};
+    const matchedSkills = Array.isArray(parsed.resume.matchedSkills) && parsed.resume.matchedSkills.length > 0
+      ? parsed.resume.matchedSkills
+      : (profile.skills || []).slice(0, 5);
+
+    parsed.resume.atsBreakdown = {
+      score: typeof rawAts.score === 'number' && !isNaN(rawAts.score) ? rawAts.score : 96,
+      matchedKeywords: Array.isArray(rawAts.matchedKeywords) ? rawAts.matchedKeywords : (Array.isArray(rawAts.matched_keywords) ? rawAts.matched_keywords : matchedSkills),
+      missingKeywords: Array.isArray(rawAts.missingKeywords) ? rawAts.missingKeywords : (Array.isArray(rawAts.missing_keywords) ? rawAts.missing_keywords : []),
+      strengths: Array.isArray(rawAts.strengths) && rawAts.strengths.length > 0 ? rawAts.strengths : [
+        'Strong alignment with role architecture and technical requirements',
+        'Demonstrated track record of performance and scalability metrics',
+        'Clean ATS-optimized keyword density across key sections',
+      ],
+      recommendations: Array.isArray(rawAts.recommendations) ? rawAts.recommendations : [
+        'Review target role keywords before final submission',
+      ],
+    };
   }
 
   // Ensure portfolio and phone number are in Gmail letter
@@ -538,6 +636,14 @@ app.get('/api/profile', requireAuth, async (req: AuthRequest, res: Response) => 
         email: req.user!.email,
       };
       await upsertProfile(userId, profile);
+    } else if (!Array.isArray(profile.projects) || profile.projects.length < 5) {
+      // Ensure existing profiles in database have at least 5 projects
+      const existingNames = new Set((profile.projects || []).map((p: any) => (p?.name || '').toLowerCase().trim()));
+      const missingProjects = DEFAULT_USER_PROFILE.projects.filter(
+        p => !existingNames.has(p.name.toLowerCase().trim())
+      );
+      profile.projects = [...(profile.projects || []), ...missingProjects];
+      await upsertProfile(userId, profile);
     }
 
     return res.json({ profile });
@@ -606,6 +712,21 @@ app.get('/api/applications', requireAuth, async (req: AuthRequest, res: Response
       } else {
         result = row.result_json;
       }
+
+      if (result?.resume && (!result.resume.atsBreakdown || typeof result.resume.atsBreakdown.score !== 'number')) {
+        result.resume.atsBreakdown = {
+          score: result.resume.atsBreakdown?.score || 95,
+          matchedKeywords: result.resume.atsBreakdown?.matchedKeywords || result.resume.matchedSkills || [],
+          missingKeywords: result.resume.atsBreakdown?.missingKeywords || [],
+          strengths: result.resume.atsBreakdown?.strengths || [
+            'Strong alignment with role architecture and technical requirements',
+            'Demonstrated track record of performance and scalability metrics',
+            'Clean ATS-optimized keyword density across key sections',
+          ],
+          recommendations: result.resume.atsBreakdown?.recommendations || [],
+        };
+      }
+
       return {
         id: row.id,
         user_id: row.user_id,

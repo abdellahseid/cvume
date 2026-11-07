@@ -36,7 +36,7 @@ export interface JobTarget {
 export const INITIAL_SECTIONS: SectionItem[] = [
   { id: '1', title: 'Work Experience (Staff Designer)', count: 3, isRedBullet: true, category: 'core' },
   { id: '2', title: 'Product & Design Systems Skills', count: 12, category: 'core' },
-  { id: '3', title: 'Key High-Impact Projects', count: 4, category: 'core' },
+  { id: '3', title: 'Key High-Impact Projects', count: 6, category: 'core' },
   { id: '4', title: 'Education & Certifications', count: 2, category: 'core' },
   { id: '5', title: 'Patents & Publications', count: 1, category: 'optional' },
   { id: '6', title: 'Speaking & Mentorship', count: 3, category: 'optional' },

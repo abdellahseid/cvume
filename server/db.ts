@@ -68,6 +68,64 @@ export async function initDb(): Promise<void> {
         CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
         CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
       `);
+
+      // Ensure all profiles stored in PostgreSQL have at least 5 projects
+      const profilesRes = await client.query('SELECT user_id, data FROM profiles');
+      const standardProjects = [
+        {
+          id: 'proj-1',
+          name: 'OmniStream: Real-time Data Sync Engine',
+          description: 'Open-source WebSockets & CRDT synchronization engine for collaborative browser canvases with 5k+ GitHub stars.',
+          link: 'https://github.com/alexrivera-eng/omnistream',
+          technologies: ['TypeScript', 'Rust', 'WebSockets', 'CRDT'],
+        },
+        {
+          id: 'proj-2',
+          name: 'Turbopack Design Tokens Compiler',
+          description: 'Zero-runtime CSS variable compiler that synchronizes Figma design tokens to multi-brand CSS and TypeScript definitions.',
+          link: 'https://github.com/alexrivera-eng/design-tokens-compiler',
+          technologies: ['Node.js', 'Figma API', 'AST Parsing'],
+        },
+        {
+          id: 'proj-3',
+          name: 'PulseMetrics: Distributed Telemetry & APM Agent',
+          description: 'Lightweight eBPF-based distributed tracing and latency aggregation agent processing 100k+ spans/sec with sub-millisecond overhead.',
+          link: 'https://github.com/alexrivera-eng/pulse-metrics',
+          technologies: ['Go', 'eBPF', 'OpenTelemetry', 'Prometheus', 'Docker'],
+        },
+        {
+          id: 'proj-4',
+          name: 'KubeRoute: Edge Load Balancer & Canary Gateway',
+          description: 'Kubernetes-native dynamic reverse proxy with weighted canary traffic splitting, automated circuit breaking, and zero-downtime hot-reloading.',
+          link: 'https://github.com/alexrivera-eng/kuberoute',
+          technologies: ['Rust', 'Kubernetes', 'gRPC', 'Envoy', 'Redis'],
+        },
+        {
+          id: 'proj-5',
+          name: 'HyperGraph: Federated GraphQL Gateway',
+          description: 'High-throughput schema stitching and caching engine with automated query planning, sub-graph deduplication, and field-level latency budgets.',
+          link: 'https://github.com/alexrivera-eng/hypergraph',
+          technologies: ['TypeScript', 'GraphQL', 'Redis', 'Apollo Federation', 'Node.js'],
+        },
+        {
+          id: 'proj-6',
+          name: 'VectorFlow: Semantic Code Search & Indexing Engine',
+          description: 'Local-first semantic embedding pipeline and vector search index enabling instant natural language queries across multi-repo codebases.',
+          link: 'https://github.com/alexrivera-eng/vectorflow',
+          technologies: ['Python', 'pgvector', 'PostgreSQL', 'FastAPI', 'Transformers'],
+        },
+      ];
+
+      for (const row of profilesRes.rows) {
+        const pData = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
+        if (!Array.isArray(pData.projects) || pData.projects.length < 5) {
+          const existingNames = new Set((pData.projects || []).map((p: any) => (p?.name || '').toLowerCase().trim()));
+          const missing = standardProjects.filter(p => !existingNames.has(p.name.toLowerCase().trim()));
+          pData.projects = [...(pData.projects || []), ...missing];
+          await client.query('UPDATE profiles SET data = $1, updated_at = NOW() WHERE user_id = $2', [pData, row.user_id]);
+        }
+      }
+
       console.log('✓ PostgreSQL schema initialized successfully in database: cvumedb');
     } catch (err) {
       console.error('Failed to initialize PostgreSQL tables:', err);

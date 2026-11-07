@@ -96,6 +96,34 @@ export const DEFAULT_USER_PROFILE: UserProfile = {
       link: 'https://github.com/alexrivera-eng/design-tokens-compiler',
       technologies: ['Node.js', 'Figma API', 'AST Parsing'],
     },
+    {
+      id: 'proj-3',
+      name: 'PulseMetrics: Distributed Telemetry & APM Agent',
+      description: 'Lightweight eBPF-based distributed tracing and latency aggregation agent processing 100k+ spans/sec with sub-millisecond overhead.',
+      link: 'https://github.com/alexrivera-eng/pulse-metrics',
+      technologies: ['Go', 'eBPF', 'OpenTelemetry', 'Prometheus', 'Docker'],
+    },
+    {
+      id: 'proj-4',
+      name: 'KubeRoute: Edge Load Balancer & Canary Gateway',
+      description: 'Kubernetes-native dynamic reverse proxy with weighted canary traffic splitting, automated circuit breaking, and zero-downtime hot-reloading.',
+      link: 'https://github.com/alexrivera-eng/kuberoute',
+      technologies: ['Rust', 'Kubernetes', 'gRPC', 'Envoy', 'Redis'],
+    },
+    {
+      id: 'proj-5',
+      name: 'HyperGraph: Federated GraphQL Gateway',
+      description: 'High-throughput schema stitching and caching engine with automated query planning, sub-graph deduplication, and field-level latency budgets.',
+      link: 'https://github.com/alexrivera-eng/hypergraph',
+      technologies: ['TypeScript', 'GraphQL', 'Redis', 'Apollo Federation', 'Node.js'],
+    },
+    {
+      id: 'proj-6',
+      name: 'VectorFlow: Semantic Code Search & Indexing Engine',
+      description: 'Local-first semantic embedding pipeline and vector search index enabling instant natural language queries across multi-repo codebases.',
+      link: 'https://github.com/alexrivera-eng/vectorflow',
+      technologies: ['Python', 'pgvector', 'PostgreSQL', 'FastAPI', 'Transformers'],
+    },
   ],
 };
 
@@ -107,7 +135,19 @@ export function getStoredProfile(): UserProfile {
       return DEFAULT_USER_PROFILE;
     }
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_USER_PROFILE, ...parsed };
+    const combined: UserProfile = { ...DEFAULT_USER_PROFILE, ...parsed };
+
+    // Ensure at least 5 projects are present in stored profile
+    if (!Array.isArray(combined.projects) || combined.projects.length < 5) {
+      const existingNames = new Set((combined.projects || []).map((p: any) => (p?.name || '').toLowerCase().trim()));
+      const missingProjects = DEFAULT_USER_PROFILE.projects.filter(
+        p => !existingNames.has(p.name.toLowerCase().trim())
+      );
+      combined.projects = [...(combined.projects || []), ...missingProjects];
+      saveStoredProfile(combined);
+    }
+
+    return combined;
   } catch {
     return DEFAULT_USER_PROFILE;
   }

@@ -218,7 +218,21 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
         period: `${e.startDate} – ${e.endDate}`,
         bullets: e.bullets,
       }));
-  const displayProjects = result?.resume?.projects?.length ? result.resume.projects : profile.projects;
+  const displayProjects = (() => {
+    const list = [...(result?.resume?.projects || [])];
+    const profileList = profile?.projects || [];
+    if (list.length < 5 && profileList.length > 0) {
+      const existingNames = new Set(list.map((p: any) => (p?.name || '').toLowerCase().trim()));
+      for (const p of profileList) {
+        if (list.length >= 5) break;
+        if (!existingNames.has((p.name || '').toLowerCase().trim())) {
+          list.push(p);
+          existingNames.add((p.name || '').toLowerCase().trim());
+        }
+      }
+    }
+    return list.length > 0 ? list : profileList;
+  })();
   const displayEducation = result?.resume?.education?.length ? result.resume.education : profile.education;
 
   // High-Resolution PDF Export Function
@@ -742,6 +756,30 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     </p>
                   </div>
 
+                  {/* Key Projects */}
+                  {displayProjects?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Key Projects & Technical Highlights
+                      </h2>
+                      <div className="space-y-2 text-xs">
+                        {displayProjects.map((p, idx) => (
+                          <div key={idx} className="space-y-0.5 text-left">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold font-serif text-neutral-900">{p.name}</span>
+                              {(p as any).technologies && (
+                                <span className="text-[10px] font-mono text-neutral-500">
+                                  {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-neutral-700 leading-relaxed">{p.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
@@ -956,6 +994,30 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       ))}
                     </div>
                   </div>
+
+                  {/* Key Projects */}
+                  {displayProjects?.length > 0 && (
+                    <div>
+                      <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
+                        // Key Projects & Open Source
+                      </h2>
+                      <div className="space-y-2">
+                        {displayProjects.map((p, idx) => (
+                          <div key={idx} className="space-y-0.5">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-semibold text-neutral-900">{p.name}</span>
+                              {(p as any).technologies && (
+                                <span className="text-[10px] font-mono text-neutral-400">
+                                  {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-neutral-600">{p.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Education */}
                   {displayEducation?.length > 0 && (

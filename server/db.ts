@@ -64,10 +64,190 @@ export async function initDb(): Promise<void> {
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
       `);
+      // Add modern automation columns to applications
+      await client.query(`
+        ALTER TABLE applications ADD COLUMN IF NOT EXISTS status VARCHAR(32) NOT NULL DEFAULT 'applied';
+        ALTER TABLE applications ADD COLUMN IF NOT EXISTS platform VARCHAR(64) NOT NULL DEFAULT 'web';
+        ALTER TABLE applications ADD COLUMN IF NOT EXISTS match_score INTEGER NOT NULL DEFAULT 90;
+        ALTER TABLE applications ADD COLUMN IF NOT EXISTS application_url TEXT;
+        ALTER TABLE applications ADD COLUMN IF NOT EXISTS logs JSONB NOT NULL DEFAULT '[]';
+      `);
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS discovered_jobs (
+          id VARCHAR(64) PRIMARY KEY,
+          title VARCHAR(255) NOT NULL,
+          company VARCHAR(255) NOT NULL,
+          location VARCHAR(255),
+          salary VARCHAR(128),
+          source VARCHAR(64) NOT NULL,
+          source_url TEXT,
+          description TEXT NOT NULL,
+          tags TEXT[] NOT NULL DEFAULT '{}',
+          contact_info VARCHAR(255),
+          remote BOOLEAN NOT NULL DEFAULT true,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS automation_settings (
+          user_id VARCHAR(64) PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+          min_match_score INTEGER NOT NULL DEFAULT 80,
+          target_roles TEXT[] NOT NULL DEFAULT '{"Full Stack Engineer", "Frontend Engineer", "Software Engineer"}',
+          enabled_sources TEXT[] NOT NULL DEFAULT '{"telegram", "remoteok", "arbeitnow", "greenhouse", "lever"}',
+          auto_apply_enabled BOOLEAN NOT NULL DEFAULT true,
+          daily_limit INTEGER NOT NULL DEFAULT 15,
+          telegram_handle VARCHAR(128),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `);
       await client.query(`
         CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
         CREATE INDEX IF NOT EXISTS idx_applications_user_id ON applications(user_id);
+        CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+        CREATE INDEX IF NOT EXISTS idx_discovered_jobs_created_at ON discovered_jobs(created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_discovered_jobs_source ON discovered_jobs(source);
       `);
+
+      // Seed initial high-quality jobs if discovered_jobs is empty
+      const existingJobsCount = await client.query('SELECT COUNT(*) FROM discovered_jobs');
+      if (parseInt(existingJobsCount.rows[0].count, 10) === 0) {
+        const seedJobs: Array<Omit<DiscoveredJobRecord, 'created_at'>> = [
+          {
+            id: 'job_tg_1',
+            title: 'Senior Full Stack Engineer (Web3 & Real-Time)',
+            company: 'OmniProtocol Labs',
+            location: 'Remote Worldwide',
+            salary: '$140k - $175k USD + Token Grants',
+            source: 'telegram',
+            source_url: 'https://t.me/tech_jobs_feed/8941',
+            description: `We are hiring a Senior Full Stack Engineer to lead real-time transaction streaming and reactive browser dashboards.
+Key Responsibilities:
+• Build high-throughput WebSocket microservices using Node.js, TypeScript, and Redis.
+• Craft ultra-fast React 19 dashboards with sub-100ms latency metrics.
+• Deploy scalable containerized microservices to Kubernetes and AWS.
+Requirements:
+• 4+ years of professional experience with React, TypeScript, and Node.js.
+• Experience with relational databases (PostgreSQL) and caching patterns.
+• To apply, send your portfolio and resume to @alex_recruiter on Telegram or tap Apply!`,
+            tags: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'WebSockets', 'Remote'],
+            contact_info: '@alex_recruiter',
+            remote: true,
+          },
+          {
+            id: 'job_gh_2',
+            title: 'Frontend Infrastructure Engineer',
+            company: 'Stripe',
+            location: 'San Francisco, CA / Remote (US)',
+            salary: '$165k - $210k USD + Equity',
+            source: 'greenhouse',
+            source_url: 'https://boards.greenhouse.io/stripe/jobs/48912',
+            description: `Stripe is hiring a Frontend Infrastructure Engineer for the Developer Experience organization.
+You will engineer the core build tooling, TypeScript frameworks, and design component architecture that hundreds of engineers use daily.
+Requirements:
+• Deep mastery of modern JavaScript/TypeScript and React ecosystem.
+• Proven track record optimizing Webpack/Vite build pipelines and Lighthouse performance.
+• Strong architectural thinking regarding component abstraction and testing.`,
+            tags: ['TypeScript', 'React', 'Vite', 'Design Systems', 'Performance'],
+            contact_info: 'greenhouse:stripe-dev-infra',
+            remote: true,
+          },
+          {
+            id: 'job_lv_3',
+            title: 'Senior React & Cloud Platform Developer',
+            company: 'Supabase',
+            location: 'Remote Worldwide',
+            salary: '$135k - $170k USD',
+            source: 'lever',
+            source_url: 'https://jobs.lever.co/supabase/30129-react-cloud',
+            description: `Supabase is the open source Firebase alternative. We are looking for a Senior React Engineer to scale the Supabase Studio dashboard.
+Responsibilities:
+• Architect database management interfaces for PostgreSQL, Auth, and Storage.
+• Implement real-time client state with TanStack Query and Zustand.
+• Collaborate with backend engineers to expose Postgres capabilities in an intuitive UI.
+Requirements:
+• 5+ years of React, Next.js, and TypeScript engineering.
+• Strong familiarity with SQL, relational schema design, and Docker.`,
+            tags: ['React', 'TypeScript', 'PostgreSQL', 'TailwindCSS', 'Open Source'],
+            contact_info: 'lever:supabase-frontend',
+            remote: true,
+          },
+          {
+            id: 'job_ro_4',
+            title: 'Staff Fullstack Systems Engineer',
+            company: 'Datadog',
+            location: 'Remote (US / Canada / Europe)',
+            salary: '$175k - $225k USD',
+            source: 'remoteok',
+            source_url: 'https://remoteok.com/remote-jobs/1094-datadog-staff-fullstack',
+            description: `Join Datadog to build telemetry visualization platforms processing millions of metrics per second.
+You will write high-performance TypeScript frontend apps and Golang/Node.js backends.
+Requirements:
+• Experience with large-scale distributed web applications.
+• Mastery of modern frontend architecture, Canvas/WebGL or SVG data visualizations.
+• Passion for reliability, low-latency APIs, and automated CI/CD pipelines.`,
+            tags: ['Full Stack', 'TypeScript', 'Node.js', 'Distributed Systems', 'Go'],
+            contact_info: 'recruiting@datadoghq.com',
+            remote: true,
+          },
+          {
+            id: 'job_tg_5',
+            title: 'Lead Frontend Architect',
+            company: 'Telegram Ecosystem Fund',
+            location: 'Remote (Europe / Middle East / Asia)',
+            salary: '$150k - $190k USD',
+            source: 'telegram',
+            source_url: 'https://t.me/ton_careers/3102',
+            description: `Seeking a Lead Frontend Architect to develop Telegram Mini Apps (TMA) and responsive cross-platform web utilities.
+Responsibilities:
+• Architect secure web applications integrated directly with Telegram WebApp SDK.
+• Build reusable UI component kits with TailwindCSS and Motion.
+• Direct contact with hiring leads via Telegram DM.
+Requirements:
+• 5+ years of expert React and TypeScript experience.
+• Familiarity with Telegram bot API or Mini Apps is a major bonus.`,
+            tags: ['React', 'TailwindCSS', 'Telegram SDK', 'TypeScript', 'Mobile Web'],
+            contact_info: '@telegram_hiring_lead',
+            remote: true,
+          },
+          {
+            id: 'job_an_6',
+            title: 'Senior Cloud & DevOps Engineer',
+            company: 'True Talent Engineering',
+            location: 'Berlin / Remote (EU)',
+            salary: '€85,000 - €115,000 EUR',
+            source: 'arbeitnow',
+            source_url: 'https://www.arbeitnow.com/jobs/true-talent-cloud-engineer',
+            description: `We are scaling our enterprise platform and seeking a Senior Cloud Engineer with strong Docker, Kubernetes, and PostgreSQL experience.
+Key Focus:
+• Maintain CI/CD pipelines, Docker registries, and multi-region Kubernetes clusters.
+• Scale PostgreSQL database clusters with connection pooling and automated backups.
+• Collaborate with application developers to optimize container deployments.`,
+            tags: ['PostgreSQL', 'Docker', 'Kubernetes', 'DevOps', 'AWS', 'Linux'],
+            contact_info: 'talent@truetalent.de',
+            remote: true,
+          },
+        ];
+
+        for (const job of seedJobs) {
+          await client.query(`
+            INSERT INTO discovered_jobs (id, title, company, location, salary, source, source_url, description, tags, contact_info, remote)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (id) DO NOTHING
+          `, [
+            job.id,
+            job.title,
+            job.company,
+            job.location,
+            job.salary,
+            job.source,
+            job.source_url,
+            job.description,
+            job.tags,
+            job.contact_info,
+            job.remote,
+          ]);
+        }
+      }
 
       // Ensure all profiles stored in PostgreSQL have at least 5 projects
       const profilesRes = await client.query('SELECT user_id, data FROM profiles');
@@ -169,7 +349,38 @@ export interface ApplicationRecord {
   company_name: string;
   job_description: string;
   result_json: any;
+  status: string;
+  platform: string;
+  match_score: number;
+  application_url?: string;
+  logs: Array<{ step: string; timestamp: string; status: 'pending' | 'success' | 'info' | 'error'; message: string }>;
   created_at: string;
+  updated_at: string;
+}
+
+export interface DiscoveredJobRecord {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  salary: string;
+  source: 'telegram' | 'remoteok' | 'arbeitnow' | 'greenhouse' | 'lever';
+  source_url: string;
+  description: string;
+  tags: string[];
+  contact_info: string;
+  remote: boolean;
+  created_at: string;
+}
+
+export interface AutomationSettingsRecord {
+  user_id: string;
+  min_match_score: number;
+  target_roles: string[];
+  enabled_sources: string[];
+  auto_apply_enabled: boolean;
+  daily_limit: number;
+  telegram_handle: string;
   updated_at: string;
 }
 
@@ -341,19 +552,29 @@ export async function saveApplication(
   companyName: string,
   jobDescription: string,
   resultJson: any,
-  existingId?: string
+  existingId?: string,
+  status: string = 'applied',
+  platform: string = 'web',
+  matchScore: number = 90,
+  applicationUrl?: string,
+  logs: any[] = []
 ): Promise<ApplicationRecord> {
   const now = new Date().toISOString();
   const id = existingId || generateId('app');
 
   const query = `
-    INSERT INTO applications (id, user_id, job_title, company_name, job_description, result_json, created_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    INSERT INTO applications (id, user_id, job_title, company_name, job_description, result_json, status, platform, match_score, application_url, logs, created_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     ON CONFLICT (id) DO UPDATE SET
       job_title = EXCLUDED.job_title,
       company_name = EXCLUDED.company_name,
       job_description = EXCLUDED.job_description,
       result_json = EXCLUDED.result_json,
+      status = EXCLUDED.status,
+      platform = EXCLUDED.platform,
+      match_score = EXCLUDED.match_score,
+      application_url = EXCLUDED.application_url,
+      logs = EXCLUDED.logs,
       updated_at = EXCLUDED.updated_at
     RETURNING *
   `;
@@ -364,14 +585,142 @@ export async function saveApplication(
     companyName,
     jobDescription,
     resultJson,
+    status,
+    platform,
+    matchScore,
+    applicationUrl || null,
+    JSON.stringify(logs || []),
     now,
     now,
   ]);
   return res.rows[0];
 }
 
+export async function updateApplicationStatus(
+  id: string,
+  userId: string,
+  status: string
+): Promise<ApplicationRecord | null> {
+  const now = new Date().toISOString();
+  const query = `
+    UPDATE applications
+    SET status = $1, updated_at = $2
+    WHERE id = $3 AND user_id = $4
+    RETURNING *
+  `;
+  const res = await pool.query(query, [status, now, id, userId]);
+  return res.rows[0] || null;
+}
+
 export async function deleteApplication(id: string, userId: string): Promise<boolean> {
   const query = 'DELETE FROM applications WHERE id = $1 AND user_id = $2';
   const res = await pool.query(query, [id, userId]);
   return (res.rowCount ?? 0) > 0;
+}
+
+// Discovered Jobs repository
+export async function getDiscoveredJobs(limit: number = 50, source?: string): Promise<DiscoveredJobRecord[]> {
+  let query = 'SELECT * FROM discovered_jobs';
+  const params: any[] = [];
+  if (source && source !== 'all') {
+    query += ' WHERE source = $1';
+    params.push(source);
+  }
+  query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1);
+  params.push(limit);
+
+  const res = await pool.query(query, params);
+  return res.rows;
+}
+
+export async function getDiscoveredJobById(id: string): Promise<DiscoveredJobRecord | null> {
+  const query = 'SELECT * FROM discovered_jobs WHERE id = $1 LIMIT 1';
+  const res = await pool.query(query, [id]);
+  return res.rows[0] || null;
+}
+
+export async function upsertDiscoveredJobs(jobs: Array<Omit<DiscoveredJobRecord, 'created_at'>>): Promise<number> {
+  let count = 0;
+  for (const job of jobs) {
+    const query = `
+      INSERT INTO discovered_jobs (id, title, company, location, salary, source, source_url, description, tags, contact_info, remote)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      ON CONFLICT (id) DO UPDATE SET
+        title = EXCLUDED.title,
+        company = EXCLUDED.company,
+        location = EXCLUDED.location,
+        salary = EXCLUDED.salary,
+        source = EXCLUDED.source,
+        source_url = EXCLUDED.source_url,
+        description = EXCLUDED.description,
+        tags = EXCLUDED.tags,
+        contact_info = EXCLUDED.contact_info,
+        remote = EXCLUDED.remote
+    `;
+    await pool.query(query, [
+      job.id,
+      job.title,
+      job.company,
+      job.location,
+      job.salary,
+      job.source,
+      job.source_url,
+      job.description,
+      job.tags,
+      job.contact_info,
+      job.remote,
+    ]);
+    count++;
+  }
+  return count;
+}
+
+// Automation Settings repository
+export async function getAutomationSettings(userId: string): Promise<AutomationSettingsRecord> {
+  const query = 'SELECT * FROM automation_settings WHERE user_id = $1 LIMIT 1';
+  const res = await pool.query(query, [userId]);
+  if (res.rows[0]) return res.rows[0];
+
+  // Return default settings
+  return {
+    user_id: userId,
+    min_match_score: 80,
+    target_roles: ['Full Stack Engineer', 'Frontend Engineer', 'Software Engineer', 'React Developer'],
+    enabled_sources: ['telegram', 'remoteok', 'arbeitnow', 'greenhouse', 'lever'],
+    auto_apply_enabled: true,
+    daily_limit: 15,
+    telegram_handle: '',
+    updated_at: new Date().toISOString(),
+  };
+}
+
+export async function saveAutomationSettings(
+  userId: string,
+  settings: Partial<AutomationSettingsRecord>
+): Promise<AutomationSettingsRecord> {
+  const now = new Date().toISOString();
+  const query = `
+    INSERT INTO automation_settings (user_id, min_match_score, target_roles, enabled_sources, auto_apply_enabled, daily_limit, telegram_handle, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    ON CONFLICT (user_id) DO UPDATE SET
+      min_match_score = COALESCE($2, automation_settings.min_match_score),
+      target_roles = COALESCE($3, automation_settings.target_roles),
+      enabled_sources = COALESCE($4, automation_settings.enabled_sources),
+      auto_apply_enabled = COALESCE($5, automation_settings.auto_apply_enabled),
+      daily_limit = COALESCE($6, automation_settings.daily_limit),
+      telegram_handle = COALESCE($7, automation_settings.telegram_handle),
+      updated_at = $8
+    RETURNING *
+  `;
+  const res = await pool.query(query, [
+    userId,
+    settings.min_match_score ?? 80,
+    settings.target_roles ?? ['Full Stack Engineer', 'Frontend Engineer', 'Software Engineer'],
+    settings.enabled_sources ?? ['telegram', 'remoteok', 'arbeitnow', 'greenhouse', 'lever'],
+    settings.auto_apply_enabled ?? true,
+    settings.daily_limit ?? 15,
+    settings.telegram_handle ?? '',
+    now,
+  ]);
+  return res.rows[0];
 }

@@ -15,6 +15,7 @@ import { ShortcutsModal } from './components/ShortcutsModal';
 import { CommandMenuModal } from './components/CommandMenuModal';
 import { SignOutModal } from './components/SignOutModal';
 import { AuthPage } from './components/AuthPage';
+import { AutomationDashboard } from './components/AutomationDashboard';
 import { JobApplicationStudio } from './components/JobApplicationStudio';
 import { ProfilePage } from './components/ProfilePage';
 import { ResumeTemplateStudio } from './components/ResumeTemplateStudio';
@@ -262,92 +263,38 @@ export default function App() {
     );
   }
 
-  // If in Logged-In App View (Job Generator & Profile)
+  // If in Logged-In App View (Automation Hub, Job Board & Tracker)
   if (currentView === 'app') {
     return (
-      <div className="min-h-screen bg-neutral-50/50 text-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 flex flex-col font-sans">
-        {/* Studio Top Navbar */}
-        <Navbar
-          onSignInClick={handleSignIn}
-          onSignUpClick={handleStartTrial}
-          user={user}
-          isLoggedInView={true}
-          currentAppTab={currentAppTab}
-          onNavigateTab={(tab) => {
-            setCurrentAppTab(tab);
-            window.location.hash = `#${tab}`;
-          }}
-          onSignOut={handleRequestSignOut}
-          onNavigateHome={navigateToHome}
-        />
-
-        {/* Studio Main Workspace */}
-        <main className="flex-1">
-          {currentAppTab === 'generator' ? (
-            <JobApplicationStudio
-              onOpenProfile={() => {
-                setCurrentAppTab('profile');
-                window.location.hash = '#profile';
-              }}
-              onOpenTemplates={(applicationResult) => {
-                setActiveExportResult(applicationResult);
-                try {
-                  localStorage.setItem('cvume_active_export_result', JSON.stringify(applicationResult));
-                } catch (e) {
-                  console.error('Error saving active export result', e);
-                }
-                setCurrentAppTab('templates');
-                window.location.hash = '#templates';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onToast={showToast}
-            />
-          ) : currentAppTab === 'profile' ? (
-            <ProfilePage
-              onGoToGenerator={() => {
-                setCurrentAppTab('generator');
-                window.location.hash = '#generator';
-              }}
-              onToast={showToast}
-            />
-          ) : (
-            <ResumeTemplateStudio
-              initialResult={activeExportResult}
-              onBackToStudio={() => {
-                setCurrentAppTab('generator');
-                window.location.hash = '#generator';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onToast={showToast}
-            />
-          )}
-        </main>
-
-        {/* Minimal Studio Footer */}
-        <footer className="border-t border-neutral-200 bg-white py-4 px-6 text-xs text-neutral-500">
-          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <span className="font-semibold text-neutral-800">Cvume Studio</span>
-              <span>•</span>
-              <span>AI Tailoring & Profile Engine</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={navigateToHome}
-                className="hover:text-neutral-950 transition-colors cursor-pointer"
-              >
-                View Public Landing Page
-              </button>
-              <span>•</span>
-              <button
-                onClick={handleRequestSignOut}
-                className="hover:text-neutral-950 transition-colors cursor-pointer"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </footer>
+      <div className="min-h-screen bg-neutral-100/60 text-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 flex flex-col font-sans">
+        {currentAppTab === 'templates' && activeExportResult ? (
+          <ResumeTemplateStudio
+            initialResult={activeExportResult}
+            onBackToStudio={() => {
+              setCurrentAppTab('generator');
+              window.location.hash = '#dashboard';
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onToast={showToast}
+          />
+        ) : (
+          <AutomationDashboard
+            user={user}
+            onSignOut={handleRequestSignOut}
+            onOpenTemplates={(applicationResult) => {
+              setActiveExportResult(applicationResult);
+              try {
+                localStorage.setItem('cvume_active_export_result', JSON.stringify(applicationResult));
+              } catch (e) {
+                console.error('Error saving active export result', e);
+              }
+              setCurrentAppTab('templates');
+              window.location.hash = '#templates';
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onToast={showToast}
+          />
+        )}
 
         {/* Sign Out Confirmation Modal */}
         <SignOutModal

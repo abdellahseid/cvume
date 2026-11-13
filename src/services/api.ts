@@ -9,6 +9,13 @@ export interface AuthUser {
   name: string;
 }
 
+export interface ApplicationLog {
+  step: string;
+  timestamp: string;
+  status: 'pending' | 'success' | 'info' | 'error';
+  message: string;
+}
+
 export interface SavedApplication {
   id: string;
   user_id: string;
@@ -16,8 +23,59 @@ export interface SavedApplication {
   company_name: string;
   job_description: string;
   result: ApplicationGenerationResult;
+  status?: string;
+  platform?: string;
+  match_score?: number;
+  application_url?: string;
+  logs?: ApplicationLog[];
   created_at: string;
   updated_at: string;
+}
+
+export interface DiscoveredJob {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  salary: string;
+  source: 'telegram' | 'remoteok' | 'arbeitnow' | 'greenhouse' | 'lever';
+  source_url: string;
+  description: string;
+  tags: string[];
+  contact_info: string;
+  remote: boolean;
+  created_at: string;
+  matchScore?: number;
+  matchedSkills?: string[];
+  missingSkills?: string[];
+  matchRationale?: string;
+}
+
+export interface AutomationSettings {
+  min_match_score: number;
+  target_roles: string[];
+  enabled_sources: string[];
+  auto_apply_enabled: boolean;
+  daily_limit: number;
+  telegram_handle: string;
+}
+
+export interface AutomationStats {
+  totalDiscovered: number;
+  totalApplied: number;
+  highMatches: number;
+  interviewCount: number;
+  offerCount: number;
+  interviewRate: number;
+  timeSavedHours: number;
+  statusCounts: Record<string, number>;
+  platformCounts: Record<string, number>;
+  timelineDays: Array<{ date: string; label: string; count: number }>;
+  scoreRanges: {
+    excellent: number;
+    great: number;
+    good: number;
+  };
 }
 
 export function getAuthToken(): string | null {
@@ -193,5 +251,79 @@ export const api = {
     await request(`/api/applications/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     });
+  },
+
+  async updateApplicationStatus(id: string, status: string): Promise<SavedApplication> {
+    const data = await request<{ application: SavedApplication }>(`/api/applications/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+    return data.application;
+  },
+
+  // Job Scraping & Automation Endpoints
+  async getDiscoveredJobs(source: string = 'all', search?: string): Promise<DiscoveredJob[]> {
+    const params = new URLSearchParams();
+    if (source && source !== 'all') params.set('source', source);
+    if (search) params.set('search', search);
+
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const data = await request<{ jobs: DiscoveredJob[] }>(`/api/jobs${qs}`, {
+      method: 'GET',
+    });
+    return data.jobs;
+  },
+
+  async getDiscoveredJobById(id: string): Promise<DiscoveredJob> {
+    const data = await request<{ job: DiscoveredJob }>(`/api/jobs/${encodeURIComponent(id)}`, {
+      method: 'GET',
+    });
+    return data.job;
+  },
+
+  async scrapeJobs(): Promise<{ success: boolean; scrapedCount: number; totalCount: number; message: string; jobs: DiscoveredJob[] }> {
+    return await request('/api/jobs/scrape', {
+      method: 'POST',
+    });
+  },
+
+  async autoApplyJob(jobId: string): Promise<{ success: boolean; application: SavedApplication; logs: ApplicationLog[]; message: string }> {
+    return await request(`/api/jobs/${encodeURIComponent(jobId)}/auto-apply`, {
+      method: 'POST',
+    });
+  },
+
+  async runAutomation(): Promise<{
+    success: boolean;
+    scannedCount: number;
+    matchedCount: number;
+    appliedCount: number;
+    results: any[];
+    message: string;
+  }> {
+    return await request('/api/automation/run', {
+      method: 'POST',
+    });
+  },
+
+  async getAutomationStats(): Promise<AutomationStats> {
+    return await request<AutomationStats>('/api/automation/stats', {
+      method: 'GET',
+    });
+  },
+
+  async getAutomationSettings(): Promise<AutomationSettings> {
+    const data = await request<{ settings: AutomationSettings }>('/api/automation/settings', {
+      method: 'GET',
+    });
+    return data.settings;
+  },
+
+  async saveAutomationSettings(settings: Partial<AutomationSettings>): Promise<AutomationSettings> {
+    const data = await request<{ settings: AutomationSettings }>('/api/automation/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ settings }),
+    });
+    return data.settings;
   },
 };

@@ -60,10 +60,11 @@ export const ApplicationsTimelineChart: React.FC<{ timelineDays: TimelineDay[] }
 export const PlatformShareChart: React.FC<{ platformCounts: Record<string, number> }> = ({ platformCounts }) => {
   const platforms = [
     { key: 'telegram', label: 'Telegram', color: 'bg-blue-500', text: 'text-blue-500' },
-    { key: 'greenhouse', label: 'Greenhouse', color: 'bg-emerald-500', text: 'text-emerald-500' },
-    { key: 'lever', label: 'Lever', color: 'bg-amber-500', text: 'text-amber-500' },
+    { key: 'remotive', label: 'Remotive', color: 'bg-teal-500', text: 'text-teal-500' },
     { key: 'remoteok', label: 'RemoteOK', color: 'bg-indigo-500', text: 'text-indigo-500' },
     { key: 'arbeitnow', label: 'Arbeitnow', color: 'bg-purple-500', text: 'text-purple-500' },
+    { key: 'greenhouse', label: 'Greenhouse', color: 'bg-emerald-500', text: 'text-emerald-500' },
+    { key: 'lever', label: 'Lever', color: 'bg-amber-500', text: 'text-amber-500' },
   ];
 
   const total = Object.values(platformCounts).reduce((a, b) => a + b, 0);

@@ -38,11 +38,12 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
   const [isSaving, setIsSaving] = useState(false);
 
   const platforms = [
-    { id: 'telegram', name: 'Telegram Recruitment Channels', desc: 'Direct recruiter posts and hiring threads' },
+    { id: 'telegram', name: 'Telegram Recruitment Channels', desc: 'Direct recruiter posts from @remote_frontend_jobs & @remotejobss' },
+    { id: 'remotive', name: 'Remotive Software Dev API', desc: 'Real live remote developer listings' },
+    { id: 'remoteok', name: 'RemoteOK API', desc: 'Global remote tech opportunities' },
+    { id: 'arbeitnow', name: 'Arbeitnow Tech Feed', desc: 'Real European & global software engineering jobs' },
     { id: 'greenhouse', name: 'Greenhouse Career Boards', desc: 'Direct ATS career portal endpoints' },
     { id: 'lever', name: 'Lever Career Boards', desc: 'Fast-track Lever job application endpoints' },
-    { id: 'remoteok', name: 'RemoteOK API', desc: 'Global remote tech opportunities' },
-    { id: 'arbeitnow', name: 'Arbeitnow Tech Feed', desc: 'European & international software engineering jobs' },
   ];
 
   const toggleSource = (sourceId: string) => {

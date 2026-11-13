@@ -88,6 +88,8 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
   const [isApplyingAll, setIsApplyingAll] = useState(false);
   const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
 
+  const [userProfile, setUserProfile] = useState<any>(null);
+
   // Set of applied job identifiers
   const appliedJobTitles = useMemo(() => {
     return new Set(applications.map(a => `${a.company_name.toLowerCase()}_${a.job_title.toLowerCase()}`));
@@ -96,17 +98,19 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
   // Load initial data
   const loadDashboardData = useCallback(async () => {
     try {
-      const [jobsData, appsData, statsData, settingsData] = await Promise.allSettled([
+      const [jobsData, appsData, statsData, settingsData, profileData] = await Promise.allSettled([
         api.getDiscoveredJobs('all'),
         api.getApplications(),
         api.getAutomationStats(),
         api.getAutomationSettings(),
+        api.getProfile(),
       ]);
 
       if (jobsData.status === 'fulfilled') setJobs(jobsData.value);
       if (appsData.status === 'fulfilled') setApplications(appsData.value);
       if (statsData.status === 'fulfilled') setStats(statsData.value);
       if (settingsData.status === 'fulfilled') setSettings(settingsData.value);
+      if (profileData.status === 'fulfilled') setUserProfile(profileData.value);
     } catch (e) {
       console.error('Error loading automation dashboard data:', e);
     } finally {
@@ -218,9 +222,9 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
   }, [jobs, selectedJobId]);
 
   return (
-    <div className="min-h-screen bg-neutral-100/60 flex flex-col md:flex-row font-sans text-neutral-900 selection:bg-neutral-200">
+    <div className="h-screen w-screen overflow-hidden flex flex-col md:flex-row font-sans text-neutral-900 selection:bg-neutral-200">
       {/* Mobile Top Navbar */}
-      <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+      <div className="md:hidden bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between shrink-0 z-30">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-xs">
             Cv
@@ -235,15 +239,15 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
         </button>
       </div>
 
-      {/* Modern App Sidebar */}
+      {/* Modern App Sidebar (Screen-length with isolated scroll and pinned bottom section) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-neutral-200 flex flex-col justify-between transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 h-full md:h-screen bg-white border-r border-neutral-200 flex flex-col justify-between shrink-0 transition-transform duration-200 ease-in-out md:static md:translate-x-0 ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-4 space-y-6">
-          {/* Brand Header */}
-          <div className="flex items-center justify-between px-2 pt-1">
+        {/* Top Header Section (Pinned at top of sidebar) */}
+        <div className="shrink-0 p-4 border-b border-neutral-100 bg-white">
+          <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-extrabold text-sm shadow-xs">
                 Cv
@@ -265,7 +269,10 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
               <X className="w-4 h-4" />
             </button>
           </div>
+        </div>
 
+        {/* Scrollable Navigation Options Section (Independent scroll container) */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 overscroll-contain">
           {/* Main Navigation Hub */}
           <div className="space-y-1">
             <span className="text-[10px] font-bold text-neutral-400 px-3 uppercase tracking-wider block mb-1">
@@ -399,26 +406,37 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
           </div>
         </div>
 
-        {/* Sidebar Footer User Card */}
-        <div className="p-3 border-t border-neutral-200 bg-neutral-50/50">
-          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-white border border-neutral-200/80 shadow-2xs">
+        {/* Bottom Pinned Profile Section (STICKY / FIXED to bottom of sidebar, NEVER scrolls away!) */}
+        <div className="shrink-0 p-3 border-t border-neutral-200 bg-white sticky bottom-0 z-20">
+          <div
+            onClick={() => {
+              setActiveTab('profile');
+              setSelectedJobId(null);
+              setMobileMenuOpen(false);
+            }}
+            className="flex items-center justify-between gap-2 p-2 rounded-xl bg-neutral-50 hover:bg-neutral-100/90 border border-neutral-200/80 shadow-2xs cursor-pointer transition-colors group"
+            title="Open Candidate Profile"
+          >
             <div className="min-w-0 flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-xs shrink-0 group-hover:bg-blue-600 transition-colors">
                 {user?.name ? user.name[0].toUpperCase() : 'U'}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-neutral-900 truncate">
-                  {user?.name || user?.email?.split('@')[0] || 'User'}
+                <p className="text-xs font-bold text-neutral-900 truncate group-hover:text-blue-600 transition-colors">
+                  {user?.name || user?.email?.split('@')[0] || 'Candidate Profile'}
                 </p>
                 <p className="text-[10px] text-neutral-400 truncate">
-                  {user?.email || 'Authenticated'}
+                  {user?.email || 'Authenticated Profile'}
                 </p>
               </div>
             </div>
 
             <button
-              onClick={onSignOut}
-              className="p-1.5 text-neutral-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSignOut();
+              }}
+              className="p-1.5 text-neutral-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
               title="Sign Out"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -427,8 +445,9 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
         </div>
       </aside>
 
-      {/* Main Content Workspace */}
-      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+      {/* Main Content Workspace (Independent scroll effect from sidebar!) */}
+      <main className="flex-1 min-w-0 h-full md:h-screen overflow-y-auto overscroll-contain p-4 sm:p-6 lg:p-8 w-full">
+        <div className="max-w-7xl mx-auto space-y-6">
         {activeTab === 'dashboard' && (
           <DashboardHome
             stats={stats}
@@ -473,6 +492,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
               setSelectedJobId(null);
             }}
             appliedLogs={automationLogs}
+            userProfile={userProfile}
           />
         )}
 
@@ -537,6 +557,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
             />
           </div>
         )}
+        </div>
       </main>
     </div>
   );

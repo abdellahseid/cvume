@@ -266,7 +266,7 @@ export default function App() {
   // If in Logged-In App View (Automation Hub, Job Board & Tracker)
   if (currentView === 'app') {
     return (
-      <div className="min-h-screen bg-neutral-100/60 text-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 flex flex-col font-sans">
+      <div className="h-screen w-screen overflow-hidden bg-neutral-100/60 text-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 flex flex-col font-sans">
         {currentAppTab === 'templates' && activeExportResult ? (
           <ResumeTemplateStudio
             initialResult={activeExportResult}

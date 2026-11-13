@@ -38,7 +38,7 @@ export interface DiscoveredJob {
   company: string;
   location: string;
   salary: string;
-  source: 'telegram' | 'remoteok' | 'arbeitnow' | 'greenhouse' | 'lever';
+  source: 'telegram' | 'remoteok' | 'arbeitnow' | 'remotive' | 'greenhouse' | 'lever';
   source_url: string;
   description: string;
   tags: string[];

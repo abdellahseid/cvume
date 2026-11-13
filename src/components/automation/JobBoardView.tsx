@@ -43,10 +43,11 @@ export const JobBoardView: React.FC<JobBoardViewProps> = ({
   const sources = [
     { id: 'all', label: 'All Sources' },
     { id: 'telegram', label: 'Telegram Channels' },
-    { id: 'greenhouse', label: 'Greenhouse ATS' },
-    { id: 'lever', label: 'Lever ATS' },
+    { id: 'remotive', label: 'Remotive API' },
     { id: 'remoteok', label: 'RemoteOK' },
     { id: 'arbeitnow', label: 'Arbeitnow' },
+    { id: 'greenhouse', label: 'Greenhouse' },
+    { id: 'lever', label: 'Lever' },
   ];
 
   const filteredJobs = useMemo(() => {
@@ -81,14 +82,16 @@ export const JobBoardView: React.FC<JobBoardViewProps> = ({
     switch (source) {
       case 'telegram':
         return { label: 'Telegram Channel', bg: 'bg-blue-50 text-blue-700 border-blue-200' };
-      case 'greenhouse':
-        return { label: 'Greenhouse ATS', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
-      case 'lever':
-        return { label: 'Lever ATS', bg: 'bg-amber-50 text-amber-700 border-amber-200' };
+      case 'remotive':
+        return { label: 'Remotive API', bg: 'bg-teal-50 text-teal-700 border-teal-200' };
       case 'remoteok':
         return { label: 'RemoteOK', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
       case 'arbeitnow':
         return { label: 'Arbeitnow', bg: 'bg-purple-50 text-purple-700 border-purple-200' };
+      case 'greenhouse':
+        return { label: 'Greenhouse ATS', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      case 'lever':
+        return { label: 'Lever ATS', bg: 'bg-amber-50 text-amber-700 border-amber-200' };
       default:
         return { label: source.toUpperCase(), bg: 'bg-neutral-100 text-neutral-700 border-neutral-200' };
     }

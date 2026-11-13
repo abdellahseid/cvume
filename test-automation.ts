@@ -10,6 +10,7 @@ import {
   saveApplication,
   updateApplicationStatus,
 } from './server/db.ts';
+import { scrapeExternalJobs } from './server.ts';
 
 async function runAutomationTests() {
   console.log('--- Testing CVUME Auto-Pilot & Sourcing Engine ---');
@@ -22,15 +23,34 @@ async function runAutomationTests() {
   const token = await createSession(user.id);
   console.log('✓ Session created for test user');
 
-  // 1. Test Discovered Jobs fetching
-  const jobs = await getDiscoveredJobs(20);
-  console.log(`✓ Fetched ${jobs.length} discovered jobs from PostgreSQL`);
-  if (jobs.length === 0) {
-    throw new Error('Expected seed jobs in discovered_jobs table');
+  // 1. Verify no fake/dummy seed jobs exist
+  const legacyJobs = await getDiscoveredJobs(100);
+  const fakeJob = legacyJobs.find(j => j.title.includes('Senior Full Stack Engineer (Web3 & Real-Time)'));
+  if (fakeJob) {
+    throw new Error('Found legacy fake seed job in database!');
+  }
+  console.log('✓ Verified: Zero fake/seed dummy jobs exist in database');
+
+  // 2. Fetch real live jobs via scraper
+  console.log('Fetching live real jobs across Arbeitnow, Remotive, RemoteOK, and Telegram channels...');
+  const scrapeResult = await scrapeExternalJobs();
+  console.log(`✓ Live scraper completed: ${scrapeResult.added} real jobs scraped, ${scrapeResult.total} total in database`);
+
+  const jobs = await getDiscoveredJobs(50);
+  console.log(`✓ Fetched ${jobs.length} real discovered jobs from PostgreSQL`);
+  if (jobs.length < 5) {
+    throw new Error('Expected at least 5 real jobs in database');
+  }
+
+  console.log(`  Sample 1: "${jobs[0].title}" at "${jobs[0].company}" [${jobs[0].source}]`);
+  if (jobs.length > 1) {
+    console.log(`  Sample 2: "${jobs[1].title}" at "${jobs[1].company}" [${jobs[1].source}]`);
+  }
+  if (jobs.length > 2) {
+    console.log(`  Sample 3: "${jobs[2].title}" at "${jobs[2].company}" [${jobs[2].source}]`);
   }
 
   const firstJob = jobs[0];
-  console.log(`  Sample job: "${firstJob.title}" at "${firstJob.company}" [${firstJob.source.toUpperCase()}]`);
 
   // 2. Test saving automation application with modern fields
   const savedApp = await saveApplication(

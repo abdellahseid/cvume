@@ -30,6 +30,7 @@ interface JobDetailPageProps {
   isApplying: boolean;
   onViewInApplied: () => void;
   appliedLogs?: ApplicationLog[];
+  userProfile?: { fullName: string; email: string; phone?: string; portfolioUrl?: string; targetRole?: string } | null;
 }
 
 export const JobDetailPage: React.FC<JobDetailPageProps> = ({
@@ -40,6 +41,7 @@ export const JobDetailPage: React.FC<JobDetailPageProps> = ({
   isApplying,
   onViewInApplied,
   appliedLogs,
+  userProfile,
 }) => {
   const [activePreviewTab, setActivePreviewTab] = useState<'resume' | 'letter' | 'telegram'>('resume');
   const [copiedText, setCopiedText] = useState(false);
@@ -47,32 +49,43 @@ export const JobDetailPage: React.FC<JobDetailPageProps> = ({
   const matchScore = job.matchScore || 88;
   const isTelegram = job.source === 'telegram';
 
+  const candidateName = userProfile?.fullName || 'Candidate';
+  const candidatePhone = userProfile?.phone || '';
+  const candidatePortfolio = userProfile?.portfolioUrl || '';
+  const candidateEmail = userProfile?.email || '';
+
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedText(true);
     setTimeout(() => setCopiedText(false), 2000);
   };
 
-  // Mock tailored preview text matching this job
-  const tailoredResumeHeadline = `${job.title} | Scalable Platforms & High-Traffic Architecture`;
-  const tailoredSummary = `Experienced engineer with proven mastery across modern TypeScript, React, and high-performance cloud backends. With demonstrated track record of designing resilient systems and intuitive interfaces, I bring immediate technical velocity to ${job.company}'s engineering initiatives.`;
+  // Tailored preview text generated dynamically from real job and candidate profile
+  const tailoredResumeHeadline = `${job.title} | Software Engineering & Scalable Platforms`;
+  const tailoredSummary = `Dedicated software engineer with verified experience across ${(job.matchedSkills || job.tags || ['TypeScript', 'React']).slice(0, 4).join(', ')}. Strong background in shipping performant, user-centered applications and reliable architectures for ${job.company}.`;
+
+  const contactLine = [
+    candidateEmail ? `Email: ${candidateEmail}` : '',
+    candidatePhone ? `Phone: ${candidatePhone}` : '',
+    candidatePortfolio ? `Portfolio: ${candidatePortfolio}` : '',
+  ].filter(Boolean).join(' | ');
 
   const tailoredLetter = `Dear ${job.company} Hiring Team,
 
-I am writing to express my enthusiastic interest in the ${job.title} position at ${job.company}. Having built scalable web architectures and developer-facing tools processing high transaction volumes, I am excited about your team's technical mission.
+I am writing to express my enthusiastic interest in the ${job.title} position at ${job.company}. Having built scalable web architectures and developer-facing platforms, I am excited about your team's mission.
 
 My background aligns directly with your requirements:
-• Deep technical mastery in ${(job.matchedSkills || job.tags || ['TypeScript', 'React']).slice(0, 4).join(', ')}
-• Experience designing fault-tolerant systems with sub-100ms interaction latency
-• Proven track record shipping reliable, user-centered web platforms
+• Core technical skills: ${(job.matchedSkills || job.tags || ['TypeScript', 'React']).slice(0, 4).join(', ')}
+• Experience designing scalable, reliable platforms with high performance standards
+• Proven track record collaborating on modern, maintainable codebases
 
-I welcome the opportunity to discuss how my skill set can accelerate ${job.company}'s product and platform roadmap.
+I welcome the opportunity to discuss how my skill set can accelerate ${job.company}'s roadmap.
 
 Warm regards,
-Alex Rivera
-Portfolio: https://alexrivera.dev | Phone: +1 (555) 234-5678`;
+${candidateName}
+${contactLine}`;
 
-  const telegramPitch = `Hi ${job.company} hiring team! 👋 I saw the opening for ${job.title} and wanted to reach out directly. I specialize in ${(job.matchedSkills || job.tags || ['TypeScript', 'React']).slice(0, 3).join(', ')} and have a track record building high-performance scalable systems. Would love to share my portfolio and connect: https://alexrivera.dev | Phone: +1 (555) 234-5678. Thank you! — Alex Rivera`;
+  const telegramPitch = `Hi ${job.company} hiring team! 👋 I saw the opening for ${job.title} and wanted to reach out directly. I specialize in ${(job.matchedSkills || job.tags || ['TypeScript', 'React']).slice(0, 3).join(', ')} and have a track record building high-performance scalable systems. Would love to connect and share my portfolio${candidatePortfolio ? `: ${candidatePortfolio}` : ''}${candidatePhone ? ` | Phone: ${candidatePhone}` : ''}. Thank you! — ${candidateName}`;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">

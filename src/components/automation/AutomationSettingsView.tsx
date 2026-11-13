@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Sliders, 
@@ -13,7 +13,7 @@ import {
   Globe
 } from 'lucide-react';
 import { AutomationSettings } from '../../services/api';
-import { AutomationSettingsSkeleton } from './SkeletonLoaders';
+import { Skeleton } from './SkeletonLoaders';
 
 interface AutomationSettingsViewProps {
   settings: AutomationSettings | null;
@@ -28,21 +28,28 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
   onToast,
   isLoading = false,
 }) => {
-  if (isLoading || !settings) {
-    return <AutomationSettingsSkeleton />;
-  }
-
-  const [minScore, setMinScore] = useState<number>(settings.min_match_score || 80);
-  const [dailyLimit, setDailyLimit] = useState<number>(settings.daily_limit || 15);
-  const [telegramHandle, setTelegramHandle] = useState<string>(settings.telegram_handle || '');
+  const [minScore, setMinScore] = useState<number>(settings?.min_match_score || 80);
+  const [dailyLimit, setDailyLimit] = useState<number>(settings?.daily_limit || 15);
+  const [telegramHandle, setTelegramHandle] = useState<string>(settings?.telegram_handle || '');
   const [enabledSources, setEnabledSources] = useState<string[]>(
-    settings.enabled_sources || ['telegram', 'remoteok', 'arbeitnow', 'greenhouse', 'lever']
+    settings?.enabled_sources || ['telegram', 'remoteok', 'arbeitnow', 'greenhouse', 'lever']
   );
   const [targetRoles, setTargetRoles] = useState<string[]>(
-    settings.target_roles || ['Full Stack Engineer', 'Frontend Engineer', 'Software Engineer']
+    settings?.target_roles || ['Full Stack Engineer', 'Frontend Engineer', 'Software Engineer']
   );
   const [newRoleInput, setNewRoleInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Sync state when settings arrive
+  useEffect(() => {
+    if (settings) {
+      if (settings.min_match_score !== undefined) setMinScore(settings.min_match_score);
+      if (settings.daily_limit !== undefined) setDailyLimit(settings.daily_limit);
+      if (settings.telegram_handle !== undefined) setTelegramHandle(settings.telegram_handle);
+      if (settings.enabled_sources !== undefined) setEnabledSources(settings.enabled_sources);
+      if (settings.target_roles !== undefined) setTargetRoles(settings.target_roles);
+    }
+  }, [settings]);
 
   const platforms = [
     { id: 'telegram', name: 'Telegram Recruitment Channels', desc: 'Direct recruiter posts from @remote_frontend_jobs & @remotejobss' },
@@ -60,14 +67,15 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
   };
 
   const handleAddRole = () => {
-    if (newRoleInput.trim() && !targetRoles.includes(newRoleInput.trim())) {
-      setTargetRoles([...targetRoles, newRoleInput.trim()]);
-      setNewRoleInput('');
+    if (!newRoleInput.trim()) return;
+    if (!targetRoles.includes(newRoleInput.trim())) {
+      setTargetRoles(prev => [...prev, newRoleInput.trim()]);
     }
+    setNewRoleInput('');
   };
 
   const handleRemoveRole = (role: string) => {
-    setTargetRoles(targetRoles.filter(r => r !== role));
+    setTargetRoles(prev => prev.filter(r => r !== role));
   };
 
   const handleSave = async () => {
@@ -76,7 +84,7 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
       await onSaveSettings({
         min_match_score: minScore,
         daily_limit: dailyLimit,
-        telegram_handle: telegramHandle.trim(),
+        telegram_handle: telegramHandle,
         enabled_sources: enabledSources,
         target_roles: targetRoles,
         auto_apply_enabled: true,
@@ -91,7 +99,7 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
 
   return (
     <div className="space-y-6 max-w-4xl">
-      {/* Header */}
+      {/* Header - Real text header always visible */}
       <div className="bg-white p-6 rounded-2xl border border-neutral-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-neutral-900">Auto-Pilot Configuration</h2>
@@ -101,8 +109,8 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
         </div>
         <button
           onClick={handleSave}
-          disabled={isSaving}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-neutral-800 text-white cursor-pointer transition-colors shadow-xs shrink-0"
+          disabled={isSaving || isLoading || !settings}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-neutral-900 hover:bg-neutral-800 disabled:opacity-50 text-white cursor-pointer transition-colors shadow-xs shrink-0"
         >
           <Save className="w-4 h-4" />
           <span>{isSaving ? 'Saving...' : 'Save Settings'}</span>
@@ -118,26 +126,44 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
               Only roles meeting or exceeding this match score will be selected by Auto-Pilot.
             </p>
           </div>
-          <span className="text-lg font-mono font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
-            {minScore}%
-          </span>
+          {isLoading || !settings ? (
+            <Skeleton className="h-8 w-16 rounded-xl" />
+          ) : (
+            <span className="text-lg font-mono font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200">
+              {minScore}%
+            </span>
+          )}
         </div>
 
-        <input
-          type="range"
-          min="65"
-          max="95"
-          step="5"
-          value={minScore}
-          onChange={(e) => setMinScore(parseInt(e.target.value, 10))}
-          className="w-full accent-neutral-900 cursor-pointer h-2 bg-neutral-100 rounded-lg"
-        />
+        {/* Skeleton loading effect just under header if loading */}
+        {isLoading || !settings ? (
+          <div className="space-y-2 pt-1">
+            <Skeleton className="h-3 w-full rounded-lg" />
+            <div className="flex justify-between">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-3 w-28" />
+            </div>
+          </div>
+        ) : (
+          <>
+            <input
+              type="range"
+              min="65"
+              max="95"
+              step="5"
+              value={minScore}
+              onChange={(e) => setMinScore(parseInt(e.target.value, 10))}
+              className="w-full accent-neutral-900 cursor-pointer h-2 bg-neutral-100 rounded-lg"
+            />
 
-        <div className="flex justify-between text-[11px] text-neutral-400 font-mono">
-          <span>65% (Aggressive Sourcing)</span>
-          <span>80% (Recommended)</span>
-          <span>95% (High Precision Only)</span>
-        </div>
+            <div className="flex justify-between text-[11px] text-neutral-400 font-mono">
+              <span>65% (Aggressive Sourcing)</span>
+              <span>80% (Recommended)</span>
+              <span>95% (High Precision Only)</span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* 2. Target Job Boards & Channels */}
@@ -149,34 +175,49 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
           </p>
         </div>
 
-        <div className="space-y-2.5">
-          {platforms.map(p => {
-            const isEnabled = enabledSources.includes(p.id);
-            return (
-              <div
-                key={p.id}
-                onClick={() => toggleSource(p.id)}
-                className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                  isEnabled
-                    ? 'bg-neutral-50/80 border-neutral-900/40 text-neutral-900'
-                    : 'bg-white border-neutral-200/70 text-neutral-400 hover:border-neutral-300'
-                }`}
-              >
-                <div>
-                  <h4 className="text-xs font-bold text-neutral-900">{p.name}</h4>
-                  <p className="text-[11px] text-neutral-500">{p.desc}</p>
+        {/* Skeleton loading effect just under header if loading */}
+        {isLoading || !settings ? (
+          <div className="space-y-2.5">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="p-3.5 rounded-xl border border-neutral-100 bg-neutral-50 flex items-center justify-between">
+                <div className="space-y-1.5">
+                  <Skeleton className="h-3.5 w-40" />
+                  <Skeleton className="h-3 w-64" />
                 </div>
+                <Skeleton className="w-5 h-5 rounded-md" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {platforms.map(p => {
+              const isEnabled = enabledSources.includes(p.id);
+              return (
                 <div
-                  className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors ${
-                    isEnabled ? 'bg-neutral-900 border-neutral-900 text-white' : 'border-neutral-300'
+                  key={p.id}
+                  onClick={() => toggleSource(p.id)}
+                  className={`p-3.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                    isEnabled
+                      ? 'bg-neutral-50/80 border-neutral-900/40 text-neutral-900'
+                      : 'bg-white border-neutral-200/70 text-neutral-400 hover:border-neutral-300'
                   }`}
                 >
-                  {isEnabled && <Check className="w-3.5 h-3.5" />}
+                  <div>
+                    <h4 className="text-xs font-bold text-neutral-900">{p.name}</h4>
+                    <p className="text-[11px] text-neutral-500">{p.desc}</p>
+                  </div>
+                  <div
+                    className={`w-5 h-5 rounded-md flex items-center justify-center border transition-colors ${
+                      isEnabled ? 'bg-neutral-900 border-neutral-900 text-white' : 'border-neutral-300'
+                    }`}
+                  >
+                    {isEnabled && <Check className="w-3.5 h-3.5" />}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* 3. Telegram & Outreach Settings */}
@@ -188,15 +229,20 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
           </p>
         </div>
 
-        <div className="max-w-md">
-          <input
-            type="text"
-            value={telegramHandle}
-            onChange={(e) => setTelegramHandle(e.target.value)}
-            placeholder="@your_telegram_username"
-            className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-mono text-neutral-900 placeholder:text-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-neutral-900"
-          />
-        </div>
+        {/* Skeleton loading effect just under header if loading */}
+        {isLoading || !settings ? (
+          <Skeleton className="h-10 w-full max-w-md rounded-xl" />
+        ) : (
+          <div className="max-w-md">
+            <input
+              type="text"
+              value={telegramHandle}
+              onChange={(e) => setTelegramHandle(e.target.value)}
+              placeholder="@your_telegram_username"
+              className="w-full px-4 py-2.5 rounded-xl bg-neutral-50 border border-neutral-200 text-xs font-mono text-neutral-900 placeholder:text-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-neutral-900"
+            />
+          </div>
+        )}
       </div>
 
       {/* 4. Target Role Titles */}
@@ -208,39 +254,53 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {targetRoles.map((role) => (
-            <span
-              key={role}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-neutral-100 text-neutral-800 border border-neutral-200"
-            >
-              <span>{role}</span>
-              <button
-                onClick={() => handleRemoveRole(role)}
-                className="hover:text-rose-600 cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </span>
-          ))}
-        </div>
+        {/* Skeleton loading effect just under header if loading */}
+        {isLoading || !settings ? (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <Skeleton className="h-7 w-28 rounded-lg" />
+              <Skeleton className="h-7 w-32 rounded-lg" />
+              <Skeleton className="h-7 w-24 rounded-lg" />
+            </div>
+            <Skeleton className="h-9 w-full max-w-md rounded-xl" />
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-wrap gap-2">
+              {targetRoles.map((role) => (
+                <span
+                  key={role}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-neutral-100 text-neutral-800 border border-neutral-200"
+                >
+                  <span>{role}</span>
+                  <button
+                    onClick={() => handleRemoveRole(role)}
+                    className="hover:text-rose-600 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </span>
+              ))}
+            </div>
 
-        <div className="flex items-center gap-2 max-w-md">
-          <input
-            type="text"
-            value={newRoleInput}
-            onChange={(e) => setNewRoleInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddRole()}
-            placeholder="Add title (e.g. Cloud Architect)..."
-            className="flex-1 px-3.5 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-neutral-900"
-          />
-          <button
-            onClick={handleAddRole}
-            className="px-3.5 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold cursor-pointer border border-neutral-200"
-          >
-            Add
-          </button>
-        </div>
+            <div className="flex items-center gap-2 max-w-md">
+              <input
+                type="text"
+                value={newRoleInput}
+                onChange={(e) => setNewRoleInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddRole()}
+                placeholder="Add title (e.g. Cloud Architect)..."
+                className="flex-1 px-3.5 py-2 rounded-xl bg-neutral-50 border border-neutral-200 text-xs text-neutral-900 placeholder:text-neutral-400 focus:outline-hidden focus:ring-2 focus:ring-neutral-900"
+              />
+              <button
+                onClick={handleAddRole}
+                className="px-3.5 py-2 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-semibold cursor-pointer border border-neutral-200"
+              >
+                Add
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* 5. Daily Safeguard Limit */}
@@ -252,22 +312,30 @@ export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
               Maximum auto-applications dispatched per 24 hours to protect recruiter etiquette.
             </p>
           </div>
-          <span className="text-sm font-mono font-bold text-neutral-900 bg-neutral-100 px-3 py-1 rounded-lg">
-            {dailyLimit} / day
-          </span>
+          {isLoading || !settings ? (
+            <Skeleton className="h-7 w-20 rounded-lg" />
+          ) : (
+            <span className="text-sm font-mono font-bold text-neutral-900 bg-neutral-100 px-3 py-1 rounded-lg">
+              {dailyLimit} / day
+            </span>
+          )}
         </div>
 
-        <input
-          type="range"
-          min="5"
-          max="30"
-          step="5"
-          value={dailyLimit}
-          onChange={(e) => setDailyLimit(parseInt(e.target.value, 10))}
-          className="w-full accent-neutral-900 cursor-pointer h-2 bg-neutral-100 rounded-lg"
-        />
+        {/* Skeleton loading effect just under header if loading */}
+        {isLoading || !settings ? (
+          <Skeleton className="h-3 w-full rounded-lg" />
+        ) : (
+          <input
+            type="range"
+            min="5"
+            max="30"
+            step="5"
+            value={dailyLimit}
+            onChange={(e) => setDailyLimit(parseInt(e.target.value, 10))}
+            className="w-full accent-neutral-900 cursor-pointer h-2 bg-neutral-100 rounded-lg"
+          />
+        )}
       </div>
     </div>
   );
 };
-

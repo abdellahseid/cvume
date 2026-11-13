@@ -15,7 +15,7 @@ import {
   Globe
 } from 'lucide-react';
 import { DiscoveredJob } from '../../services/api';
-import { JobBoardSkeleton } from './SkeletonLoaders';
+import { JobCardsGridSkeleton } from './SkeletonLoaders';
 
 interface JobBoardViewProps {
   jobs: DiscoveredJob[];
@@ -42,11 +42,6 @@ export const JobBoardView: React.FC<JobBoardViewProps> = ({
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [minScoreFilter, setMinScoreFilter] = useState<number>(0);
   const [remoteOnly, setRemoteOnly] = useState<boolean>(false);
-
-  // Display skeleton cards while data is being fetched/scraped initially
-  if (isLoading || (isScraping && jobs.length === 0)) {
-    return <JobBoardSkeleton />;
-  }
 
   const sources = [
     { id: 'all', label: 'All Sources' },
@@ -220,121 +215,125 @@ export const JobBoardView: React.FC<JobBoardViewProps> = ({
         </div>
       </div>
 
-      {/* Jobs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredJobs.length > 0 ? (
-          filteredJobs.map((job) => {
-            const isApplied = appliedJobTitles.has(`${job.company.toLowerCase()}_${job.title.toLowerCase()}`);
-            const badge = getSourceBadge(job.source);
-            const matchScore = job.matchScore || 85;
+      {/* Jobs Grid Container - Section text headers and filters stay above; skeleton effect displayed just under them */}
+      {isLoading || (isScraping && jobs.length === 0) ? (
+        <JobCardsGridSkeleton />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredJobs.length > 0 ? (
+            filteredJobs.map((job) => {
+              const isApplied = appliedJobTitles.has(`${job.company.toLowerCase()}_${job.title.toLowerCase()}`);
+              const badge = getSourceBadge(job.source);
+              const matchScore = job.matchScore || 85;
 
-            return (
-              <div
-                key={job.id}
-                className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs hover:border-neutral-300 transition-all flex flex-col justify-between group hover:shadow-md"
-              >
-                <div>
-                  {/* Top line: Source pill & Match Score */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${badge.bg}`}>
-                      {badge.label}
-                    </span>
+              return (
+                <div
+                  key={job.id}
+                  className="bg-white rounded-2xl p-5 border border-neutral-200/80 shadow-xs hover:border-neutral-300 transition-all flex flex-col justify-between group hover:shadow-md"
+                >
+                  <div>
+                    {/* Top line: Source pill & Match Score */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border ${badge.bg}`}>
+                        {badge.label}
+                      </span>
 
-                    <div className="flex items-center gap-1.5">
-                      {isApplied ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>Applied</span>
-                        </span>
-                      ) : (
+                      <div className="flex items-center gap-1.5">
+                        {isApplied ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Applied</span>
+                          </span>
+                        ) : (
+                          <span
+                            className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
+                              matchScore >= 90
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : matchScore >= 80
+                                ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                : 'bg-neutral-100 text-neutral-700 border-neutral-200'
+                            }`}
+                          >
+                            <Sparkles className="w-3 h-3 text-current" />
+                            <span>{matchScore}% Match</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Title & Company */}
+                    <h3 className="font-bold text-neutral-900 text-base leading-snug group-hover:text-blue-600 transition-colors">
+                      {job.title}
+                    </h3>
+                    <p className="text-xs font-semibold text-neutral-600 mt-0.5">
+                      {job.company}
+                    </p>
+
+                    {/* Meta (Location, Salary) */}
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500 mt-3 pt-3 border-t border-neutral-100">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>{job.location}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <DollarSign className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>{job.salary}</span>
+                      </span>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {(job.tags || []).slice(0, 4).map((tag, i) => (
                         <span
-                          className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                            matchScore >= 90
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : matchScore >= 80
-                              ? 'bg-blue-50 text-blue-700 border-blue-200'
-                              : 'bg-neutral-100 text-neutral-700 border-neutral-200'
-                          }`}
+                          key={i}
+                          className="text-[10px] font-medium bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-md"
                         >
-                          <Sparkles className="w-3 h-3 text-current" />
-                          <span>{matchScore}% Match</span>
+                          {tag}
+                        </span>
+                      ))}
+                      {(job.tags || []).length > 4 && (
+                        <span className="text-[10px] text-neutral-400 px-1 py-0.5">
+                          +{(job.tags || []).length - 4} more
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Title & Company */}
-                  <h3 className="font-bold text-neutral-900 text-base leading-snug group-hover:text-blue-600 transition-colors">
-                    {job.title}
-                  </h3>
-                  <p className="text-xs font-semibold text-neutral-600 mt-0.5">
-                    {job.company}
-                  </p>
-
-                  {/* Meta (Location, Salary) */}
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-500 mt-3 pt-3 border-t border-neutral-100">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3.5 h-3.5 text-neutral-400" />
-                      <span>{job.location}</span>
+                  {/* Bottom Action Bar */}
+                  <div className="mt-5 pt-3.5 border-t border-neutral-100 flex items-center justify-between gap-3">
+                    <span className="text-[11px] text-neutral-400 font-mono">
+                      {job.contact_info.startsWith('@') ? `Recruiter: ${job.contact_info}` : 'Direct Apply'}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <DollarSign className="w-3.5 h-3.5 text-neutral-400" />
-                      <span>{job.salary}</span>
-                    </span>
-                  </div>
 
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {(job.tags || []).slice(0, 4).map((tag, i) => (
-                      <span
-                        key={i}
-                        className="text-[10px] font-medium bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded-md"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {(job.tags || []).length > 4 && (
-                      <span className="text-[10px] text-neutral-400 px-1 py-0.5">
-                        +{(job.tags || []).length - 4} more
-                      </span>
-                    )}
+                    <button
+                      onClick={() => onSelectJob(job.id)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-white transition-colors cursor-pointer group-hover:bg-blue-600"
+                    >
+                      <span>View Details & Apply</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
-
-                {/* Bottom Action Bar */}
-                <div className="mt-5 pt-3.5 border-t border-neutral-100 flex items-center justify-between gap-3">
-                  <span className="text-[11px] text-neutral-400 font-mono">
-                    {job.contact_info.startsWith('@') ? `Recruiter: ${job.contact_info}` : 'Direct Apply'}
-                  </span>
-
-                  <button
-                    onClick={() => onSelectJob(job.id)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-white transition-colors cursor-pointer group-hover:bg-blue-600"
-                  >
-                    <span>View Details & Apply</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="col-span-full py-16 text-center bg-white rounded-2xl border border-neutral-200">
-            <Layers className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
-            <h4 className="text-sm font-bold text-neutral-800">No matching jobs found</h4>
-            <p className="text-xs text-neutral-500 max-w-sm mx-auto mt-1 mb-4">
-              Try adjusting your search criteria or click below to trigger a live web and Telegram scraping sweep.
-            </p>
-            <button
-              onClick={() => onRefreshScraper()}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-neutral-900 text-white"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>Fetch Fresh Jobs Now</span>
-            </button>
-          </div>
-        )}
-      </div>
+              );
+            })
+          ) : (
+            <div className="col-span-full py-16 text-center bg-white rounded-2xl border border-neutral-200">
+              <Layers className="w-8 h-8 text-neutral-300 mx-auto mb-2" />
+              <h4 className="text-sm font-bold text-neutral-800">No matching jobs found</h4>
+              <p className="text-xs text-neutral-500 max-w-sm mx-auto mt-1 mb-4">
+                Try adjusting your search criteria or click below to trigger a live web and Telegram scraping sweep.
+              </p>
+              <button
+                onClick={() => onRefreshScraper()}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-neutral-900 text-white"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Fetch Fresh Jobs Now</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

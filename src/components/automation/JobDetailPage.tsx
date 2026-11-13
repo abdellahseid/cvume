@@ -21,7 +21,7 @@ import {
   Layers
 } from 'lucide-react';
 import { DiscoveredJob, ApplicationLog } from '../../services/api';
-import { JobDetailPageSkeleton } from './SkeletonLoaders';
+import { JobDetailBodySkeleton } from './SkeletonLoaders';
 
 interface JobDetailPageProps {
   job: DiscoveredJob;
@@ -46,14 +46,11 @@ export const JobDetailPage: React.FC<JobDetailPageProps> = ({
   userProfile,
   isLoading = false,
 }) => {
-  if (isLoading || !job) {
-    return <JobDetailPageSkeleton />;
-  }
   const [activePreviewTab, setActivePreviewTab] = useState<'resume' | 'letter' | 'telegram'>('resume');
   const [copiedText, setCopiedText] = useState(false);
 
-  const matchScore = job.matchScore || 88;
-  const isTelegram = job.source === 'telegram';
+  const matchScore = job?.matchScore || 88;
+  const isTelegram = job?.source === 'telegram';
 
   const candidateName = userProfile?.fullName || 'Candidate';
   const candidatePhone = userProfile?.phone || '';
@@ -67,8 +64,8 @@ export const JobDetailPage: React.FC<JobDetailPageProps> = ({
   };
 
   // Tailored preview text generated dynamically from real job and candidate profile
-  const tailoredResumeHeadline = `${job.title} | Software Engineering & Scalable Platforms`;
-  const tailoredSummary = `Dedicated software engineer with verified experience across ${(job.matchedSkills || job.tags || ['TypeScript', 'React']).slice(0, 4).join(', ')}. Strong background in shipping performant, user-centered applications and reliable architectures for ${job.company}.`;
+  const tailoredResumeHeadline = `${job?.title || 'Software Engineer'} | Scalable Platforms & High Reliability`;
+  const tailoredSummary = `Dedicated software engineer with verified experience across ${(job?.matchedSkills || job?.tags || ['TypeScript', 'React']).slice(0, 4).join(', ')}. Strong background in shipping performant, user-centered applications and reliable architectures for ${job?.company || 'modern teams'}.`;
 
   const contactLine = [
     candidateEmail ? `Email: ${candidateEmail}` : '',
@@ -76,26 +73,26 @@ export const JobDetailPage: React.FC<JobDetailPageProps> = ({
     candidatePortfolio ? `Portfolio: ${candidatePortfolio}` : '',
   ].filter(Boolean).join(' | ');
 
-  const tailoredLetter = `Dear ${job.company} Hiring Team,
+  const tailoredLetter = `Dear ${job?.company || 'Hiring'} Team,
 
-I am writing to express my enthusiastic interest in the ${job.title} position at ${job.company}. Having built scalable web architectures and developer-facing platforms, I am excited about your team's mission.
+I am writing to express my enthusiastic interest in the ${job?.title || 'Engineer'} position at ${job?.company || 'your organization'}. Having built scalable web architectures and developer-facing platforms, I am excited about your team's mission.
 
 My background aligns directly with your requirements:
-• Core technical skills: ${(job.matchedSkills || job.tags || ['TypeScript', 'React']).slice(0, 4).join(', ')}
+• Core technical skills: ${(job?.matchedSkills || job?.tags || ['TypeScript', 'React']).slice(0, 4).join(', ')}
 • Experience designing scalable, reliable platforms with high performance standards
 • Proven track record collaborating on modern, maintainable codebases
 
-I welcome the opportunity to discuss how my skill set can accelerate ${job.company}'s roadmap.
+I welcome the opportunity to discuss how my skill set can accelerate ${job?.company || 'the team'}'s roadmap.
 
 Warm regards,
 ${candidateName}
 ${contactLine}`;
 
-  const telegramPitch = `Hi ${job.company} hiring team! 👋 I saw the opening for ${job.title} and wanted to reach out directly. I specialize in ${(job.matchedSkills || job.tags || ['TypeScript', 'React']).slice(0, 3).join(', ')} and have a track record building high-performance scalable systems. Would love to connect and share my portfolio${candidatePortfolio ? `: ${candidatePortfolio}` : ''}${candidatePhone ? ` | Phone: ${candidatePhone}` : ''}. Thank you! — ${candidateName}`;
+  const telegramPitch = `Hi ${job?.company || ''} hiring team! 👋 I saw the opening for ${job?.title || 'the role'} and wanted to reach out directly. I specialize in ${(job?.matchedSkills || job?.tags || ['TypeScript', 'React']).slice(0, 3).join(', ')} and have a track record building high-performance scalable systems. Would love to connect and share my portfolio${candidatePortfolio ? `: ${candidatePortfolio}` : ''}${candidatePhone ? ` | Phone: ${candidatePhone}` : ''}. Thank you! — ${candidateName}`;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Top Navigation & Breadcrumb */}
+      {/* Top Navigation & Breadcrumb - Always visible real header */}
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
@@ -106,7 +103,7 @@ ${contactLine}`;
         </button>
 
         <div className="flex items-center gap-2">
-          {job.source_url && (
+          {job?.source_url && (
             <a
               href={job.source_url}
               target="_blank"
@@ -120,8 +117,13 @@ ${contactLine}`;
         </div>
       </div>
 
-      {/* Hero Header Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      {/* Skeleton loading effect just under header if loading */}
+      {isLoading || !job || !job.title ? (
+        <JobDetailBodySkeleton />
+      ) : (
+        <>
+          {/* Hero Header Card */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-neutral-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-3 max-w-2xl">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wider">
@@ -374,6 +376,8 @@ ${contactLine}`;
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

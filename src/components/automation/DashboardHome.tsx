@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { AutomationStats, ApplicationLog } from '../../services/api';
 import { ApplicationsTimelineChart, PlatformShareChart, ApplicationFunnelChart } from './AutomationCharts';
-import { DashboardHomeSkeleton } from './SkeletonLoaders';
+import { KpiMetricSkeleton, TerminalLogsSkeleton } from './SkeletonLoaders';
 
 interface DashboardHomeProps {
   stats: AutomationStats | null;
@@ -38,14 +38,9 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
 }) => {
   const [showConsole, setShowConsole] = useState(true);
 
-  // Display clean pulsing skeleton layout when data is not yet loaded
-  if (isLoading || stats === null) {
-    return <DashboardHomeSkeleton />;
-  }
-
   return (
     <div className="space-y-6">
-      {/* Hero Automation Command Banner */}
+      {/* Hero Automation Command Banner - Real section text headers always visible */}
       <div className="relative overflow-hidden rounded-3xl bg-neutral-900 text-white p-6 sm:p-8 border border-neutral-800 shadow-xl">
         {/* Background glow effects */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
@@ -133,17 +128,23 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
         )}
       </div>
 
-      {/* KPI Metric Cards */}
+      {/* KPI Metric Cards - Real headers always visible; skeleton loading effect just under them */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs">
           <div className="flex items-center justify-between text-neutral-500 mb-2">
             <span className="text-xs font-medium">Scanned Roles</span>
             <Layers className="w-4 h-4 text-blue-500" />
           </div>
-          <p className="text-2xl font-extrabold text-neutral-900 font-mono">
-            {stats?.totalDiscovered ?? 0}
-          </p>
-          <p className="text-[11px] text-neutral-500 mt-1">Live active opportunities</p>
+          {isLoading || !stats ? (
+            <KpiMetricSkeleton />
+          ) : (
+            <>
+              <p className="text-2xl font-extrabold text-neutral-900 font-mono">
+                {stats.totalDiscovered}
+              </p>
+              <p className="text-[11px] text-neutral-500 mt-1">Live active opportunities</p>
+            </>
+          )}
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs">
@@ -151,10 +152,16 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
             <span className="text-xs font-medium">High Matches</span>
             <Target className="w-4 h-4 text-emerald-500" />
           </div>
-          <p className="text-2xl font-extrabold text-emerald-600 font-mono">
-            {stats?.highMatches ?? 0}
-          </p>
-          <p className="text-[11px] text-neutral-500 mt-1">≥ 80% fit with your CV</p>
+          {isLoading || !stats ? (
+            <KpiMetricSkeleton />
+          ) : (
+            <>
+              <p className="text-2xl font-extrabold text-emerald-600 font-mono">
+                {stats.highMatches}
+              </p>
+              <p className="text-[11px] text-neutral-500 mt-1">≥ 80% fit with your CV</p>
+            </>
+          )}
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs">
@@ -162,10 +169,16 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
             <span className="text-xs font-medium">Auto-Applied</span>
             <Send className="w-4 h-4 text-purple-500" />
           </div>
-          <p className="text-2xl font-extrabold text-neutral-900 font-mono">
-            {stats?.totalApplied ?? 0}
-          </p>
-          <p className="text-[11px] text-neutral-500 mt-1">Dispatched applications</p>
+          {isLoading || !stats ? (
+            <KpiMetricSkeleton />
+          ) : (
+            <>
+              <p className="text-2xl font-extrabold text-neutral-900 font-mono">
+                {stats.totalApplied}
+              </p>
+              <p className="text-[11px] text-neutral-500 mt-1">Dispatched applications</p>
+            </>
+          )}
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs">
@@ -173,12 +186,18 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
             <span className="text-xs font-medium">Interviews</span>
             <TrendingUp className="w-4 h-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-extrabold text-amber-600 font-mono">
-            {stats?.interviewCount ?? 0}
-          </p>
-          <p className="text-[11px] text-neutral-500 mt-1">
-            {stats?.interviewRate ?? 0}% response rate
-          </p>
+          {isLoading || !stats ? (
+            <KpiMetricSkeleton />
+          ) : (
+            <>
+              <p className="text-2xl font-extrabold text-amber-600 font-mono">
+                {stats.interviewCount}
+              </p>
+              <p className="text-[11px] text-neutral-500 mt-1">
+                {stats.interviewRate}% response rate
+              </p>
+            </>
+          )}
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs col-span-2 sm:col-span-1">
@@ -186,40 +205,45 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
             <span className="text-xs font-medium">Hours Saved</span>
             <Clock className="w-4 h-4 text-rose-500" />
           </div>
-          <p className="text-2xl font-extrabold text-neutral-900 font-mono">
-            {stats?.timeSavedHours ?? 0}h
-          </p>
-          <p className="text-[11px] text-neutral-500 mt-1">Manual forms skipped</p>
+          {isLoading || !stats ? (
+            <KpiMetricSkeleton />
+          ) : (
+            <>
+              <p className="text-2xl font-extrabold text-neutral-900 font-mono">
+                {stats.timeSavedHours}h
+              </p>
+              <p className="text-[11px] text-neutral-500 mt-1">Manual forms skipped</p>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Interactive Charts Section */}
+      {/* Interactive Charts Section - Real section headers preserved, skeleton effect just under them */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2">
-          {stats?.timelineDays && stats.timelineDays.length > 0 ? (
-            <ApplicationsTimelineChart timelineDays={stats.timelineDays} />
-          ) : (
-            <div className="h-64 bg-white rounded-2xl border border-neutral-200 p-6 flex items-center justify-center text-neutral-400 text-sm">
-              No application history yet. Run auto-pilot to see velocity!
-            </div>
-          )}
+          <ApplicationsTimelineChart 
+            timelineDays={stats?.timelineDays || []} 
+            isLoading={isLoading || !stats}
+          />
         </div>
 
         <div>
-          {stats?.platformCounts && (
-            <PlatformShareChart platformCounts={stats.platformCounts} />
-          )}
+          <PlatformShareChart 
+            platformCounts={stats?.platformCounts || {}} 
+            isLoading={isLoading || !stats}
+          />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div>
-          {stats?.statusCounts && (
-            <ApplicationFunnelChart statusCounts={stats.statusCounts} />
-          )}
+          <ApplicationFunnelChart 
+            statusCounts={stats?.statusCounts || {}} 
+            isLoading={isLoading || !stats}
+          />
         </div>
 
-        {/* Live Terminal / Execution Log Console */}
+        {/* Live Terminal / Execution Log Console - Real header preserved */}
         <div className="bg-neutral-950 text-neutral-100 rounded-2xl p-5 border border-neutral-800 shadow-md font-mono text-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-neutral-800">
@@ -232,26 +256,31 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
               </span>
             </div>
 
-            <div className="space-y-2 max-h-56 overflow-y-auto pr-1 text-[11px] leading-relaxed">
-              {automationLogs.length > 0 ? (
-                automationLogs.map((log, i) => (
-                  <div key={i} className="flex items-start gap-2 text-neutral-300">
-                    <span className="text-emerald-400 select-none">➜</span>
-                    <div>
-                      <span className="text-neutral-500 select-none mr-1.5">
-                        [{new Date(log.timestamp).toLocaleTimeString()}]
-                      </span>
-                      <strong className="text-neutral-200 mr-1">{log.step}:</strong>
-                      <span>{log.message}</span>
+            {/* Skeleton loading effect just under header if logs are loading */}
+            {isLoading ? (
+              <TerminalLogsSkeleton />
+            ) : (
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1 text-[11px] leading-relaxed">
+                {automationLogs.length > 0 ? (
+                  automationLogs.map((log, i) => (
+                    <div key={i} className="flex items-start gap-2 text-neutral-300">
+                      <span className="text-emerald-400 select-none">➜</span>
+                      <div>
+                        <span className="text-neutral-500 select-none mr-1.5">
+                          [{new Date(log.timestamp).toLocaleTimeString()}]
+                        </span>
+                        <strong className="text-neutral-200 mr-1">{log.step}:</strong>
+                        <span>{log.message}</span>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="text-neutral-500 py-6 text-center">
+                    <p>Auto-pilot idle. Press "Run Auto-Pilot Now" to execute the pipeline.</p>
                   </div>
-                ))
-              ) : (
-                <div className="text-neutral-500 py-6 text-center">
-                  <p>Auto-pilot idle. Press "Run Auto-Pilot Now" to execute the pipeline.</p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="pt-3 mt-3 border-t border-neutral-800/80 flex items-center justify-between text-[11px] text-neutral-400">

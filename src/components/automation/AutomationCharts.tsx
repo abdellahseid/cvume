@@ -81,41 +81,49 @@ export const PlatformShareChart: React.FC<{ platformCounts: Record<string, numbe
         </span>
       </div>
 
-      {/* Progress Multi-Bar */}
-      <div className="h-3.5 w-full bg-neutral-100 rounded-full flex overflow-hidden mb-5">
-        {platforms.map(p => {
-          const count = platformCounts[p.key] || 0;
-          const pct = total > 0 ? (count / total) * 100 : 0;
-          if (pct === 0) return null;
-          return (
-            <div
-              key={p.key}
-              style={{ width: `${pct}%` }}
-              className={`${p.color} transition-all duration-500`}
-              title={`${p.label}: ${count} (${Math.round(pct)}%)`}
-            />
-          );
-        })}
-      </div>
+      {total > 0 ? (
+        <>
+          {/* Progress Multi-Bar */}
+          <div className="h-3.5 w-full bg-neutral-100 rounded-full flex overflow-hidden mb-5">
+            {platforms.map(p => {
+              const count = platformCounts[p.key] || 0;
+              const pct = (count / total) * 100;
+              if (pct === 0) return null;
+              return (
+                <div
+                  key={p.key}
+                  style={{ width: `${pct}%` }}
+                  className={`${p.color} transition-all duration-500`}
+                  title={`${p.label}: ${count} (${Math.round(pct)}%)`}
+                />
+              );
+            })}
+          </div>
 
-      {/* Legend list */}
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        {platforms.map(p => {
-          const count = platformCounts[p.key] || 0;
-          const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-          return (
-            <div key={p.key} className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 border border-neutral-100">
-              <div className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${p.color}`} />
-                <span className="font-medium text-neutral-700">{p.label}</span>
-              </div>
-              <span className="font-mono font-semibold text-neutral-900">
-                {count} <span className="text-[10px] text-neutral-400 font-normal">({pct}%)</span>
-              </span>
-            </div>
-          );
-        })}
-      </div>
+          {/* Legend list */}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {platforms.map(p => {
+              const count = platformCounts[p.key] || 0;
+              const pct = Math.round((count / total) * 100);
+              return (
+                <div key={p.key} className="flex items-center justify-between p-2 rounded-lg bg-neutral-50 border border-neutral-100">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${p.color}`} />
+                    <span className="font-medium text-neutral-700">{p.label}</span>
+                  </div>
+                  <span className="font-mono font-semibold text-neutral-900">
+                    {count} <span className="text-[10px] text-neutral-400 font-normal">({pct}%)</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <div className="py-8 text-center text-xs text-neutral-400 bg-neutral-50 rounded-xl border border-dashed border-neutral-200">
+          No platform submissions yet. Run auto-pilot to view channel breakdown.
+        </div>
+      )}
     </div>
   );
 };
@@ -140,29 +148,35 @@ export const ApplicationFunnelChart: React.FC<{ statusCounts: Record<string, num
         </div>
       </div>
 
-      <div className="space-y-3">
-        {stages.map((stage) => {
-          const count = statusCounts[stage.key] || 0;
-          const pct = Math.max(8, Math.round((count / baseCount) * 100));
+      {total > 0 ? (
+        <div className="space-y-3">
+          {stages.map((stage) => {
+            const count = statusCounts[stage.key] || 0;
+            const pct = Math.max(8, Math.round((count / baseCount) * 100));
 
-          return (
-            <div key={stage.key} className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-neutral-700">{stage.label}</span>
-                <span className="font-mono font-bold text-neutral-900">
-                  {count} <span className="text-neutral-400 font-normal text-[11px]">({pct}%)</span>
-                </span>
+            return (
+              <div key={stage.key} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium text-neutral-700">{stage.label}</span>
+                  <span className="font-mono font-bold text-neutral-900">
+                    {count} <span className="text-neutral-400 font-normal text-[11px]">({pct}%)</span>
+                  </span>
+                </div>
+                <div className="h-2.5 w-full bg-neutral-100 rounded-full overflow-hidden">
+                  <div
+                    style={{ width: `${pct}%` }}
+                    className={`h-full ${stage.barBg} rounded-full transition-all duration-500`}
+                  />
+                </div>
               </div>
-              <div className="h-2.5 w-full bg-neutral-100 rounded-full overflow-hidden">
-                <div
-                  style={{ width: `${pct}%` }}
-                  className={`h-full ${stage.barBg} rounded-full transition-all duration-500`}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="py-8 text-center text-xs text-neutral-400 bg-neutral-50 rounded-xl border border-dashed border-neutral-200">
+          No pipeline conversions yet. Active applications will progress here automatically.
+        </div>
+      )}
     </div>
   );
 };

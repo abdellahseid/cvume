@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { AutomationStats, ApplicationLog } from '../../services/api';
 import { ApplicationsTimelineChart, PlatformShareChart, ApplicationFunnelChart } from './AutomationCharts';
+import { DashboardHomeSkeleton } from './SkeletonLoaders';
 
 interface DashboardHomeProps {
   stats: AutomationStats | null;
@@ -24,6 +25,7 @@ interface DashboardHomeProps {
   onRunAutomation: () => Promise<void>;
   onNavigateToTab: (tab: 'dashboard' | 'job-board' | 'applied-tracker' | 'settings') => void;
   automationLogs: ApplicationLog[];
+  isLoading?: boolean;
 }
 
 export const DashboardHome: React.FC<DashboardHomeProps> = ({
@@ -32,8 +34,14 @@ export const DashboardHome: React.FC<DashboardHomeProps> = ({
   onRunAutomation,
   onNavigateToTab,
   automationLogs,
+  isLoading = false,
 }) => {
   const [showConsole, setShowConsole] = useState(true);
+
+  // Display clean pulsing skeleton layout when data is not yet loaded
+  if (isLoading || stats === null) {
+    return <DashboardHomeSkeleton />;
+  }
 
   return (
     <div className="space-y-6">

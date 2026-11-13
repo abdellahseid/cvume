@@ -3,16 +3,16 @@ import { UserProfile } from '../types/profile';
 const STORAGE_KEY = 'cvume_user_profile_data';
 
 export const DEFAULT_USER_PROFILE: UserProfile = {
-  fullName: 'Alex Rivera',
-  email: 'alex.rivera@example.com',
-  phone: '+1 (555) 234-5678',
-  location: 'San Francisco, CA (Open to Remote)',
-  targetRole: 'Staff Fullstack Engineer / Systems Architect',
-  portfolioUrl: 'https://cvume.com/@alexrivera',
-  linkedinUrl: 'https://linkedin.com/in/alex-rivera-tech',
-  githubUrl: 'https://github.com/alexrivera-eng',
-  telegramHandle: '@alex_tech_lead',
-  bio: 'Staff Software Engineer with 8+ years building resilient web architectures, distributed systems, and design systems at scale. Passionate about developer tooling, sub-100ms latency, and high-conversion user interfaces.',
+  fullName: 'Candidate Profile',
+  email: '',
+  phone: '',
+  location: 'Remote',
+  targetRole: 'Fullstack / Systems Engineer',
+  portfolioUrl: '',
+  linkedinUrl: '',
+  githubUrl: '',
+  telegramHandle: '',
+  bio: 'Software Engineer with experience building resilient web architectures, distributed systems, and modern applications.',
   skills: [
     'TypeScript',
     'React',

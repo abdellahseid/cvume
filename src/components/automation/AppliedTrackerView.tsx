@@ -16,12 +16,14 @@ import {
   Briefcase
 } from 'lucide-react';
 import { SavedApplication } from '../../services/api';
+import { AppliedTrackerSkeleton } from './SkeletonLoaders';
 
 interface AppliedTrackerViewProps {
   applications: SavedApplication[];
   onUpdateStatus: (id: string, status: string) => Promise<void>;
   onDeleteApplication: (id: string) => Promise<void>;
   onOpenTemplates?: (app: SavedApplication) => void;
+  isLoading?: boolean;
 }
 
 export const AppliedTrackerView: React.FC<AppliedTrackerViewProps> = ({
@@ -29,11 +31,17 @@ export const AppliedTrackerView: React.FC<AppliedTrackerViewProps> = ({
   onUpdateStatus,
   onDeleteApplication,
   onOpenTemplates,
+  isLoading = false,
 }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedAppForModal, setSelectedAppForModal] = useState<SavedApplication | null>(null);
   const [copiedText, setCopiedText] = useState(false);
+
+  // Display skeleton rows when loading applications pipeline
+  if (isLoading) {
+    return <AppliedTrackerSkeleton />;
+  }
 
   const statuses = [
     { id: 'all', label: 'All Applications' },

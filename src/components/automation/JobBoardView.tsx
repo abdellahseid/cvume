@@ -15,6 +15,7 @@ import {
   Globe
 } from 'lucide-react';
 import { DiscoveredJob } from '../../services/api';
+import { JobBoardSkeleton } from './SkeletonLoaders';
 
 interface JobBoardViewProps {
   jobs: DiscoveredJob[];
@@ -24,6 +25,7 @@ interface JobBoardViewProps {
   onAutoApplyAll: () => Promise<void>;
   isScraping: boolean;
   isApplyingAll: boolean;
+  isLoading?: boolean;
 }
 
 export const JobBoardView: React.FC<JobBoardViewProps> = ({
@@ -34,11 +36,17 @@ export const JobBoardView: React.FC<JobBoardViewProps> = ({
   onAutoApplyAll,
   isScraping,
   isApplyingAll,
+  isLoading = false,
 }) => {
   const [search, setSearch] = useState('');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [minScoreFilter, setMinScoreFilter] = useState<number>(0);
   const [remoteOnly, setRemoteOnly] = useState<boolean>(false);
+
+  // Display skeleton cards while data is being fetched/scraped initially
+  if (isLoading || (isScraping && jobs.length === 0)) {
+    return <JobBoardSkeleton />;
+  }
 
   const sources = [
     { id: 'all', label: 'All Sources' },

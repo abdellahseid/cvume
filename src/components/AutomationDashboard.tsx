@@ -316,7 +316,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
               <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
                 activeTab === 'job-board' ? 'bg-neutral-800 text-neutral-300' : 'bg-neutral-100 text-neutral-600'
               }`}>
-                {jobs.length}
+                {isInitialLoading ? '•' : jobs.length}
               </span>
             </button>
 
@@ -339,7 +339,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
               <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
                 activeTab === 'applied-tracker' ? 'bg-neutral-800 text-neutral-300' : 'bg-neutral-100 text-neutral-600'
               }`}>
-                {applications.length}
+                {isInitialLoading ? '•' : applications.length}
               </span>
             </button>
 
@@ -451,6 +451,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
         {activeTab === 'dashboard' && (
           <DashboardHome
             stats={stats}
+            isLoading={isInitialLoading}
             isRunningAutomation={isRunningAutomation}
             onRunAutomation={handleRunAutomation}
             onNavigateToTab={(tab) => {
@@ -464,6 +465,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
         {activeTab === 'job-board' && (
           <JobBoardView
             jobs={jobs}
+            isLoading={isInitialLoading}
             appliedJobTitles={appliedJobTitles}
             onSelectJob={(jobId) => {
               setSelectedJobId(jobId);
@@ -477,16 +479,17 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
           />
         )}
 
-        {activeTab === 'job-detail' && selectedJob && (
+        {activeTab === 'job-detail' && (
           <JobDetailPage
-            job={selectedJob}
-            isApplied={appliedJobTitles.has(`${selectedJob.company.toLowerCase()}_${selectedJob.title.toLowerCase()}`)}
+            job={selectedJob || ({} as any)}
+            isLoading={isInitialLoading || !selectedJob}
+            isApplied={Boolean(selectedJob && appliedJobTitles.has(`${selectedJob.company.toLowerCase()}_${selectedJob.title.toLowerCase()}`))}
             onBack={() => {
               setActiveTab('job-board');
               setSelectedJobId(null);
             }}
             onAutoApply={handleAutoApplySingle}
-            isApplying={applyingJobId === selectedJob.id}
+            isApplying={Boolean(selectedJob && applyingJobId === selectedJob.id)}
             onViewInApplied={() => {
               setActiveTab('applied-tracker');
               setSelectedJobId(null);
@@ -499,6 +502,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
         {activeTab === 'applied-tracker' && (
           <AppliedTrackerView
             applications={applications}
+            isLoading={isInitialLoading}
             onUpdateStatus={handleUpdateStatus}
             onDeleteApplication={handleDeleteApplication}
             onOpenTemplates={onOpenTemplates ? (app) => onOpenTemplates(app.result) : undefined}
@@ -508,6 +512,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
         {activeTab === 'settings' && (
           <AutomationSettingsView
             settings={settings}
+            isLoading={isInitialLoading}
             onSaveSettings={async (newSettings) => {
               const res = await api.saveAutomationSettings(newSettings);
               setSettings(res);

@@ -21,6 +21,7 @@ import {
   Layers
 } from 'lucide-react';
 import { DiscoveredJob, ApplicationLog } from '../../services/api';
+import { JobDetailPageSkeleton } from './SkeletonLoaders';
 
 interface JobDetailPageProps {
   job: DiscoveredJob;
@@ -31,6 +32,7 @@ interface JobDetailPageProps {
   onViewInApplied: () => void;
   appliedLogs?: ApplicationLog[];
   userProfile?: { fullName: string; email: string; phone?: string; portfolioUrl?: string; targetRole?: string } | null;
+  isLoading?: boolean;
 }
 
 export const JobDetailPage: React.FC<JobDetailPageProps> = ({
@@ -42,7 +44,11 @@ export const JobDetailPage: React.FC<JobDetailPageProps> = ({
   onViewInApplied,
   appliedLogs,
   userProfile,
+  isLoading = false,
 }) => {
+  if (isLoading || !job) {
+    return <JobDetailPageSkeleton />;
+  }
   const [activePreviewTab, setActivePreviewTab] = useState<'resume' | 'letter' | 'telegram'>('resume');
   const [copiedText, setCopiedText] = useState(false);
 

@@ -13,18 +13,25 @@ import {
   Globe
 } from 'lucide-react';
 import { AutomationSettings } from '../../services/api';
+import { AutomationSettingsSkeleton } from './SkeletonLoaders';
 
 interface AutomationSettingsViewProps {
-  settings: AutomationSettings;
+  settings: AutomationSettings | null;
   onSaveSettings: (settings: AutomationSettings) => Promise<void>;
   onToast: (msg: string) => void;
+  isLoading?: boolean;
 }
 
 export const AutomationSettingsView: React.FC<AutomationSettingsViewProps> = ({
   settings,
   onSaveSettings,
   onToast,
+  isLoading = false,
 }) => {
+  if (isLoading || !settings) {
+    return <AutomationSettingsSkeleton />;
+  }
+
   const [minScore, setMinScore] = useState<number>(settings.min_match_score || 80);
   const [dailyLimit, setDailyLimit] = useState<number>(settings.daily_limit || 15);
   const [telegramHandle, setTelegramHandle] = useState<string>(settings.telegram_handle || '');

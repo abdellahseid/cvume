@@ -16,7 +16,14 @@ export interface PdfExportOptions {
 function normalizePdfUrl(url: string): string {
   const trimmed = url.trim();
   if (!trimmed || trimmed === '#' || trimmed.startsWith('javascript:')) return '';
-  if (trimmed.startsWith('mailto:') || trimmed.startsWith('tel:') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+  if (trimmed.startsWith('mailto:')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('tel:')) {
+    const cleanNum = trimmed.replace(/^tel:/i, '').replace(/[^\d+]/g, '');
+    return `tel:${cleanNum}`;
+  }
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
   if (trimmed.includes('@') && !trimmed.includes('/')) {
@@ -34,6 +41,64 @@ interface ExtractedPdfLink {
   yPercent: number;
   wPercent: number;
   hPercent: number;
+}
+
+/**
+ * Extracts links and their proportional coordinates from a container element.
+ * Expands small hitboxes (like standalone icon buttons) so they are easy to click/tap in the PDF.
+ */
+function extractLinksFromContainer(container: HTMLElement, targetWidth: number): ExtractedPdfLink[] {
+  const extracted: ExtractedPdfLink[] = [];
+  try {
+    const containerRect = container.getBoundingClientRect();
+    const cWidth = containerRect.width > 0 ? containerRect.width : targetWidth;
+    const cHeight = containerRect.height > 0 ? containerRect.height : container.scrollHeight;
+    if (cWidth <= 0 || cHeight <= 0) return extracted;
+
+    const anchors = container.querySelectorAll('a[href]');
+    anchors.forEach((anchor) => {
+      const rawHref = anchor.getAttribute('href') || '';
+      const href = normalizePdfUrl(rawHref);
+      if (!href) return;
+
+      const aRect = anchor.getBoundingClientRect();
+      const relX = aRect.left - containerRect.left;
+      const relY = aRect.top - containerRect.top;
+
+      // Expand small click targets (like project icon links or single icons)
+      // to at least 22px wide x 18px tall, centered on the icon,
+      // so they are effortless to tap or click in the exported PDF.
+      const minHitW = 22;
+      const minHitH = 18;
+      let finalW = Math.max(aRect.width, 10);
+      let finalH = Math.max(aRect.height, 10);
+      let finalX = relX;
+      let finalY = relY;
+
+      if (finalW < minHitW) {
+        finalX -= (minHitW - finalW) / 2;
+        finalW = minHitW;
+      }
+      if (finalH < minHitH) {
+        finalY -= (minHitH - finalH) / 2;
+        finalH = minHitH;
+      }
+
+      finalX = Math.max(0, finalX);
+      finalY = Math.max(0, finalY);
+
+      extracted.push({
+        href,
+        xPercent: finalX / cWidth,
+        yPercent: finalY / cHeight,
+        wPercent: Math.min(1, finalW / cWidth),
+        hPercent: Math.min(1, finalH / cHeight),
+      });
+    });
+  } catch (err) {
+    console.warn('Error extracting links for PDF:', err);
+  }
+  return extracted;
 }
 
 /**
@@ -106,35 +171,7 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
   }
 
   // 1. Extract all clickable links, URLs, and coordinates relative to the resume element
-  const links: ExtractedPdfLink[] = [];
-  try {
-    const elRect = element.getBoundingClientRect();
-    if (elRect.width > 0 && elRect.height > 0) {
-      const anchors = element.querySelectorAll('a[href]');
-      anchors.forEach((anchor) => {
-        const rawHref = anchor.getAttribute('href') || '';
-        const href = normalizePdfUrl(rawHref);
-        if (!href) return;
-
-        const aRect = anchor.getBoundingClientRect();
-        const relX = aRect.left - elRect.left;
-        const relY = aRect.top - elRect.top;
-        // Ensure a comfortable touch/click target in the exported PDF
-        const width = Math.max(aRect.width, 14);
-        const height = Math.max(aRect.height, 14);
-
-        links.push({
-          href,
-          xPercent: relX / elRect.width,
-          yPercent: relY / elRect.height,
-          wPercent: width / elRect.width,
-          hPercent: height / elRect.height,
-        });
-      });
-    }
-  } catch (err) {
-    console.warn('Error extracting links for PDF:', err);
-  }
+  let links: ExtractedPdfLink[] = extractLinksFromContainer(element, targetWidthPx);
 
   onStatusChange?.('Preparing high-resolution PDF...');
 
@@ -230,6 +267,16 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
 
       stage.appendChild(target);
       clonedDoc.body.appendChild(stage);
+
+      // Extract precise link positions from the cloned 794px stage if available
+      try {
+        const clonedLinks = extractLinksFromContainer(target, targetWidthPx);
+        if (clonedLinks.length > 0) {
+          links = clonedLinks;
+        }
+      } catch (e) {
+        // Fall back to initial links
+      }
     },
   });
 
@@ -287,7 +334,7 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
       pageNumber++;
     }
 
-    // Embed links on their corresponding pages
+    // Embed links on their corresponding pages with boundary clamping
     for (const link of links) {
       const globalY = link.yPercent * printHeight;
       const pageIndex = Math.floor(globalY / pageHeight);
@@ -298,7 +345,18 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
 
       if (pageIndex < pageNumber) {
         pdf.setPage(pageIndex + 1);
-        pdf.link(linkX, pageY, linkW, linkH, { url: link.href });
+        const clampedH = Math.min(linkH, pageHeight - pageY);
+        if (clampedH > 0.5) {
+          pdf.link(linkX, pageY, linkW, clampedH, { url: link.href });
+        }
+        // If the click hitbox straddles the page boundary, place the continuation on the next page
+        if (pageY + linkH > pageHeight && pageIndex + 1 < pageNumber) {
+          pdf.setPage(pageIndex + 2);
+          const remainderH = (pageY + linkH) - pageHeight;
+          if (remainderH > 0.5) {
+            pdf.link(linkX, 0, linkW, remainderH, { url: link.href });
+          }
+        }
       }
     }
   }

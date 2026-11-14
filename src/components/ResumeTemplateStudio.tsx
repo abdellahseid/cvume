@@ -306,6 +306,14 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
     return '';
   };
 
+  const normalizeUrl = (url?: string) => {
+    if (!url) return '';
+    const trimmed = url.trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    return `https://${trimmed.replace(/^\/\//, '')}`;
+  };
+
   const displayEducation = result?.resume?.education?.length ? result.resume.education : profile.education;
 
   // Filter templates by category
@@ -385,19 +393,19 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
         } ${options?.border ? 'pb-2.5 border-b border-neutral-100 last:border-b-0' : ''}`}
       >
         <div className="font-semibold flex flex-wrap items-center justify-between gap-2 text-neutral-900">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-bold text-neutral-900">{p.name}</span>
             {projectLink && (
               <a
                 href={projectLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] font-mono hover:underline cursor-pointer transition-colors"
+                className="inline-flex items-center justify-center p-1 -m-1 rounded hover:opacity-80 transition-opacity cursor-pointer"
                 style={{ color: selectedColor.primary }}
-                title={`Open live project for ${p.name}`}
+                title={`Open ${p.name} live project in new tab (${projectLink})`}
+                aria-label={`Open project ${p.name} in new tab`}
               >
-                <span>{projectLink.replace(/^https?:\/\/(www\.)?/, '')}</span>
-                <ExternalLink className="w-2.5 h-2.5 stroke-[2.2] shrink-0" />
+                <ExternalLink className="w-3.5 h-3.5 stroke-[2.2] shrink-0" />
               </a>
             )}
           </div>
@@ -700,7 +708,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
             <div className="bg-neutral-100/90 p-2 sm:p-5 rounded-2xl flex justify-center border border-neutral-200/80 overflow-x-auto shadow-inner">
               <div
                 id="export-resume-paper"
-                className={`bg-white w-full max-w-[800px] text-neutral-900 border-0 rounded-none shadow-none outline-none ${getFontFamilyClass()} ${selectedTemplate === 'accent_banner' ? 'p-0 space-y-0' : getDensityPadding()}`}
+                className={`bg-white w-[794px] min-w-[794px] max-w-[794px] text-neutral-900 border-0 rounded-none shadow-none outline-none ${getFontFamilyClass()} ${selectedTemplate === 'accent_banner' ? 'p-0 space-y-0' : getDensityPadding()}`}
                 style={{
                   backgroundColor: '#ffffff',
                   color: '#111827',
@@ -751,13 +759,15 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         <>
                           <span>•</span>
                           <a
-                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
+                            href={normalizeUrl(profile.portfolioUrl)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:underline font-medium"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
                             style={{ color: selectedColor.primary }}
+                            title="Open Portfolio in new tab"
                           >
-                            Portfolio
+                            <span>Portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
                         </>
                       )}
@@ -765,13 +775,15 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         <>
                           <span>•</span>
                           <a
-                            href={profile.githubUrl.startsWith('http') ? profile.githubUrl : `https://${profile.githubUrl}`}
+                            href={normalizeUrl(profile.githubUrl)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:underline font-medium"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
                             style={{ color: selectedColor.primary }}
+                            title="Open GitHub in new tab"
                           >
-                            GitHub
+                            <span>GitHub</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
                         </>
                       )}
@@ -779,13 +791,15 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         <>
                           <span>•</span>
                           <a
-                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
+                            href={normalizeUrl(profile.linkedinUrl)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:underline font-medium"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
                             style={{ color: selectedColor.primary }}
+                            title="Open LinkedIn in new tab"
                           >
-                            LinkedIn
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
                         </>
                       )}
@@ -912,10 +926,68 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-right text-[11px] font-mono space-y-0.5 text-neutral-300">
-                      <div>{profile.email}</div>
-                      <div>{profile.phone}</div>
-                      <div className="text-neutral-400">{profile.location}</div>
+                    <div className="text-right text-[11px] font-mono space-y-1 text-neutral-300">
+                      {profile.email && (
+                        <div>
+                          <a 
+                            href={`mailto:${profile.email}`} 
+                            className="text-emerald-400 hover:underline cursor-pointer"
+                            title={`Email ${profile.email}`}
+                          >
+                            {profile.email}
+                          </a>
+                        </div>
+                      )}
+                      {profile.phone && (
+                        <div>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="text-emerald-400 hover:underline cursor-pointer"
+                            title={`Call ${profile.phone}`}
+                          >
+                            {profile.phone}
+                          </a>
+                        </div>
+                      )}
+                      {profile.location && <div className="text-neutral-400">{profile.location}</div>}
+                      <div className="flex items-center justify-end gap-2 pt-0.5">
+                        {profile.portfolioUrl && (
+                          <a
+                            href={normalizeUrl(profile.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                            title="Open Portfolio in new tab"
+                          >
+                            <span>portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        )}
+                        {profile.githubUrl && (
+                          <a
+                            href={normalizeUrl(profile.githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                            title="Open GitHub in new tab"
+                          >
+                            <span>github</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        )}
+                        {profile.linkedinUrl && (
+                          <a
+                            href={normalizeUrl(profile.linkedinUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-400 hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                            title="Open LinkedIn in new tab"
+                          >
+                            <span>linkedin</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1023,11 +1095,83 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     </div>
 
                     <div className="text-xs mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-serif text-neutral-600">
-                      {profile.email && <span>{profile.email}</span>}
-                      {profile.phone && <span>• {profile.phone}</span>}
-                      {profile.location && <span>• {profile.location}</span>}
-                      {profile.portfolioUrl && <span>• {profile.portfolioUrl}</span>}
-                      {profile.linkedinUrl && <span>• {profile.linkedinUrl}</span>}
+                      {profile.email && (
+                        <a 
+                          href={`mailto:${profile.email}`} 
+                          className="hover:underline cursor-pointer"
+                          style={{ color: selectedColor.primary }}
+                          title={`Email ${profile.email}`}
+                        >
+                          {profile.email}
+                        </a>
+                      )}
+                      {profile.phone && (
+                        <>
+                          <span>•</span>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="hover:underline cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title={`Call ${profile.phone}`}
+                          >
+                            {profile.phone}
+                          </a>
+                        </>
+                      )}
+                      {profile.location && (
+                        <>
+                          <span>•</span>
+                          <span>{profile.location}</span>
+                        </>
+                      )}
+                      {profile.portfolioUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={normalizeUrl(profile.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open Portfolio in new tab"
+                          >
+                            <span>Portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.linkedinUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={normalizeUrl(profile.linkedinUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open LinkedIn in new tab"
+                          >
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={normalizeUrl(profile.githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open GitHub in new tab"
+                          >
+                            <span>GitHub</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1149,12 +1293,74 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
                         Contact
                       </span>
-                      {profile.email && <div className="break-all">{profile.email}</div>}
-                      {profile.phone && <div>{profile.phone}</div>}
+                      {profile.email && (
+                        <div className="break-all">
+                          <a 
+                            href={`mailto:${profile.email}`} 
+                            className="hover:underline cursor-pointer"
+                            title={`Email ${profile.email}`}
+                          >
+                            {profile.email}
+                          </a>
+                        </div>
+                      )}
+                      {profile.phone && (
+                        <div>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="hover:underline cursor-pointer"
+                            title={`Call ${profile.phone}`}
+                          >
+                            {profile.phone}
+                          </a>
+                        </div>
+                      )}
                       {profile.location && <div>{profile.location}</div>}
-                      {profile.portfolioUrl && <div><a href={profile.portfolioUrl} className="hover:underline" style={{ color: selectedColor.primary }}>Portfolio</a></div>}
-                      {profile.githubUrl && <div><a href={profile.githubUrl} className="hover:underline" style={{ color: selectedColor.primary }}>GitHub</a></div>}
-                      {profile.linkedinUrl && <div><a href={profile.linkedinUrl} className="hover:underline" style={{ color: selectedColor.primary }}>LinkedIn</a></div>}
+                      {profile.portfolioUrl && (
+                        <div>
+                          <a 
+                            href={normalizeUrl(profile.portfolioUrl)} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="hover:underline inline-flex items-center gap-1 font-medium cursor-pointer" 
+                            style={{ color: selectedColor.primary }}
+                            title="Open Portfolio in new tab"
+                          >
+                            <span>Portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </div>
+                      )}
+                      {profile.githubUrl && (
+                        <div>
+                          <a 
+                            href={normalizeUrl(profile.githubUrl)} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="hover:underline inline-flex items-center gap-1 font-medium cursor-pointer" 
+                            style={{ color: selectedColor.primary }}
+                            title="Open GitHub in new tab"
+                          >
+                            <span>GitHub</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </div>
+                      )}
+                      {profile.linkedinUrl && (
+                        <div>
+                          <a 
+                            href={normalizeUrl(profile.linkedinUrl)} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="hover:underline inline-flex items-center gap-1 font-medium cursor-pointer" 
+                            style={{ color: selectedColor.primary }}
+                            title="Open LinkedIn in new tab"
+                          >
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </div>
+                      )}
                     </div>
 
                     {/* Skills */}
@@ -1264,10 +1470,71 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         {displayHeadline}
                       </div>
                     </div>
-                    <div className="col-span-4 text-right text-xs space-y-0.5 text-neutral-600 font-mono">
-                      <div>{profile.email}</div>
-                      <div>{profile.phone}</div>
-                      <div>{profile.location}</div>
+                    <div className="col-span-4 text-right text-xs space-y-1 text-neutral-600 font-mono">
+                      {profile.email && (
+                        <div>
+                          <a 
+                            href={`mailto:${profile.email}`} 
+                            className="hover:underline cursor-pointer"
+                            title={`Email ${profile.email}`}
+                          >
+                            {profile.email}
+                          </a>
+                        </div>
+                      )}
+                      {profile.phone && (
+                        <div>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="hover:underline cursor-pointer"
+                            title={`Call ${profile.phone}`}
+                          >
+                            {profile.phone}
+                          </a>
+                        </div>
+                      )}
+                      {profile.location && <div>{profile.location}</div>}
+                      <div className="flex items-center justify-end gap-2 pt-0.5 font-sans">
+                        {profile.portfolioUrl && (
+                          <a
+                            href={normalizeUrl(profile.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open Portfolio in new tab"
+                          >
+                            <span>Portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        )}
+                        {profile.githubUrl && (
+                          <a
+                            href={normalizeUrl(profile.githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open GitHub in new tab"
+                          >
+                            <span>GitHub</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        )}
+                        {profile.linkedinUrl && (
+                          <a
+                            href={normalizeUrl(profile.linkedinUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open LinkedIn in new tab"
+                          >
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1375,11 +1642,83 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     </div>
 
                     <div className="text-xs mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-neutral-600">
-                      {profile.email && <span>{profile.email}</span>}
-                      {profile.phone && <span>• {profile.phone}</span>}
-                      {profile.location && <span>• {profile.location}</span>}
-                      {profile.portfolioUrl && <span>• {profile.portfolioUrl}</span>}
-                      {profile.githubUrl && <span>• {profile.githubUrl}</span>}
+                      {profile.email && (
+                        <a 
+                          href={`mailto:${profile.email}`} 
+                          className="hover:underline cursor-pointer"
+                          style={{ color: selectedColor.primary }}
+                          title={`Email ${profile.email}`}
+                        >
+                          {profile.email}
+                        </a>
+                      )}
+                      {profile.phone && (
+                        <>
+                          <span>•</span>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="hover:underline cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title={`Call ${profile.phone}`}
+                          >
+                            {profile.phone}
+                          </a>
+                        </>
+                      )}
+                      {profile.location && (
+                        <>
+                          <span>•</span>
+                          <span>{profile.location}</span>
+                        </>
+                      )}
+                      {profile.portfolioUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={normalizeUrl(profile.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open Portfolio in new tab"
+                          >
+                            <span>Portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={normalizeUrl(profile.githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open GitHub in new tab"
+                          >
+                            <span>GitHub</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.linkedinUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={normalizeUrl(profile.linkedinUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open LinkedIn in new tab"
+                          >
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1487,9 +1826,78 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     </div>
 
                     <div className="text-xs mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-neutral-500">
-                      {profile.email && <span>{profile.email}</span>}
-                      {profile.phone && <span>· {profile.phone}</span>}
-                      {profile.location && <span>· {profile.location}</span>}
+                      {profile.email && (
+                        <a 
+                          href={`mailto:${profile.email}`} 
+                          className="hover:underline text-neutral-700 cursor-pointer"
+                          title={`Email ${profile.email}`}
+                        >
+                          {profile.email}
+                        </a>
+                      )}
+                      {profile.phone && (
+                        <>
+                          <span>·</span>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="hover:underline text-neutral-700 cursor-pointer"
+                            title={`Call ${profile.phone}`}
+                          >
+                            {profile.phone}
+                          </a>
+                        </>
+                      )}
+                      {profile.location && (
+                        <>
+                          <span>·</span>
+                          <span>{profile.location}</span>
+                        </>
+                      )}
+                      {profile.portfolioUrl && (
+                        <>
+                          <span>·</span>
+                          <a
+                            href={normalizeUrl(profile.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-neutral-800 font-medium inline-flex items-center gap-1 cursor-pointer"
+                            title="Open Portfolio in new tab"
+                          >
+                            <span>portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span>·</span>
+                          <a
+                            href={normalizeUrl(profile.githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-neutral-800 font-medium inline-flex items-center gap-1 cursor-pointer"
+                            title="Open GitHub in new tab"
+                          >
+                            <span>github</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.linkedinUrl && (
+                        <>
+                          <span>·</span>
+                          <a
+                            href={normalizeUrl(profile.linkedinUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-neutral-800 font-medium inline-flex items-center gap-1 cursor-pointer"
+                            title="Open LinkedIn in new tab"
+                          >
+                            <span>linkedin</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1600,12 +2008,84 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         {displayHeadline}
                       </div>
                     </div>
-                    <div className="text-[11px] text-neutral-600 mt-1 flex flex-wrap gap-x-2">
-                      {profile.email && <span>{profile.email}</span>}
-                      {profile.phone && <span>| {profile.phone}</span>}
-                      {profile.location && <span>| {profile.location}</span>}
-                      {profile.portfolioUrl && <span>| {profile.portfolioUrl}</span>}
-                      {profile.githubUrl && <span>| {profile.githubUrl}</span>}
+                    <div className="text-[11px] text-neutral-600 mt-1 flex flex-wrap items-center gap-x-2">
+                      {profile.email && (
+                        <a 
+                          href={`mailto:${profile.email}`} 
+                          className="hover:underline cursor-pointer"
+                          style={{ color: selectedColor.primary }}
+                          title={`Email ${profile.email}`}
+                        >
+                          {profile.email}
+                        </a>
+                      )}
+                      {profile.phone && (
+                        <>
+                          <span>|</span>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="hover:underline cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title={`Call ${profile.phone}`}
+                          >
+                            {profile.phone}
+                          </a>
+                        </>
+                      )}
+                      {profile.location && (
+                        <>
+                          <span>|</span>
+                          <span>{profile.location}</span>
+                        </>
+                      )}
+                      {profile.portfolioUrl && (
+                        <>
+                          <span>|</span>
+                          <a
+                            href={normalizeUrl(profile.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open Portfolio in new tab"
+                          >
+                            <span>Portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span>|</span>
+                          <a
+                            href={normalizeUrl(profile.githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open GitHub in new tab"
+                          >
+                            <span>GitHub</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.linkedinUrl && (
+                        <>
+                          <span>|</span>
+                          <a
+                            href={normalizeUrl(profile.linkedinUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            style={{ color: selectedColor.primary }}
+                            title="Open LinkedIn in new tab"
+                          >
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1702,11 +2182,79 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       {displayHeadline}
                     </div>
 
-                    <div className="text-xs mt-2.5 flex flex-wrap items-center justify-center gap-x-3 text-neutral-600 font-sans">
-                      {profile.email && <span>{profile.email}</span>}
-                      {profile.phone && <span>• {profile.phone}</span>}
-                      {profile.location && <span>• {profile.location}</span>}
-                      {profile.portfolioUrl && <span>• {profile.portfolioUrl}</span>}
+                    <div className="text-xs mt-2.5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-neutral-600 font-sans">
+                      {profile.email && (
+                        <a 
+                          href={`mailto:${profile.email}`} 
+                          className="hover:underline text-neutral-800 cursor-pointer"
+                          title={`Email ${profile.email}`}
+                        >
+                          {profile.email}
+                        </a>
+                      )}
+                      {profile.phone && (
+                        <>
+                          <span>•</span>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="hover:underline text-neutral-800 cursor-pointer"
+                            title={`Call ${profile.phone}`}
+                          >
+                            {profile.phone}
+                          </a>
+                        </>
+                      )}
+                      {profile.location && (
+                        <>
+                          <span>•</span>
+                          <span>{profile.location}</span>
+                        </>
+                      )}
+                      {profile.portfolioUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={normalizeUrl(profile.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-neutral-900 font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            title="Open Portfolio in new tab"
+                          >
+                            <span>Portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={normalizeUrl(profile.githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-neutral-900 font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            title="Open GitHub in new tab"
+                          >
+                            <span>GitHub</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.linkedinUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={normalizeUrl(profile.linkedinUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-neutral-900 font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            title="Open LinkedIn in new tab"
+                          >
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -1799,12 +2347,79 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-xs mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans opacity-85">
-                      {profile.email && <span>{profile.email}</span>}
-                      {profile.phone && <span>• {profile.phone}</span>}
-                      {profile.location && <span>• {profile.location}</span>}
-                      {profile.portfolioUrl && <span>• {profile.portfolioUrl}</span>}
-                      {profile.githubUrl && <span>• {profile.githubUrl}</span>}
+                    <div className="text-xs mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-white/90">
+                      {profile.email && (
+                        <a 
+                          href={`mailto:${profile.email}`} 
+                          className="hover:underline text-white cursor-pointer"
+                          title={`Email ${profile.email}`}
+                        >
+                          {profile.email}
+                        </a>
+                      )}
+                      {profile.phone && (
+                        <>
+                          <span className="opacity-70">•</span>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="hover:underline text-white cursor-pointer"
+                            title={`Call ${profile.phone}`}
+                          >
+                            {profile.phone}
+                          </a>
+                        </>
+                      )}
+                      {profile.location && (
+                        <>
+                          <span className="opacity-70">•</span>
+                          <span className="text-white/80">{profile.location}</span>
+                        </>
+                      )}
+                      {profile.portfolioUrl && (
+                        <>
+                          <span className="opacity-70">•</span>
+                          <a
+                            href={normalizeUrl(profile.portfolioUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-white font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            title="Open Portfolio in new tab"
+                          >
+                            <span>Portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span className="opacity-70">•</span>
+                          <a
+                            href={normalizeUrl(profile.githubUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-white font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            title="Open GitHub in new tab"
+                          >
+                            <span>GitHub</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.linkedinUrl && (
+                        <>
+                          <span className="opacity-70">•</span>
+                          <a
+                            href={normalizeUrl(profile.linkedinUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline text-white font-medium inline-flex items-center gap-0.5 cursor-pointer"
+                            title="Open LinkedIn in new tab"
+                          >
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
                     </div>
                   </div>
 

@@ -700,7 +700,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                 <div className="bg-neutral-100/90 p-2 sm:p-5 rounded-2xl flex justify-center border border-neutral-200/80 overflow-x-auto shadow-inner">
                   <div 
                     id="resume-document-to-export" 
-                    className="bg-white p-4 sm:p-8 md:p-10 font-sans text-neutral-900 w-full max-w-[850px] border-0 rounded-none shadow-none outline-none"
+                    className="bg-white p-4 sm:p-8 md:p-10 font-sans text-neutral-900 w-[794px] min-w-[794px] max-w-[794px] border-0 rounded-none shadow-none outline-none"
                     style={{ backgroundColor: '#ffffff', color: '#111827', border: 'none', borderRadius: '0px', boxShadow: 'none', outline: 'none' }}
                   >
                   {/* Header (Candidate Profile & Target Role) */}
@@ -713,14 +713,24 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                     </div>
                     <div className="text-xs mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1" style={{ color: '#4b5563' }}>
                       {profile.email && (
-                        <a href={`mailto:${profile.email}`} className="hover:underline" style={{ color: '#4b5563' }}>
+                        <a 
+                          href={`mailto:${profile.email}`} 
+                          className="hover:underline cursor-pointer" 
+                          style={{ color: '#4b5563' }}
+                          title={`Email ${profile.email}`}
+                        >
                           {profile.email}
                         </a>
                       )}
                       {profile.phone && (
                         <>
                           <span>•</span>
-                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline" style={{ color: '#4b5563' }}>
+                          <a 
+                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
+                            className="hover:underline cursor-pointer" 
+                            style={{ color: '#4b5563' }}
+                            title={`Call ${profile.phone}`}
+                          >
                             {profile.phone}
                           </a>
                         </>
@@ -738,10 +748,12 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                             href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:underline font-medium"
+                            className="hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
                             style={{ color: '#2563eb' }}
+                            title="Open Portfolio in new tab"
                           >
-                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
+                            <span>Portfolio</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
                         </>
                       )}
@@ -752,10 +764,28 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                             href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:underline"
+                            className="hover:underline inline-flex items-center gap-1 cursor-pointer"
                             style={{ color: '#0a66c2' }}
+                            title="Open LinkedIn in new tab"
                           >
-                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
+                            <span>LinkedIn</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                          </a>
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={profile.githubUrl.startsWith('http') ? profile.githubUrl : `https://${profile.githubUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline inline-flex items-center gap-1 cursor-pointer"
+                            style={{ color: '#111827' }}
+                            title="Open GitHub in new tab"
+                          >
+                            <span>GitHub</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
                         </>
                       )}
@@ -852,12 +882,12 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                                         href={projectLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-[11px] font-mono text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                                        title={`Open live project for ${proj.name}`}
+                                        className="inline-flex items-center justify-center p-1 -m-1 rounded text-blue-600 hover:text-blue-800 transition-colors cursor-pointer"
+                                        title={`Open ${proj.name} live project in new tab (${projectLink})`}
+                                        aria-label={`Open project ${proj.name} in new tab`}
                                         onClick={(e) => e.stopPropagation()}
                                       >
-                                        <span>{projectLink.replace(/^https?:\/\/(www\.)?/, '')}</span>
-                                        <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                                        <ExternalLink className="w-3.5 h-3.5 stroke-[2.2] shrink-0" />
                                       </a>
                                     )}
                                   </div>

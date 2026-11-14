@@ -102,6 +102,73 @@ function extractLinksFromContainer(container: HTMLElement, targetWidth: number):
 }
 
 /**
+ * Intelligently paginates DOM blocks so that projects, work experiences,
+ * section headings, and topics are never sliced or cut in half by A4 page breaks.
+ * If a block would straddle a page break, it is pushed down to begin cleanly at the top of the next page.
+ */
+function applySmartPdfPagination(targetEl: HTMLElement, pageHeightPx: number): void {
+  try {
+    const targetRect = targetEl.getBoundingClientRect();
+    if (targetRect.height <= pageHeightPx) {
+      // Content fits cleanly on a single page, no page break adjustment needed
+      return;
+    }
+
+    // Query candidate blocks:
+    // 1. Explicitly tagged blocks: [data-pdf-block], .pdf-item-block
+    // 2. Headings: h2, h3, [data-pdf-heading]
+    const candidates = Array.from(
+      targetEl.querySelectorAll<HTMLElement>(
+        '[data-pdf-block="true"], .pdf-item-block, [data-pdf-heading="true"], h2, h3, .pdf-section-header'
+      )
+    );
+
+    if (candidates.length === 0) return;
+
+    // Filter to top-level candidate blocks (avoid nested candidates shifting twice)
+    const blocks: HTMLElement[] = [];
+    candidates.forEach((cand) => {
+      const isNested = blocks.some((parent) => parent.contains(cand));
+      if (!isNested) {
+        blocks.push(cand);
+      }
+    });
+
+    // Safety threshold in pixels before the page boundary
+    const bottomSafetyMargin = 32;
+
+    for (let i = 0; i < blocks.length; i++) {
+      const block = blocks[i];
+      // Recalculate positions on every iteration because previous block shifts move subsequent elements down
+      const targetCurrentRect = targetEl.getBoundingClientRect();
+      const blockRect = block.getBoundingClientRect();
+      const topRel = blockRect.top - targetCurrentRect.top;
+      const blockH = blockRect.height;
+      const bottomRel = topRel + blockH;
+
+      // Skip elements that are naturally taller than an entire page
+      if (blockH >= pageHeightPx - 80) continue;
+
+      const pageIndex = Math.floor(topRel / pageHeightPx);
+      const pageBoundary = (pageIndex + 1) * pageHeightPx;
+
+      const isHeading = block.tagName === 'H2' || block.tagName === 'H3' || block.getAttribute('data-pdf-heading') === 'true';
+      // If a heading falls within 85px of the page boundary, avoid leaving an orphan heading alone at page bottom
+      const threshold = isHeading ? pageBoundary - 85 : pageBoundary - bottomSafetyMargin;
+
+      if (topRel < pageBoundary && bottomRel > threshold) {
+        // Block straddles the page break! Push it to start cleanly at the top of the next page
+        const shift = (pageBoundary - topRel) + (isHeading ? 24 : 18);
+        const prevMarginTop = parseFloat(block.style.marginTop || '0') || 0;
+        block.style.marginTop = `${prevMarginTop + shift}px`;
+      }
+    }
+  } catch (err) {
+    console.warn('Smart pagination adjustment warning:', err);
+  }
+}
+
+/**
  * Extracts and bundles all stylesheets currently active in the document so they can be
  * inlined synchronously into cloned iframe documents during canvas rendering.
  * This guarantees that in production and deployed environments (e.g. Vercel),
@@ -268,7 +335,11 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
       stage.appendChild(target);
       clonedDoc.body.appendChild(stage);
 
-      // Extract precise link positions from the cloned 794px stage if available
+      // Apply smart pagination so no project, topic, heading, or item is sliced across page boundaries!
+      const pageHeightPx = Math.round(targetWidthPx * (297 / 210)); // 1123px at 794px width
+      applySmartPdfPagination(target, pageHeightPx);
+
+      // Extract precise link positions from the cloned 794px stage AFTER pagination
       try {
         const clonedLinks = extractLinksFromContainer(target, targetWidthPx);
         if (clonedLinks.length > 0) {

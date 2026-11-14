@@ -379,16 +379,16 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
   /**
    * Reusable Project Item Renderer for Templates
-   * Guarantees all projects are displayed with their link, description, and stack
+   * Guarantees all projects are displayed with their link and description
    */
   const renderProjectItem = (p: any, idx: number, options?: { border?: boolean; bg?: boolean }) => {
     const projectLink = getProjectLink(p);
-    const techStack = (p as any).technologies;
 
     return (
       <div 
         key={idx} 
-        className={`text-xs space-y-1 ${
+        data-pdf-block="true"
+        className={`pdf-item-block text-xs space-y-1 ${
           options?.bg ? 'p-3 rounded-xl bg-neutral-50/70 border border-neutral-200/80' : ''
         } ${options?.border ? 'pb-2.5 border-b border-neutral-100 last:border-b-0' : ''}`}
       >
@@ -409,11 +409,6 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               </a>
             )}
           </div>
-          {techStack && (
-            <span className="text-[10px] font-mono text-neutral-500 shrink-0">
-              {Array.isArray(techStack) ? techStack.join(', ') : techStack}
-            </span>
-          )}
         </div>
         <p className="text-[11px] text-neutral-600 leading-relaxed whitespace-pre-line">
           {p.description}
@@ -735,7 +730,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     </div>
 
                     {/* Contact row */}
-                    <div className="text-xs mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-neutral-600">
+                    <div className="text-[10.5px] mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-sans text-neutral-600">
                       {profile.email && (
                         <a href={`mailto:${profile.email}`} className="hover:underline">
                           {profile.email}
@@ -808,8 +803,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Summary */}
                   {displaySummary && (
-                    <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                    <div data-pdf-block="true" className="pdf-item-block">
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Professional Summary
                       </h2>
                       <p className="text-xs text-neutral-700 leading-relaxed font-sans">
@@ -820,8 +815,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Skills */}
                   {displaySkills?.length > 0 && (
-                    <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                    <div data-pdf-block="true" className="pdf-item-block">
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Core Competencies & Technologies
                       </h2>
                       <div className="flex flex-wrap gap-1.5">
@@ -845,12 +840,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Experience */}
                   {displayExperiences?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Work Experience
                       </h2>
                       <div className="space-y-4">
                         {displayExperiences.map((exp, idx) => (
-                          <div key={idx} className="space-y-1">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-1">
                             <div className="flex items-baseline justify-between text-xs">
                               <span className="font-bold text-neutral-900 text-sm">
                                 {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
@@ -875,7 +870,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Key Projects - ALL projects rendered with link & description */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Key Projects & Engineering Highlights
                       </h2>
                       <div className="space-y-3">
@@ -887,12 +882,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Education
                       </h2>
                       <div className="space-y-1">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs text-neutral-800">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between text-xs text-neutral-800">
                             <span className="font-semibold">{edu.degree} — {edu.school}</span>
                             <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                           </div>
@@ -909,37 +904,40 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               {selectedTemplate === 'developer' && (
                 <div className="space-y-5">
                   {/* Terminal Header */}
-                  <div className="p-4 rounded-xl bg-neutral-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
+                  <div className="p-4 rounded-xl bg-neutral-950 text-white space-y-2.5 shadow-md">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
                         <Terminal className="w-4 h-4 text-emerald-400" />
                         <span className="text-[11px] font-mono text-neutral-400">cvume-profile.sh</span>
-                        <span className="text-[9px] font-mono bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded border border-emerald-500/30">
+                        <span className="text-[9px] font-mono bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded border border-emerald-500/30">
                           PROD READY
                         </span>
                       </div>
-                      <h1 className="text-2xl font-bold tracking-tight text-white">
-                        {profile.fullName || 'Candidate Name'}
-                      </h1>
-                      <div className="text-xs font-mono text-emerald-400 mt-0.5">
+                      <div className="text-[10px] font-mono text-emerald-400/80">
                         {displayHeadline}
                       </div>
                     </div>
 
-                    <div className="text-right text-[11px] font-mono space-y-1 text-neutral-300">
+                    <div>
+                      <h1 className="text-2xl font-bold tracking-tight text-white">
+                        {profile.fullName || 'Candidate Name'}
+                      </h1>
+                    </div>
+
+                    {/* Seamless Horizontal Contact Row */}
+                    <div className="pt-2 border-t border-neutral-800 text-[10px] font-mono flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-neutral-300">
                       {profile.email && (
-                        <div>
-                          <a 
-                            href={`mailto:${profile.email}`} 
-                            className="text-emerald-400 hover:underline cursor-pointer"
-                            title={`Email ${profile.email}`}
-                          >
-                            {profile.email}
-                          </a>
-                        </div>
+                        <a 
+                          href={`mailto:${profile.email}`} 
+                          className="text-emerald-400 hover:underline cursor-pointer"
+                          title={`Email ${profile.email}`}
+                        >
+                          {profile.email}
+                        </a>
                       )}
                       {profile.phone && (
-                        <div>
+                        <>
+                          <span className="text-neutral-600">·</span>
                           <a 
                             href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
                             className="text-emerald-400 hover:underline cursor-pointer"
@@ -947,11 +945,17 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                           >
                             {profile.phone}
                           </a>
-                        </div>
+                        </>
                       )}
-                      {profile.location && <div className="text-neutral-400">{profile.location}</div>}
-                      <div className="flex items-center justify-end gap-2 pt-0.5">
-                        {profile.portfolioUrl && (
+                      {profile.location && (
+                        <>
+                          <span className="text-neutral-600">·</span>
+                          <span className="text-neutral-400">{profile.location}</span>
+                        </>
+                      )}
+                      {profile.portfolioUrl && (
+                        <>
+                          <span className="text-neutral-600">·</span>
                           <a
                             href={normalizeUrl(profile.portfolioUrl)}
                             target="_blank"
@@ -962,8 +966,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                             <span>portfolio</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
-                        )}
-                        {profile.githubUrl && (
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span className="text-neutral-600">·</span>
                           <a
                             href={normalizeUrl(profile.githubUrl)}
                             target="_blank"
@@ -974,8 +981,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                             <span>github</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
-                        )}
-                        {profile.linkedinUrl && (
+                        </>
+                      )}
+                      {profile.linkedinUrl && (
+                        <>
+                          <span className="text-neutral-600">·</span>
                           <a
                             href={normalizeUrl(profile.linkedinUrl)}
                             target="_blank"
@@ -986,14 +996,14 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                             <span>linkedin</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
-                        )}
-                      </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
                   {/* Summary */}
                   {displaySummary && (
-                    <div className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50/50">
+                    <div data-pdf-block="true" className="pdf-item-block p-3.5 rounded-xl border border-neutral-200 bg-neutral-50/50">
                       <p className="text-xs text-neutral-700 leading-relaxed font-sans">
                         {displaySummary}
                       </p>
@@ -1002,8 +1012,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Skills Grid */}
                   {displaySkills?.length > 0 && (
-                    <div>
-                      <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-2 flex items-center gap-1.5" style={{ borderColor: selectedColor.border }}>
+                    <div data-pdf-block="true" className="pdf-item-block">
+                      <h2 data-pdf-heading="true" className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-2 flex items-center gap-1.5" style={{ borderColor: selectedColor.border }}>
                         <span>$ tech_stack --list</span>
                       </h2>
                       <div className="flex flex-wrap gap-1.5">
@@ -1022,12 +1032,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Work Experience */}
                   {displayExperiences?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-3" style={{ borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-3" style={{ borderColor: selectedColor.border }}>
                         <span>$ cat experience.log</span>
                       </h2>
                       <div className="space-y-4">
                         {displayExperiences.map((exp, idx) => (
-                          <div key={idx} className="space-y-1">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-1">
                             <div className="flex items-baseline justify-between text-xs">
                               <span className="font-bold text-neutral-900 text-sm">
                                 {exp.role} <span className="font-mono text-emerald-600">@{exp.company}</span>
@@ -1052,7 +1062,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Key Projects - Full Boxed Cards */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-3" style={{ borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-3" style={{ borderColor: selectedColor.border }}>
                         <span>$ git log --projects --all ({displayProjects.length} active repos)</span>
                       </h2>
                       <div className="space-y-2.5">
@@ -1064,12 +1074,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-2" style={{ borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-2" style={{ borderColor: selectedColor.border }}>
                         <span>$ ls /education</span>
                       </h2>
                       <div className="space-y-1 text-xs">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between">
                             <span className="font-semibold">{edu.degree} — {edu.school}</span>
                             <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                           </div>
@@ -1094,7 +1104,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       {displayHeadline}
                     </div>
 
-                    <div className="text-xs mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-serif text-neutral-600">
+                    <div className="text-[10px] mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 font-serif text-neutral-600">
                       {profile.email && (
                         <a 
                           href={`mailto:${profile.email}`} 
@@ -1177,8 +1187,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Summary */}
                   {displaySummary && (
-                    <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                    <div data-pdf-block="true" className="pdf-item-block">
+                      <h2 data-pdf-heading="true" className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Executive Profile
                       </h2>
                       <p className="text-xs text-neutral-800 leading-relaxed font-serif text-center max-w-2xl mx-auto">
@@ -1189,8 +1199,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Skills */}
                   {displaySkills?.length > 0 && (
-                    <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                    <div data-pdf-block="true" className="pdf-item-block">
+                      <h2 data-pdf-heading="true" className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Core Strategic & Technical Competencies
                       </h2>
                       <div className="flex flex-wrap justify-center gap-2">
@@ -1214,12 +1224,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Experience */}
                   {displayExperiences?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-3 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-3 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Leadership & Professional Experience
                       </h2>
                       <div className="space-y-4">
                         {displayExperiences.map((exp, idx) => (
-                          <div key={idx} className="space-y-1 text-left">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-1 text-left">
                             <div className="flex items-baseline justify-between text-xs">
                               <span className="font-bold font-serif text-neutral-900 text-sm">
                                 {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
@@ -1244,7 +1254,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Key Projects */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Key Projects & Technical Highlights
                       </h2>
                       <div className="space-y-3">
@@ -1256,12 +1266,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Education
                       </h2>
                       <div className="space-y-1 font-serif">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs text-neutral-800">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between text-xs text-neutral-800">
                             <span className="font-semibold">{edu.degree} — {edu.school}</span>
                             <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                           </div>
@@ -1276,181 +1286,160 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               {/* TEMPLATE 4: TWO-COLUMN SPLIT */}
               {/* ======================================================== */}
               {selectedTemplate === 'split' && (
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                  {/* Left Column: Contact, Skills, Education */}
-                  <div className="md:col-span-4 space-y-5 p-4 rounded-xl" style={{ backgroundColor: selectedColor.lightBg, borderRight: `2px solid ${selectedColor.border}` }}>
-                    <div>
-                      <h1 className="text-2xl font-bold tracking-tight" style={{ color: selectedColor.primary }}>
+                <div className="space-y-5">
+                  {/* Full-width Horizontal Top Header */}
+                  <div className="border-b-2 pb-3.5" style={{ borderColor: selectedColor.primary }}>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: selectedColor.primary }}>
                         {profile.fullName || 'Candidate Name'}
                       </h1>
-                      <div className="text-xs font-semibold mt-1" style={{ color: selectedColor.secondary }}>
+                      <div className="text-xs sm:text-sm font-semibold" style={{ color: selectedColor.secondary }}>
                         {displayHeadline}
                       </div>
                     </div>
-
-                    {/* Contact */}
-                    <div className="space-y-1.5 text-xs text-neutral-700">
-                      <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
-                        Contact
-                      </span>
+                    {/* Seamless Horizontal Contact Row */}
+                    <div className="text-[10px] mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-neutral-600">
                       {profile.email && (
-                        <div className="break-all">
-                          <a 
-                            href={`mailto:${profile.email}`} 
-                            className="hover:underline cursor-pointer"
-                            title={`Email ${profile.email}`}
-                          >
-                            {profile.email}
-                          </a>
-                        </div>
+                        <a href={`mailto:${profile.email}`} className="hover:underline cursor-pointer" title={`Email ${profile.email}`}>
+                          {profile.email}
+                        </a>
                       )}
                       {profile.phone && (
-                        <div>
-                          <a 
-                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
-                            className="hover:underline cursor-pointer"
-                            title={`Call ${profile.phone}`}
-                          >
+                        <>
+                          <span className="opacity-60">•</span>
+                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline cursor-pointer" title={`Call ${profile.phone}`}>
                             {profile.phone}
                           </a>
-                        </div>
+                        </>
                       )}
-                      {profile.location && <div>{profile.location}</div>}
+                      {profile.location && (
+                        <>
+                          <span className="opacity-60">•</span>
+                          <span>{profile.location}</span>
+                        </>
+                      )}
                       {profile.portfolioUrl && (
-                        <div>
-                          <a 
-                            href={normalizeUrl(profile.portfolioUrl)} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="hover:underline inline-flex items-center gap-1 font-medium cursor-pointer" 
-                            style={{ color: selectedColor.primary }}
-                            title="Open Portfolio in new tab"
-                          >
+                        <>
+                          <span className="opacity-60">•</span>
+                          <a href={normalizeUrl(profile.portfolioUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer" style={{ color: selectedColor.primary }} title="Open Portfolio in new tab">
                             <span>Portfolio</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
-                        </div>
+                        </>
                       )}
                       {profile.githubUrl && (
-                        <div>
-                          <a 
-                            href={normalizeUrl(profile.githubUrl)} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="hover:underline inline-flex items-center gap-1 font-medium cursor-pointer" 
-                            style={{ color: selectedColor.primary }}
-                            title="Open GitHub in new tab"
-                          >
+                        <>
+                          <span className="opacity-60">•</span>
+                          <a href={normalizeUrl(profile.githubUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer" style={{ color: selectedColor.primary }} title="Open GitHub in new tab">
                             <span>GitHub</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
-                        </div>
+                        </>
                       )}
                       {profile.linkedinUrl && (
-                        <div>
-                          <a 
-                            href={normalizeUrl(profile.linkedinUrl)} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="hover:underline inline-flex items-center gap-1 font-medium cursor-pointer" 
-                            style={{ color: selectedColor.primary }}
-                            title="Open LinkedIn in new tab"
-                          >
+                        <>
+                          <span className="opacity-60">•</span>
+                          <a href={normalizeUrl(profile.linkedinUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer" style={{ color: selectedColor.primary }} title="Open LinkedIn in new tab">
                             <span>LinkedIn</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Body Grid: Left Column Skills & Education (4 cols), Right Column Overview, Experience & Projects (8 cols) */}
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <div className="md:col-span-4 space-y-5 p-4 rounded-xl" style={{ backgroundColor: selectedColor.lightBg, borderRight: `2px solid ${selectedColor.border}` }}>
+                      {/* Skills */}
+                      {displaySkills?.length > 0 && (
+                        <div data-pdf-block="true" className="pdf-item-block space-y-2">
+                          <span data-pdf-heading="true" className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
+                            Technical Skills
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {displaySkills.map((s, idx) => (
+                              <span key={idx} className="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-neutral-200">
+                                {s}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Education */}
+                      {displayEducation?.length > 0 && (
+                        <div data-pdf-block="true" className="pdf-item-block space-y-2">
+                          <span data-pdf-heading="true" className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
+                            Education
+                          </span>
+                          <div className="space-y-1.5 text-xs">
+                            {displayEducation.map((edu, idx) => (
+                              <div key={idx} data-pdf-block="true" className="pdf-item-block">
+                                <div className="font-semibold text-neutral-900">{edu.degree}</div>
+                                <div className="text-[11px] text-neutral-600">{edu.school}</div>
+                                <div className="text-[10px] font-mono text-neutral-500">{edu.year}</div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Skills */}
-                    {displaySkills?.length > 0 && (
-                      <div className="space-y-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
-                          Technical Skills
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {displaySkills.map((s, idx) => (
-                            <span key={idx} className="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-neutral-200">
-                              {s}
-                            </span>
-                          ))}
+                    {/* Right Column: Summary, Experience, Projects */}
+                    <div className="md:col-span-8 space-y-6">
+                      {displaySummary && (
+                        <div data-pdf-block="true" className="pdf-item-block">
+                          <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                            Profile Overview
+                          </h2>
+                          <p className="text-xs text-neutral-700 leading-relaxed">
+                            {displaySummary}
+                          </p>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Education */}
-                    {displayEducation?.length > 0 && (
-                      <div className="space-y-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
-                          Education
-                        </span>
-                        <div className="space-y-1.5 text-xs">
-                          {displayEducation.map((edu, idx) => (
-                            <div key={idx}>
-                              <div className="font-semibold text-neutral-900">{edu.degree}</div>
-                              <div className="text-[11px] text-neutral-600">{edu.school}</div>
-                              <div className="text-[10px] font-mono text-neutral-500">{edu.year}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Right Column: Summary, Experience, Projects */}
-                  <div className="md:col-span-8 space-y-6">
-                    {displaySummary && (
-                      <div>
-                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                          Profile Overview
-                        </h2>
-                        <p className="text-xs text-neutral-700 leading-relaxed">
-                          {displaySummary}
-                        </p>
-                      </div>
-                    )}
-
-                    {displayExperiences?.length > 0 && (
-                      <div>
-                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                          Experience
-                        </h2>
-                        <div className="space-y-4">
-                          {displayExperiences.map((exp, idx) => (
-                            <div key={idx} className="space-y-1">
-                              <div className="flex items-baseline justify-between text-xs">
-                                <span className="font-bold text-neutral-900 text-sm">
-                                  {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
-                                </span>
-                                <span className="text-[11px] font-mono text-neutral-500">
-                                  {exp.period}
-                                </span>
+                      {displayExperiences?.length > 0 && (
+                        <div>
+                          <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                            Experience
+                          </h2>
+                          <div className="space-y-4">
+                            {displayExperiences.map((exp, idx) => (
+                              <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-1">
+                                <div className="flex items-baseline justify-between text-xs">
+                                  <span className="font-bold text-neutral-900 text-sm">
+                                    {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
+                                  </span>
+                                  <span className="text-[11px] font-mono text-neutral-500">
+                                    {exp.period}
+                                  </span>
+                                </div>
+                                <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700">
+                                  {exp.bullets.map((b, bIdx) => (
+                                    <li key={bIdx} className="leading-relaxed">
+                                      {b}
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
-                              <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700">
-                                {exp.bullets.map((b, bIdx) => (
-                                  <li key={bIdx} className="leading-relaxed">
-                                    {b}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Key Projects - Full list with links & descriptions */}
-                    {displayProjects?.length > 0 && (
-                      <div>
-                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                          Projects & Engineering Highlights
-                        </h2>
-                        <div className="space-y-3">
-                          {displayProjects.map((p, idx) => renderProjectItem(p, idx))}
+                      {/* Key Projects - Full list with links & descriptions */}
+                      {displayProjects?.length > 0 && (
+                        <div>
+                          <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                            Projects & Engineering Highlights
+                          </h2>
+                          <div className="space-y-3">
+                            {displayProjects.map((p, idx) => renderProjectItem(p, idx))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1460,88 +1449,71 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               {/* ======================================================== */}
               {selectedTemplate === 'swiss' && (
                 <div className="space-y-6">
-                  {/* Header */}
-                  <div className="grid grid-cols-12 gap-4 pb-4 border-b-2" style={{ borderColor: selectedColor.primary }}>
-                    <div className="col-span-8">
+                  {/* Full-width Horizontal Header */}
+                  <div className="pb-3.5 border-b-2" style={{ borderColor: selectedColor.primary }}>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
                       <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: selectedColor.primary }}>
                         {profile.fullName || 'Candidate Name'}
                       </h1>
-                      <div className="text-sm font-semibold mt-1" style={{ color: selectedColor.secondary }}>
+                      <div className="text-sm font-semibold" style={{ color: selectedColor.secondary }}>
                         {displayHeadline}
                       </div>
                     </div>
-                    <div className="col-span-4 text-right text-xs space-y-1 text-neutral-600 font-mono">
+                    {/* Seamless Horizontal Contact Row */}
+                    <div className="text-[10px] font-mono mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-neutral-600">
                       {profile.email && (
-                        <div>
-                          <a 
-                            href={`mailto:${profile.email}`} 
-                            className="hover:underline cursor-pointer"
-                            title={`Email ${profile.email}`}
-                          >
-                            {profile.email}
-                          </a>
-                        </div>
+                        <a href={`mailto:${profile.email}`} className="hover:underline cursor-pointer" title={`Email ${profile.email}`}>
+                          {profile.email}
+                        </a>
                       )}
                       {profile.phone && (
-                        <div>
-                          <a 
-                            href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} 
-                            className="hover:underline cursor-pointer"
-                            title={`Call ${profile.phone}`}
-                          >
+                        <>
+                          <span className="opacity-50">/</span>
+                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline cursor-pointer" title={`Call ${profile.phone}`}>
                             {profile.phone}
                           </a>
-                        </div>
+                        </>
                       )}
-                      {profile.location && <div>{profile.location}</div>}
-                      <div className="flex items-center justify-end gap-2 pt-0.5 font-sans">
-                        {profile.portfolioUrl && (
-                          <a
-                            href={normalizeUrl(profile.portfolioUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
-                            style={{ color: selectedColor.primary }}
-                            title="Open Portfolio in new tab"
-                          >
+                      {profile.location && (
+                        <>
+                          <span className="opacity-50">/</span>
+                          <span>{profile.location}</span>
+                        </>
+                      )}
+                      {profile.portfolioUrl && (
+                        <>
+                          <span className="opacity-50">/</span>
+                          <a href={normalizeUrl(profile.portfolioUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer font-sans" style={{ color: selectedColor.primary }} title="Open Portfolio in new tab">
                             <span>Portfolio</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
-                        )}
-                        {profile.githubUrl && (
-                          <a
-                            href={normalizeUrl(profile.githubUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
-                            style={{ color: selectedColor.primary }}
-                            title="Open GitHub in new tab"
-                          >
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span className="opacity-50">/</span>
+                          <a href={normalizeUrl(profile.githubUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer font-sans" style={{ color: selectedColor.primary }} title="Open GitHub in new tab">
                             <span>GitHub</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
-                        )}
-                        {profile.linkedinUrl && (
-                          <a
-                            href={normalizeUrl(profile.linkedinUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer"
-                            style={{ color: selectedColor.primary }}
-                            title="Open LinkedIn in new tab"
-                          >
+                        </>
+                      )}
+                      {profile.linkedinUrl && (
+                        <>
+                          <span className="opacity-50">/</span>
+                          <a href={normalizeUrl(profile.linkedinUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline font-medium inline-flex items-center gap-0.5 cursor-pointer font-sans" style={{ color: selectedColor.primary }} title="Open LinkedIn in new tab">
                             <span>LinkedIn</span>
                             <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                           </a>
-                        )}
-                      </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
                   {/* Summary */}
                   {displaySummary && (
-                    <div className="grid grid-cols-12 gap-4">
-                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                    <div data-pdf-block="true" className="pdf-item-block grid grid-cols-12 gap-4">
+                      <div data-pdf-heading="true" className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
                         Profile
                       </div>
                       <div className="col-span-9 text-xs text-neutral-700 leading-relaxed">
@@ -1552,8 +1524,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Skills */}
                   {displaySkills?.length > 0 && (
-                    <div className="grid grid-cols-12 gap-4 pt-2 border-t border-neutral-100">
-                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                    <div data-pdf-block="true" className="pdf-item-block grid grid-cols-12 gap-4 pt-2 border-t border-neutral-100">
+                      <div data-pdf-heading="true" className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
                         Skills
                       </div>
                       <div className="col-span-9 flex flex-wrap gap-1.5">
@@ -1569,12 +1541,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Experience */}
                   {displayExperiences?.length > 0 && (
                     <div className="grid grid-cols-12 gap-4 pt-2 border-t border-neutral-100">
-                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                      <div data-pdf-heading="true" className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
                         Experience
                       </div>
                       <div className="col-span-9 space-y-4">
                         {displayExperiences.map((exp, idx) => (
-                          <div key={idx} className="space-y-1">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-1">
                             <div className="flex items-baseline justify-between text-xs">
                               <span className="font-bold text-neutral-900">
                                 {exp.role} <span style={{ color: selectedColor.primary }}>/ {exp.company}</span>
@@ -1599,7 +1571,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Projects */}
                   {displayProjects?.length > 0 && (
                     <div className="grid grid-cols-12 gap-4 pt-2 border-t border-neutral-100">
-                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                      <div data-pdf-heading="true" className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
                         Projects ({displayProjects.length})
                       </div>
                       <div className="col-span-9 space-y-3">
@@ -1611,12 +1583,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div className="grid grid-cols-12 gap-4 pt-2 border-t border-neutral-100">
-                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                      <div data-pdf-heading="true" className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
                         Education
                       </div>
                       <div className="col-span-9 space-y-1 text-xs">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between">
                             <span className="font-semibold">{edu.degree} — {edu.school}</span>
                             <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                           </div>
@@ -1641,7 +1613,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       {displayHeadline}
                     </div>
 
-                    <div className="text-xs mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-neutral-600">
+                    <div className="text-[10.5px] mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-neutral-600">
                       {profile.email && (
                         <a 
                           href={`mailto:${profile.email}`} 
@@ -1724,8 +1696,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Summary */}
                   {displaySummary && (
-                    <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                    <div data-pdf-block="true" className="pdf-item-block">
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Professional Summary
                       </h2>
                       <p className="text-xs text-neutral-700 leading-relaxed">
@@ -1736,8 +1708,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
 
                   {/* Skills */}
                   {displaySkills?.length > 0 && (
-                    <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                    <div data-pdf-block="true" className="pdf-item-block">
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Technical Stack
                       </h2>
                       <div className="flex flex-wrap gap-1.5">
@@ -1753,12 +1725,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Experience */}
                   {displayExperiences?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Experience
                       </h2>
                       <div className="space-y-4">
                         {displayExperiences.map((exp, idx) => (
-                          <div key={idx} className="space-y-1">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-1">
                             <div className="flex items-baseline justify-between text-xs">
                               <span className="font-bold text-neutral-900 text-sm">
                                 {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
@@ -1783,7 +1755,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Key Projects */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Key Projects & Engineering Work
                       </h2>
                       <div className="space-y-3">
@@ -1795,12 +1767,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                      <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Education
                       </h2>
                       <div className="space-y-1 text-xs">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between">
                             <span className="font-semibold">{edu.degree} — {edu.school}</span>
                             <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                           </div>
@@ -1825,7 +1797,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       // {displayHeadline}
                     </div>
 
-                    <div className="text-xs mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-neutral-500">
+                    <div className="text-[10px] mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-neutral-500">
                       {profile.email && (
                         <a 
                           href={`mailto:${profile.email}`} 
@@ -1904,7 +1876,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Summary */}
                   {displaySummary && (
                     <div>
-                      <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
+                      <h2 data-pdf-heading="true" className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
                         // Summary
                       </h2>
                       <p className="text-xs text-neutral-700 leading-relaxed font-light">
@@ -1916,7 +1888,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Skills */}
                   {displaySkills?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
+                      <h2 data-pdf-heading="true" className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
                         // Core Stack
                       </h2>
                       <div className="flex flex-wrap gap-1.5">
@@ -1935,12 +1907,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Experience */}
                   {displayExperiences?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-3">
+                      <h2 data-pdf-heading="true" className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-3">
                         // Experience
                       </h2>
                       <div className="space-y-4">
                         {displayExperiences.map((exp, idx) => (
-                          <div key={idx} className="space-y-1">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-1">
                             <div className="flex items-baseline justify-between text-xs">
                               <span className="font-medium text-neutral-900 text-sm">
                                 {exp.role} <span className="text-neutral-400">at</span> {exp.company}
@@ -1965,7 +1937,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Key Projects */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
+                      <h2 data-pdf-heading="true" className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
                         // Key Projects & Open Source ({displayProjects.length})
                       </h2>
                       <div className="space-y-3">
@@ -1977,12 +1949,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
+                      <h2 data-pdf-heading="true" className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
                         // Education
                       </h2>
                       <div className="space-y-1 text-xs">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between font-light">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between font-light">
                             <span>{edu.degree} — {edu.school}</span>
                             <span className="text-[11px] font-mono text-neutral-400">{edu.year}</span>
                           </div>
@@ -2008,7 +1980,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         {displayHeadline}
                       </div>
                     </div>
-                    <div className="text-[11px] text-neutral-600 mt-1 flex flex-wrap items-center gap-x-2">
+                    <div className="text-[10px] text-neutral-600 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                       {profile.email && (
                         <a 
                           href={`mailto:${profile.email}`} 
@@ -2092,7 +2064,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Summary */}
                   {displaySummary && (
                     <div>
-                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: selectedColor.primary }}>
+                      <h2 data-pdf-heading="true" className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: selectedColor.primary }}>
                         Professional Summary
                       </h2>
                       <p className="text-[11px] text-neutral-700 leading-snug">
@@ -2104,7 +2076,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Skills */}
                   {displaySkills?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: selectedColor.primary }}>
+                      <h2 data-pdf-heading="true" className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: selectedColor.primary }}>
                         Core Skills
                       </h2>
                       <div className="text-[11px] text-neutral-800">
@@ -2116,12 +2088,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Experience */}
                   {displayExperiences?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: selectedColor.primary }}>
+                      <h2 data-pdf-heading="true" className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: selectedColor.primary }}>
                         Experience
                       </h2>
                       <div className="space-y-3">
                         {displayExperiences.map((exp, idx) => (
-                          <div key={idx} className="space-y-0.5">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-0.5">
                             <div className="flex items-baseline justify-between font-semibold text-neutral-900">
                               <span>{exp.role} — <span style={{ color: selectedColor.primary }}>{exp.company}</span></span>
                               <span className="text-[10px] font-mono text-neutral-500">{exp.period}</span>
@@ -2140,7 +2112,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Key Projects */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: selectedColor.primary }}>
+                      <h2 data-pdf-heading="true" className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: selectedColor.primary }}>
                         Featured Projects
                       </h2>
                       <div className="space-y-2">
@@ -2152,12 +2124,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: selectedColor.primary }}>
+                      <h2 data-pdf-heading="true" className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: selectedColor.primary }}>
                         Education
                       </h2>
                       <div className="space-y-0.5 text-[11px]">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between">
                             <span className="font-medium">{edu.degree} — {edu.school}</span>
                             <span className="font-mono text-neutral-500">{edu.year}</span>
                           </div>
@@ -2182,7 +2154,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       {displayHeadline}
                     </div>
 
-                    <div className="text-xs mt-2.5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-neutral-600 font-sans">
+                    <div className="text-[10px] mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-neutral-600 font-sans">
                       {profile.email && (
                         <a 
                           href={`mailto:${profile.email}`} 
@@ -2261,7 +2233,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Summary */}
                   {displaySummary && (
                     <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-2">
+                      <h2 data-pdf-heading="true" className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-2">
                         Statement of Qualifications
                       </h2>
                       <p className="text-xs text-neutral-800 leading-relaxed font-serif">
@@ -2273,12 +2245,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Experience */}
                   {displayExperiences?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-3">
+                      <h2 data-pdf-heading="true" className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-3">
                         Professional Appointments & Experience
                       </h2>
                       <div className="space-y-4">
                         {displayExperiences.map((exp, idx) => (
-                          <div key={idx} className="space-y-1">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-1">
                             <div className="flex items-baseline justify-between text-xs">
                               <span className="font-bold text-neutral-900 text-sm">
                                 {exp.role}, <span className="italic font-normal">{exp.company}</span>
@@ -2303,7 +2275,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Projects */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-2.5">
+                      <h2 data-pdf-heading="true" className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-2.5">
                         Selected Projects & Systems
                       </h2>
                       <div className="space-y-3 font-sans">
@@ -2315,12 +2287,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-2">
+                      <h2 data-pdf-heading="true" className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-2">
                         Degrees & Education
                       </h2>
                       <div className="space-y-1 text-xs font-serif">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-neutral-800">
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between text-neutral-800">
                             <span className="font-semibold">{edu.degree} — {edu.school}</span>
                             <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                           </div>
@@ -2347,7 +2319,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-xs mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-white/90">
+                    <div className="text-[10px] sm:text-[10.5px] mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-sans text-white/95">
                       {profile.email && (
                         <a 
                           href={`mailto:${profile.email}`} 
@@ -2427,7 +2399,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     {/* Summary */}
                     {displaySummary && (
                       <div>
-                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                           Professional Profile
                         </h2>
                         <p className="text-xs text-neutral-700 leading-relaxed">
@@ -2439,7 +2411,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     {/* Skills */}
                     {displaySkills?.length > 0 && (
                       <div>
-                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                           Skills & Competencies
                         </h2>
                         <div className="flex flex-wrap gap-1.5">
@@ -2463,12 +2435,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     {/* Experience */}
                     {displayExperiences?.length > 0 && (
                       <div>
-                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                           Experience
                         </h2>
                         <div className="space-y-4">
                           {displayExperiences.map((exp, idx) => (
-                            <div key={idx} className="border-l-2 pl-3 space-y-1" style={{ borderColor: selectedColor.primary }}>
+                            <div key={idx} data-pdf-block="true" className="pdf-item-block border-l-2 pl-3 space-y-1" style={{ borderColor: selectedColor.primary }}>
                               <div className="flex items-baseline justify-between text-xs">
                                 <span className="font-bold text-neutral-900 text-sm">
                                   {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
@@ -2493,7 +2465,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     {/* Key Projects */}
                     {displayProjects?.length > 0 && (
                       <div>
-                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                           Key Projects & Engineering Work
                         </h2>
                         <div className="space-y-3">
@@ -2505,12 +2477,12 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     {/* Education */}
                     {displayEducation?.length > 0 && (
                       <div>
-                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        <h2 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                           Education
                         </h2>
                         <div className="space-y-1 text-xs">
                           {displayEducation.map((edu, idx) => (
-                            <div key={idx} className="flex items-center justify-between text-neutral-800">
+                            <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between text-neutral-800">
                               <span className="font-medium">{edu.degree} — {edu.school}</span>
                               <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                             </div>

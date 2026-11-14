@@ -711,7 +711,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                     <div className="text-sm font-semibold mt-1" style={{ color: '#e0644e' }}>
                       {result.resume.headline || result.jobTitle || profile.targetRole}
                     </div>
-                    <div className="text-xs mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1" style={{ color: '#4b5563' }}>
+                    <div className="text-[10.5px] mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5" style={{ color: '#4b5563' }}>
                       {profile.email && (
                         <a 
                           href={`mailto:${profile.email}`} 
@@ -822,13 +822,13 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
 
                   {/* Experience */}
                   <div className="mb-6">
-                    <h3 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
+                    <h3 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
                       Professional Experience
                     </h3>
 
                     <div className="space-y-4">
                       {result.resume.experiences.map((exp, idx) => (
-                        <div key={idx} className="space-y-1.5">
+                        <div key={idx} data-pdf-block="true" className="pdf-item-block space-y-1.5">
                           <div className="flex items-center justify-between text-xs font-bold" style={{ color: '#111827' }}>
                             <span>{exp.role} — <span className="font-normal" style={{ color: '#4b5563' }}>{exp.company}</span></span>
                             <span className="text-[11px] font-mono font-normal" style={{ color: '#6b7280' }}>{exp.period}</span>
@@ -862,7 +862,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
 
                     return (
                       <div className="mb-6">
-                        <h3 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
+                        <h3 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
                           Key Projects & Technical Highlights
                         </h3>
                         <div className="space-y-3">
@@ -873,9 +873,9 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                             const projectLink = foundLink || (profile.githubUrl ? `${profile.githubUrl.replace(/\/$/, '')}/${(proj.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : '');
 
                             return (
-                              <div key={idx} className="text-xs space-y-1">
+                              <div key={idx} data-pdf-block="true" className="pdf-item-block text-xs space-y-1">
                                 <div className="font-semibold flex flex-wrap items-center justify-between gap-2" style={{ color: '#111827' }}>
-                                  <div className="flex items-center gap-2 flex-wrap">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className="text-neutral-900 font-bold text-xs">{proj.name}</span>
                                     {projectLink && (
                                       <a
@@ -891,11 +891,6 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                                       </a>
                                     )}
                                   </div>
-                                  {proj.technologies && (
-                                    <span className="text-[10px] font-mono shrink-0" style={{ color: '#6b7280' }}>
-                                      {Array.isArray(proj.technologies) ? proj.technologies.join(', ') : proj.technologies}
-                                    </span>
-                                  )}
                                 </div>
                                 <p className="text-[11px] leading-relaxed whitespace-pre-line" style={{ color: '#4b5563' }}>{proj.description}</p>
                               </div>
@@ -909,12 +904,12 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                   {/* Education */}
                   {result.resume.education?.length > 0 && (
                     <div>
-                      <h3 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
+                      <h3 data-pdf-heading="true" className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
                         Education
                       </h3>
                       <div className="space-y-1">
                         {result.resume.education.map((edu, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs" style={{ color: '#1f2937' }}>
+                          <div key={idx} data-pdf-block="true" className="pdf-item-block flex items-center justify-between text-xs" style={{ color: '#1f2937' }}>
                             <span className="font-medium">{edu.degree} — {edu.school}</span>
                             <span className="text-[11px] font-mono" style={{ color: '#6b7280' }}>{edu.year}</span>
                           </div>

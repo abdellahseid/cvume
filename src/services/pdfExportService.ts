@@ -152,7 +152,9 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
 
   onStatusChange?.('Rendering template layout...');
 
-  // 3. Render element to high-res canvas with html2canvas-pro
+  const fullHeightPx = Math.max(3200, (element.scrollHeight || 0) + 800);
+
+  // 3. Render element to high-res canvas with html2canvas-pro without vertical clipping
   const canvas = await html2canvas(element, {
     scale,
     useCORS: true,
@@ -161,7 +163,8 @@ export async function exportElementToPdf(options: PdfExportOptions): Promise<voi
     imageTimeout: 15000,
     backgroundColor: '#ffffff',
     windowWidth: 1280, // Force desktop viewport in iframe so sm:, md:, lg: always resolve
-    windowHeight: 1600,
+    windowHeight: fullHeightPx,
+    height: element.scrollHeight || undefined,
     scrollX: 0,
     scrollY: 0,
     x: 0,

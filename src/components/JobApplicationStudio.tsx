@@ -813,18 +813,18 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                     </div>
                   </div>
 
-                  {/* Key Projects (if present) */}
+                  {/* Key Projects (All projects rendered with full link and description) */}
                   {(() => {
                     const list = [...(result?.resume?.projects || [])];
                     const profileList = profile?.projects || [];
-                    if (list.length < 5 && profileList.length > 0) {
-                      const existingNames = new Set(list.map((p: any) => (p?.name || '').toLowerCase().trim()));
-                      for (const p of profileList) {
-                        if (list.length >= 5) break;
-                        if (!existingNames.has((p.name || '').toLowerCase().trim())) {
-                          list.push(p);
-                          existingNames.add((p.name || '').toLowerCase().trim());
-                        }
+                    const existingNames = new Set(list.map((p: any) => (p?.name || '').toLowerCase().trim()));
+                    
+                    // Merge all candidate projects from profile so none are missing
+                    for (const p of profileList) {
+                      const pName = (p.name || '').toLowerCase().trim();
+                      if (pName && !existingNames.has(pName)) {
+                        list.push(p);
+                        existingNames.add(pName);
                       }
                     }
                     const activeProjects = list.length > 0 ? list : profileList;
@@ -832,32 +832,32 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
 
                     return (
                       <div className="mb-6">
-                        <h3 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
+                        <h3 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: '#111827', borderColor: '#f3f4f6' }}>
                           Key Projects & Technical Highlights
                         </h3>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {activeProjects.map((proj: any, idx: number) => {
-                            const projectLink = (proj.link || '').trim()
-                              || profile.projects?.find((p: any) => p.name?.toLowerCase() === proj.name?.toLowerCase())?.link
-                              || DEFAULT_USER_PROFILE.projects.find((p: any) => p.name?.toLowerCase() === proj.name?.toLowerCase())?.link
-                              || `https://github.com/alexrivera-eng/${(proj.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+                            const foundLink = (proj.link || '').trim()
+                              || profile.projects?.find((p: any) => (p.name || '').toLowerCase() === (proj.name || '').toLowerCase())?.link
+                              || DEFAULT_USER_PROFILE.projects.find((p: any) => (p.name || '').toLowerCase() === (proj.name || '').toLowerCase())?.link;
+                            const projectLink = foundLink || (profile.githubUrl ? `${profile.githubUrl.replace(/\/$/, '')}/${(proj.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : '');
 
                             return (
-                              <div key={idx} className="text-xs">
-                                <div className="font-semibold flex items-center justify-between gap-2" style={{ color: '#111827' }}>
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <span className="text-neutral-900 font-semibold">{proj.name}</span>
+                              <div key={idx} className="text-xs space-y-1">
+                                <div className="font-semibold flex flex-wrap items-center justify-between gap-2" style={{ color: '#111827' }}>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-neutral-900 font-bold text-xs">{proj.name}</span>
                                     {projectLink && (
                                       <a
                                         href={projectLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
-                                        style={{ color: '#e0644e' }}
-                                        title={`Open live project / repository for ${proj.name}`}
+                                        className="inline-flex items-center gap-1 text-[11px] font-mono text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                                        title={`Open live project for ${proj.name}`}
                                         onClick={(e) => e.stopPropagation()}
                                       >
-                                        <ExternalLink className="w-3 h-3 stroke-[2.2]" />
+                                        <span>{projectLink.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                                        <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                                       </a>
                                     )}
                                   </div>
@@ -867,7 +867,7 @@ export const JobApplicationStudio: React.FC<JobApplicationStudioProps> = ({
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: '#4b5563' }}>{proj.description}</p>
+                                <p className="text-[11px] leading-relaxed whitespace-pre-line" style={{ color: '#4b5563' }}>{proj.description}</p>
                               </div>
                             );
                           })}

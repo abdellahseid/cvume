@@ -265,9 +265,9 @@ export default function App() {
 
   // If in Logged-In App View (Automation Hub, Job Board & Tracker)
   if (currentView === 'app') {
-    return (
-      <div className="h-screen w-screen overflow-hidden bg-neutral-100/60 text-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 flex flex-col font-sans">
-        {currentAppTab === 'templates' && activeExportResult ? (
+    if (currentAppTab === 'templates' && activeExportResult) {
+      return (
+        <div className="h-screen w-screen overflow-y-auto bg-neutral-100/60 text-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 flex flex-col font-sans">
           <ResumeTemplateStudio
             initialResult={activeExportResult}
             onBackToStudio={() => {
@@ -277,24 +277,33 @@ export default function App() {
             }}
             onToast={showToast}
           />
-        ) : (
-          <AutomationDashboard
-            user={user}
-            onSignOut={handleRequestSignOut}
-            onOpenTemplates={(applicationResult) => {
-              setActiveExportResult(applicationResult);
-              try {
-                localStorage.setItem('cvume_active_export_result', JSON.stringify(applicationResult));
-              } catch (e) {
-                console.error('Error saving active export result', e);
-              }
-              setCurrentAppTab('templates');
-              window.location.hash = '#templates';
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onToast={showToast}
-          />
-        )}
+          {toastMessage && (
+            <div className="fixed bottom-4 sm:bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-50 text-center sm:text-left bg-neutral-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg border border-neutral-700 animate-in fade-in slide-in-from-bottom-2 duration-200 max-w-sm sm:max-w-md mx-auto sm:mx-0">
+              {toastMessage}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="h-screen w-screen overflow-hidden bg-neutral-100/60 text-neutral-900 selection:bg-neutral-200 selection:text-neutral-900 flex flex-col font-sans">
+        <AutomationDashboard
+          user={user}
+          onSignOut={handleRequestSignOut}
+          onOpenTemplates={(applicationResult) => {
+            setActiveExportResult(applicationResult);
+            try {
+              localStorage.setItem('cvume_active_export_result', JSON.stringify(applicationResult));
+            } catch (e) {
+              console.error('Error saving active export result', e);
+            }
+            setCurrentAppTab('templates');
+            window.location.hash = '#templates';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onToast={showToast}
+        />
 
         {/* Sign Out Confirmation Modal */}
         <SignOutModal

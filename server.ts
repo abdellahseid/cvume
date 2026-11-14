@@ -378,46 +378,29 @@ Respond strictly in valid JSON with this exact structure:
       .replace(/\(Tailored[^)]*\)/gi, '');
   }
 
-  // Ensure at least 5 projects are present in the resume output
+  // Ensure ALL candidate projects are present in full in the resume output without truncation
   if (parsed?.resume) {
     if (!Array.isArray(parsed.resume.projects)) {
       parsed.resume.projects = [];
     }
 
-    if (parsed.resume.projects.length < 5) {
-      const candidateProjects = (Array.isArray(profile.projects) && profile.projects.length > 0)
-        ? profile.projects
-        : DEFAULT_USER_PROFILE.projects;
+    const candidateProjects = (Array.isArray(profile.projects) && profile.projects.length > 0)
+      ? profile.projects
+      : DEFAULT_USER_PROFILE.projects;
 
-      const existingNames = new Set(parsed.resume.projects.map((p: any) => (p?.name || '').toLowerCase().trim()));
+    const existingNames = new Set(parsed.resume.projects.map((p: any) => (p?.name || '').toLowerCase().trim()));
 
-      for (const proj of candidateProjects) {
-        if (parsed.resume.projects.length >= 5) break;
-        const pName = (proj.name || '').trim();
-        if (pName && !existingNames.has(pName.toLowerCase())) {
-          parsed.resume.projects.push({
-            name: pName,
-            description: proj.description || '',
-            link: proj.link || '',
-            technologies: proj.technologies || [],
-          });
-          existingNames.add(pName.toLowerCase());
-        }
-      }
-
-      // If still fewer than 5, supplement from DEFAULT_USER_PROFILE
-      for (const proj of DEFAULT_USER_PROFILE.projects) {
-        if (parsed.resume.projects.length >= 5) break;
-        const pName = (proj.name || '').trim();
-        if (pName && !existingNames.has(pName.toLowerCase())) {
-          parsed.resume.projects.push({
-            name: pName,
-            description: proj.description || '',
-            link: proj.link || '',
-            technologies: proj.technologies || [],
-          });
-          existingNames.add(pName.toLowerCase());
-        }
+    // Merge in all projects from candidate profile so nothing is omitted
+    for (const proj of candidateProjects) {
+      const pName = (proj.name || '').trim();
+      if (pName && !existingNames.has(pName.toLowerCase())) {
+        parsed.resume.projects.push({
+          name: pName,
+          description: proj.description || '',
+          link: proj.link || '',
+          technologies: proj.technologies || [],
+        });
+        existingNames.add(pName.toLowerCase());
       }
     }
 
@@ -427,7 +410,9 @@ Respond strictly in valid JSON with this exact structure:
       if (!link) {
         const match = (profile.projects || []).find((cp: any) => (cp.name || '').toLowerCase() === (p.name || '').toLowerCase())
           || DEFAULT_USER_PROFILE.projects.find((dp: any) => (dp.name || '').toLowerCase() === (p.name || '').toLowerCase());
-        link = match?.link || `https://github.com/alexrivera-eng/${(p.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+        const slug = (p.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        const baseGithub = profile.githubUrl ? profile.githubUrl.replace(/\/$/, '') : 'https://github.com';
+        link = match?.link || `${baseGithub}/${slug}`;
       }
       return {
         ...p,
@@ -435,11 +420,11 @@ Respond strictly in valid JSON with this exact structure:
       };
     });
 
-    // Ensure formattedPlainText includes all Key Projects
+    // Ensure formattedPlainText includes all Key Projects with their link & description
     if (parsed.resume.formattedPlainText && parsed.resume.projects.length > 0) {
       if (!parsed.resume.formattedPlainText.includes('KEY PROJECTS') && !parsed.resume.formattedPlainText.includes('PROJECTS')) {
         const projectsText = parsed.resume.projects
-          .map((p: any) => `* ${p.name}: ${p.description}`)
+          .map((p: any) => `* ${p.name}${p.link ? ` (${p.link})` : ''}: ${p.description}`)
           .join('\n');
         if (parsed.resume.formattedPlainText.includes('EDUCATION')) {
           parsed.resume.formattedPlainText = parsed.resume.formattedPlainText.replace(
@@ -1327,10 +1312,11 @@ app.post('/api/jobs/:id/auto-apply', requireAuth, async (req: AuthRequest, res: 
             school: edu.school,
             year: edu.year,
           })),
-          projects: (profile.projects || DEFAULT_USER_PROFILE.projects).slice(0, 5).map((p: any) => ({
+          projects: (profile.projects || DEFAULT_USER_PROFILE.projects).map((p: any) => ({
             name: p.name,
             description: p.description,
-            link: p.link || 'https://github.com/alexrivera-eng',
+            link: p.link || '',
+            technologies: p.technologies || [],
           })),
           atsBreakdown: {
             score: match.score,
@@ -1502,7 +1488,7 @@ app.post('/api/automation/run', requireAuth, async (req: AuthRequest, res: Respo
             school: edu.school,
             year: edu.year,
           })),
-          projects: (profile.projects || DEFAULT_USER_PROFILE.projects).slice(0, 5),
+          projects: (profile.projects || DEFAULT_USER_PROFILE.projects),
           atsBreakdown: {
             score: match.score,
             matchedKeywords: match.matchedSkills,

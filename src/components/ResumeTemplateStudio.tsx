@@ -24,7 +24,11 @@ import {
   Briefcase,
   GraduationCap,
   Code,
-  ExternalLink
+  ExternalLink,
+  Terminal,
+  Grid,
+  BookOpen,
+  Sidebar
 } from 'lucide-react';
 import { UserProfile, ApplicationGenerationResult } from '../types/profile';
 import { getStoredProfile, DEFAULT_USER_PROFILE } from '../services/profileService';
@@ -35,7 +39,17 @@ export interface ResumeTemplateStudioProps {
   onToast: (msg: string) => void;
 }
 
-export type TemplateId = 'modern' | 'executive' | 'split' | 'nordic' | 'compact' | 'accent_banner';
+export type TemplateId = 
+  | 'modern' 
+  | 'executive' 
+  | 'split' 
+  | 'nordic' 
+  | 'compact' 
+  | 'accent_banner'
+  | 'developer'
+  | 'swiss'
+  | 'elegant_ivy'
+  | 'minimal_stripe';
 
 export interface ColorTheme {
   id: string;
@@ -131,46 +145,83 @@ export const COLOR_THEMES: ColorTheme[] = [
   },
 ];
 
-export const TEMPLATE_OPTIONS: Array<{
+export interface TemplateOption {
   id: TemplateId;
   name: string;
   badge: string;
+  category: 'all' | 'tech' | 'executive' | 'ats' | 'creative';
   description: string;
-}> = [
+}
+
+export const TEMPLATE_OPTIONS: TemplateOption[] = [
   {
     id: 'modern',
     name: 'Modern Clean',
     badge: 'Popular',
+    category: 'tech',
     description: 'Crisp sans-serif, accent timeline bullets, and balanced section spacing.',
+  },
+  {
+    id: 'developer',
+    name: 'Silicon Valley Pro',
+    badge: 'Tech Lead',
+    category: 'tech',
+    description: 'Developer console styling, full project cards with live links and tech badges.',
   },
   {
     id: 'executive',
     name: 'Executive Serif',
     badge: 'Leadership',
-    description: 'Prestigious serif headings, double horizontal rule, centered contact info.',
+    category: 'executive',
+    description: 'Prestigious serif headings, double horizontal rule, centered contact header.',
   },
   {
     id: 'split',
     name: 'Two-Column Split',
     badge: 'Visual',
+    category: 'creative',
     description: 'Sidebar for contact, skills & education with a wide main column for experience.',
+  },
+  {
+    id: 'swiss',
+    name: 'Swiss International',
+    badge: 'Architectural',
+    category: 'creative',
+    description: 'Asymmetric 2-column modernist grid with clean lines and high-contrast typography.',
   },
   {
     id: 'nordic',
     name: 'Nordic Minimal',
     badge: 'Minimalist',
+    category: 'ats',
     description: 'Generous whitespace, thin line dividers, and clean monospace date tags.',
   },
   {
     id: 'compact',
     name: 'High-Density ATS',
     badge: '1-Page Fit',
+    category: 'ats',
     description: 'Maximized efficiency, sharp dividers, and tight line height for dense metrics.',
+  },
+  {
+    id: 'elegant_ivy',
+    name: 'Ivy League Academic',
+    badge: 'Classic',
+    category: 'executive',
+    description: 'Refined roman letterhead, formal rule styling, publication and project layout.',
+  },
+  {
+    id: 'minimal_stripe',
+    name: 'Metro Accent Rail',
+    badge: 'Corporate',
+    category: 'creative',
+    description: 'Solid left vertical accent rail, high-contrast sections, and prominent project cards.',
   },
   {
     id: 'accent_banner',
     name: 'Contemporary Banner',
     badge: 'Creative',
+    category: 'creative',
     description: 'Full-bleed header block with bold inverted typography and left role borders.',
   },
 ];
@@ -198,6 +249,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
   const [selectedColor, setSelectedColor] = useState<ColorTheme>(COLOR_THEMES[0]);
   const [selectedFont, setSelectedFont] = useState<FontStyle>('sans');
   const [selectedDensity, setSelectedDensity] = useState<Density>('standard');
+  const [templateCategory, setTemplateCategory] = useState<'all' | 'tech' | 'executive' | 'ats' | 'creative'>('all');
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   useEffect(() => {
@@ -207,9 +259,9 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
     setProfile(getStoredProfile());
   }, [initialResult]);
 
-  // Fallback demo data if user directly navigates here before generating a job application
+  // Candidate Data Resolution
   const displayHeadline = result?.resume?.headline || profile.targetRole || 'Senior Full-Stack Engineer / Systems Architect';
-  const displaySummary = result?.resume?.summary || profile.bio || 'I am an experienced engineer with proven success delivering resilient, high-impact systems.';
+  const displaySummary = result?.resume?.summary || profile.bio || 'Experienced engineer with proven success delivering resilient, high-impact systems.';
   const displaySkills = result?.resume?.matchedSkills?.length ? result.resume.matchedSkills : profile.skills;
   const displayExperiences = result?.resume?.experiences?.length
     ? result.resume.experiences
@@ -219,20 +271,26 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
         period: `${e.startDate} – ${e.endDate}`,
         bullets: e.bullets,
       }));
+
+  // Ensure ALL candidate projects from result and profile are combined completely without truncation
   const displayProjects = (() => {
-    const list = [...(result?.resume?.projects || [])];
-    const profileList = profile?.projects || [];
-    if (list.length < 5 && profileList.length > 0) {
-      const existingNames = new Set(list.map((p: any) => (p?.name || '').toLowerCase().trim()));
-      for (const p of profileList) {
-        if (list.length >= 5) break;
-        if (!existingNames.has((p.name || '').toLowerCase().trim())) {
-          list.push(p);
-          existingNames.add((p.name || '').toLowerCase().trim());
-        }
+    const resultProjects = Array.isArray(result?.resume?.projects) ? result.resume.projects : [];
+    const profileProjects = Array.isArray(profile?.projects) ? profile.projects : [];
+    const combined: any[] = [...resultProjects];
+    const existingNames = new Set(combined.map((p: any) => (p?.name || '').toLowerCase().trim()));
+
+    for (const p of profileProjects) {
+      const pName = (p?.name || '').toLowerCase().trim();
+      if (pName && !existingNames.has(pName)) {
+        combined.push(p);
+        existingNames.add(pName);
       }
     }
-    return list.length > 0 ? list : profileList;
+
+    if (combined.length === 0) {
+      return DEFAULT_USER_PROFILE.projects;
+    }
+    return combined;
   })();
 
   const getProjectLink = (proj: any) => {
@@ -242,9 +300,19 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
     const foundInDefault = DEFAULT_USER_PROFILE.projects.find((p: any) => (p.name || '').toLowerCase() === (proj.name || '').toLowerCase());
     if (foundInDefault?.link && foundInDefault.link.trim()) return foundInDefault.link.trim();
     const slug = (proj.name || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    return `https://github.com/alexrivera-eng/${slug}`;
+    if (profile.githubUrl && profile.githubUrl.trim()) {
+      return `${profile.githubUrl.replace(/\/$/, '')}/${slug}`;
+    }
+    return '';
   };
+
   const displayEducation = result?.resume?.education?.length ? result.resume.education : profile.education;
+
+  // Filter templates by category
+  const filteredTemplates = TEMPLATE_OPTIONS.filter(t => {
+    if (templateCategory === 'all') return true;
+    return t.category === templateCategory;
+  });
 
   // High-Resolution PDF Export Function
   const handleExportPdf = async () => {
@@ -258,7 +326,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
     const filename = `${candidateName}_Resume_${selectedTemplate}.pdf`;
 
     setIsExportingPdf(true);
-    onToast(`Generating ${selectedTemplate.toUpperCase()} vector PDF in ${selectedColor.name}...`);
+    onToast('Rendering high-resolution vector PDF document...');
 
     try {
       await exportElementToPdf({
@@ -301,8 +369,53 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
     }
   };
 
+  /**
+   * Reusable Project Item Renderer for Templates
+   * Guarantees all projects are displayed with their link, description, and stack
+   */
+  const renderProjectItem = (p: any, idx: number, options?: { border?: boolean; bg?: boolean }) => {
+    const projectLink = getProjectLink(p);
+    const techStack = (p as any).technologies;
+
+    return (
+      <div 
+        key={idx} 
+        className={`text-xs space-y-1 ${
+          options?.bg ? 'p-3 rounded-xl bg-neutral-50/70 border border-neutral-200/80' : ''
+        } ${options?.border ? 'pb-2.5 border-b border-neutral-100 last:border-b-0' : ''}`}
+      >
+        <div className="font-semibold flex flex-wrap items-center justify-between gap-2 text-neutral-900">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-bold text-neutral-900">{p.name}</span>
+            {projectLink && (
+              <a
+                href={projectLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-mono hover:underline cursor-pointer transition-colors"
+                style={{ color: selectedColor.primary }}
+                title={`Open live project for ${p.name}`}
+              >
+                <span>{projectLink.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                <ExternalLink className="w-2.5 h-2.5 stroke-[2.2] shrink-0" />
+              </a>
+            )}
+          </div>
+          {techStack && (
+            <span className="text-[10px] font-mono text-neutral-500 shrink-0">
+              {Array.isArray(techStack) ? techStack.join(', ') : techStack}
+            </span>
+          )}
+        </div>
+        <p className="text-[11px] text-neutral-600 leading-relaxed whitespace-pre-line">
+          {p.description}
+        </p>
+      </div>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-neutral-100/70 pb-16">
+    <div className="w-full min-h-screen bg-neutral-100/70 pb-36 overflow-y-visible">
       {/* Top Bar Navigation & Actions */}
       <div className="sticky top-0 z-30 bg-white border-b border-neutral-200 px-4 sm:px-8 py-3.5 shadow-xs">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -321,7 +434,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                 <span>Resume Template & Export Studio</span>
               </h1>
               <p className="text-[10px] sm:text-[11px] text-neutral-500 truncate hidden xs:block">
-                Pick a template design and color palette to export your customized resume.
+                Pick from 10 industry layouts and 8 color palettes. All projects and active links included.
               </p>
             </div>
           </div>
@@ -363,9 +476,9 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
       {/* Main Studio Grid: Left Sidebar Customization & Right Live A4 Canvas */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT COLUMN: DESIGN CONTROLS */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* 1. Template Layouts */}
+          {/* LEFT COLUMN: DESIGN CONTROLS (Scrollable and sticky) */}
+          <div className="lg:col-span-4 space-y-6 pb-12">
+            {/* 1. Template Layouts Selection Box */}
             <div className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-2xs space-y-3.5">
               <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
                 <span className="text-xs font-bold uppercase tracking-wider text-neutral-900 flex items-center gap-1.5">
@@ -373,12 +486,38 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   <span>1. Select Resume Template</span>
                 </span>
                 <span className="text-[11px] font-mono text-neutral-500">
-                  {TEMPLATE_OPTIONS.length} designs
+                  {filteredTemplates.length} designs
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
-                {TEMPLATE_OPTIONS.map((tpl) => {
+              {/* Category Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                {(
+                  [
+                    { id: 'all', label: 'All (10)' },
+                    { id: 'tech', label: 'Tech & Code' },
+                    { id: 'executive', label: 'Executive' },
+                    { id: 'ats', label: 'ATS Minimal' },
+                    { id: 'creative', label: 'Creative' },
+                  ] as const
+                ).map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setTemplateCategory(cat.id)}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                      templateCategory === cat.id
+                        ? 'bg-neutral-900 text-white shadow-2xs'
+                        : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Template List Cards */}
+              <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
+                {filteredTemplates.map((tpl) => {
                   const isSelected = selectedTemplate === tpl.id;
                   return (
                     <div
@@ -386,11 +525,14 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       onClick={() => setSelectedTemplate(tpl.id)}
                       className={`p-3.5 rounded-xl border transition-all cursor-pointer text-left relative ${
                         isSelected
-                          ? 'border-neutral-900 bg-neutral-50/80 shadow-xs ring-1 ring-neutral-900'
+                          ? 'border-neutral-900 bg-neutral-50/80 shadow-xs ring-2'
                           : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50/50'
                       }`}
+                      style={{
+                        ringColor: isSelected ? selectedColor.primary : undefined,
+                      }}
                     >
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center justify-between mb-1.5">
                         <span className="text-xs font-bold text-neutral-950 flex items-center gap-2">
                           <span>{tpl.name}</span>
                           <span
@@ -406,9 +548,17 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         </span>
                         {isSelected && <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />}
                       </div>
+
                       <p className="text-[11px] text-neutral-500 leading-relaxed">
                         {tpl.description}
                       </p>
+
+                      {/* Mini visual layout wireframe indicator */}
+                      <div className="mt-2.5 pt-2 border-t border-neutral-100 flex items-center gap-1.5">
+                        <div className="h-1.5 w-12 bg-neutral-300 rounded-full" />
+                        <div className="h-1.5 w-6 bg-neutral-200 rounded-full" />
+                        <div className="h-1.5 flex-1 bg-neutral-100 rounded-full" />
+                      </div>
                     </div>
                   );
                 })}
@@ -525,8 +675,8 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
             </div>
           </div>
 
-          {/* RIGHT COLUMN: LIVE A4 RESUME CANVAS */}
-          <div className="lg:col-span-8 space-y-4">
+          {/* RIGHT COLUMN: LIVE A4 RESUME CANVAS (Properly scrollable down to the bottom) */}
+          <div className="lg:col-span-8 space-y-4 pb-28">
             {/* Canvas Header Bar */}
             <div className="bg-white rounded-xl border border-neutral-200 p-3 px-4 flex items-center justify-between shadow-2xs text-xs text-neutral-600">
               <div className="flex items-center gap-2">
@@ -535,9 +685,15 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   Live Preview: {TEMPLATE_OPTIONS.find(t => t.id === selectedTemplate)?.name} · {selectedColor.name}
                 </span>
               </div>
-              <span className="text-[11px] text-neutral-500 font-mono hidden sm:inline">
-                A4 Standard (210 × 297mm)
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  All {displayProjects.length} Projects & Links Active
+                </span>
+                <span className="text-[11px] text-neutral-500 font-mono hidden sm:inline">
+                  A4 Standard (210 × 297mm)
+                </span>
+              </div>
             </div>
 
             {/* THE ACTUAL A4 RESUME DOCUMENT CANVAS (Captured for PDF) */}
@@ -599,9 +755,23 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                             target="_blank"
                             rel="noopener noreferrer"
                             className="hover:underline font-medium"
-                            style={{ color: selectedColor.secondary }}
+                            style={{ color: selectedColor.primary }}
                           >
-                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
+                            Portfolio
+                          </a>
+                        </>
+                      )}
+                      {profile.githubUrl && (
+                        <>
+                          <span>•</span>
+                          <a
+                            href={profile.githubUrl.startsWith('http') ? profile.githubUrl : `https://${profile.githubUrl}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline font-medium"
+                            style={{ color: selectedColor.primary }}
+                          >
+                            GitHub
                           </a>
                         </>
                       )}
@@ -612,110 +782,90 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                             href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:underline"
+                            className="hover:underline font-medium"
+                            style={{ color: selectedColor.primary }}
                           >
-                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
+                            LinkedIn
                           </a>
                         </>
                       )}
                     </div>
                   </div>
 
-                  {/* Professional Summary */}
-                  <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                      Professional Summary
-                    </h2>
-                    <p className="text-xs leading-relaxed text-neutral-700">
-                      {displaySummary}
-                    </p>
-                  </div>
+                  {/* Summary */}
+                  {displaySummary && (
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Professional Summary
+                      </h2>
+                      <p className="text-xs text-neutral-700 leading-relaxed font-sans">
+                        {displaySummary}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Skills */}
-                  <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                      Core Skills & Technologies
-                    </h2>
-                    <div className="flex flex-wrap gap-1.5">
-                      {displaySkills.map((s, idx) => (
-                        <span
-                          key={idx}
-                          className="text-[11px] px-2.5 py-0.5 rounded font-mono font-medium border"
-                          style={{
-                            backgroundColor: selectedColor.lightBg,
-                            borderColor: selectedColor.border,
-                            color: selectedColor.primary,
-                          }}
-                        >
-                          {s}
-                        </span>
-                      ))}
+                  {displaySkills?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Core Competencies & Technologies
+                      </h2>
+                      <div className="flex flex-wrap gap-1.5">
+                        {displaySkills.map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[11px] font-medium px-2 py-0.5 rounded-md border"
+                            style={{
+                              backgroundColor: selectedColor.lightBg,
+                              color: selectedColor.primary,
+                              borderColor: selectedColor.border,
+                            }}
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Professional Experience */}
-                  <div>
-                    <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                      Professional Experience
-                    </h2>
-                    <div className="space-y-4">
-                      {displayExperiences.map((exp, idx) => (
-                        <div key={idx} className="space-y-1.5">
-                          <div className="flex items-baseline justify-between text-xs font-bold">
-                            <span style={{ color: selectedColor.primary }}>
-                              {exp.role} <span className="font-normal text-neutral-600">— {exp.company}</span>
-                            </span>
-                            <span className="text-[11px] font-mono font-normal text-neutral-500">
-                              {exp.period}
-                            </span>
+                  {/* Experience */}
+                  {displayExperiences?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Work Experience
+                      </h2>
+                      <div className="space-y-4">
+                        {displayExperiences.map((exp, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <div className="flex items-baseline justify-between text-xs">
+                              <span className="font-bold text-neutral-900 text-sm">
+                                {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
+                              </span>
+                              <span className="text-[11px] font-mono text-neutral-500">
+                                {exp.period}
+                              </span>
+                            </div>
+                            <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700 font-sans">
+                              {exp.bullets.map((b, bIdx) => (
+                                <li key={bIdx} className="leading-relaxed">
+                                  {b}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                          <ul className="space-y-1 text-xs list-disc list-outside pl-4 leading-relaxed text-neutral-700">
-                            {exp.bullets.map((b, bIdx) => (
-                              <li key={bIdx}>{b}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Key Projects */}
+                  {/* Key Projects - ALL projects rendered with link & description */}
                   {displayProjects?.length > 0 && (
                     <div>
                       <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                         Key Projects & Engineering Highlights
                       </h2>
-                      <div className="space-y-2">
-                        {displayProjects.map((p, idx) => {
-                          const projectLink = getProjectLink(p);
-                          return (
-                            <div key={idx} className="text-xs">
-                              <div className="font-semibold flex items-center justify-between text-neutral-900">
-                                <div className="flex items-center gap-1.5">
-                                  <span>{p.name}</span>
-                                  {projectLink && (
-                                    <a
-                                      href={projectLink}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
-                                      style={{ color: selectedColor.primary }}
-                                      title={`View ${p.name} live`}
-                                    >
-                                      <ExternalLink className="w-3 h-3 stroke-[2.2]" />
-                                    </a>
-                                  )}
-                                </div>
-                                {(p as any).technologies && (
-                                  <span className="text-[10px] font-mono text-neutral-500">
-                                    {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[11px] text-neutral-600 mt-0.5">{p.description}</p>
-                            </div>
-                          );
-                        })}
+                      <div className="space-y-3">
+                        {displayProjects.map((p, idx) => renderProjectItem(p, idx))}
                       </div>
                     </div>
                   )}
@@ -729,7 +879,7 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       <div className="space-y-1">
                         {displayEducation.map((edu, idx) => (
                           <div key={idx} className="flex items-center justify-between text-xs text-neutral-800">
-                            <span className="font-medium">{edu.degree} — {edu.school}</span>
+                            <span className="font-semibold">{edu.degree} — {edu.school}</span>
                             <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                           </div>
                         ))}
@@ -740,141 +890,101 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               )}
 
               {/* ======================================================== */}
-              {/* TEMPLATE 2: EXECUTIVE SERIF */}
+              {/* TEMPLATE 2: SILICON VALLEY PRO (DEVELOPER CONSOLE) */}
               {/* ======================================================== */}
-              {selectedTemplate === 'executive' && (
-                <div className="space-y-6">
-                  {/* Header: Centered & Classical */}
-                  <div className="text-center pb-4 border-b-2 border-double" style={{ borderColor: selectedColor.primary }}>
-                    <h1 className="text-3xl font-serif font-bold tracking-tight" style={{ color: selectedColor.primary }}>
-                      {profile.fullName || 'Candidate Name'}
-                    </h1>
-                    <div className="text-xs font-serif uppercase tracking-widest mt-1 font-semibold text-neutral-700">
-                      {displayHeadline}
+              {selectedTemplate === 'developer' && (
+                <div className="space-y-5">
+                  {/* Terminal Header */}
+                  <div className="p-4 rounded-xl bg-neutral-950 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Terminal className="w-4 h-4 text-emerald-400" />
+                        <span className="text-[11px] font-mono text-neutral-400">cvume-profile.sh</span>
+                        <span className="text-[9px] font-mono bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded border border-emerald-500/30">
+                          PROD READY
+                        </span>
+                      </div>
+                      <h1 className="text-2xl font-bold tracking-tight text-white">
+                        {profile.fullName || 'Candidate Name'}
+                      </h1>
+                      <div className="text-xs font-mono text-emerald-400 mt-0.5">
+                        {displayHeadline}
+                      </div>
                     </div>
-                    <div className="text-[11px] mt-2 flex flex-wrap items-center justify-center gap-x-3 text-neutral-600 font-sans">
-                      {profile.email && (
-                        <a href={`mailto:${profile.email}`} className="hover:underline">
-                          {profile.email}
-                        </a>
-                      )}
-                      {profile.phone && (
-                        <span>
-                          | <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">{profile.phone}</a>
-                        </span>
-                      )}
-                      {profile.location && <span>| {profile.location}</span>}
-                      {profile.portfolioUrl && (
-                        <span>
-                          |{' '}
-                          <a
-                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline font-medium"
-                            style={{ color: selectedColor.secondary }}
-                          >
-                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        </span>
-                      )}
-                      {profile.linkedinUrl && (
-                        <span>
-                          |{' '}
-                          <a
-                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        </span>
-                      )}
+
+                    <div className="text-right text-[11px] font-mono space-y-0.5 text-neutral-300">
+                      <div>{profile.email}</div>
+                      <div>{profile.phone}</div>
+                      <div className="text-neutral-400">{profile.location}</div>
                     </div>
                   </div>
 
                   {/* Summary */}
-                  <div>
-                    <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                      Executive Summary
-                    </h2>
-                    <p className="text-xs leading-relaxed text-neutral-800 text-justify">
-                      {displaySummary}
-                    </p>
-                  </div>
-
-                  {/* Professional Experience */}
-                  <div>
-                    <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-3 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                      Professional Experience
-                    </h2>
-                    <div className="space-y-4">
-                      {displayExperiences.map((exp, idx) => (
-                        <div key={idx} className="space-y-1">
-                          <div className="flex items-baseline justify-between text-xs">
-                            <span className="font-bold text-neutral-900 font-serif">
-                              {exp.role} <span className="font-normal font-sans italic text-neutral-600">, {exp.company}</span>
-                            </span>
-                            <span className="text-[11px] font-mono text-neutral-500">{exp.period}</span>
-                          </div>
-                          <ul className="space-y-1 text-xs list-disc list-outside pl-4 leading-relaxed text-neutral-700">
-                            {exp.bullets.map((b, bIdx) => (
-                              <li key={bIdx}>{b}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                  {displaySummary && (
+                    <div className="p-3.5 rounded-xl border border-neutral-200 bg-neutral-50/50">
+                      <p className="text-xs text-neutral-700 leading-relaxed font-sans">
+                        {displaySummary}
+                      </p>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Core Competencies */}
-                  <div>
-                    <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                      Areas of Expertise & Technical Skills
-                    </h2>
-                    <p className="text-xs text-neutral-700 leading-relaxed text-center font-sans">
-                      {displaySkills.join('  •  ')}
-                    </p>
-                  </div>
+                  {/* Skills Grid */}
+                  {displaySkills?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-2 flex items-center gap-1.5" style={{ borderColor: selectedColor.border }}>
+                        <span>$ tech_stack --list</span>
+                      </h2>
+                      <div className="flex flex-wrap gap-1.5">
+                        {displaySkills.map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-100 text-neutral-800 border border-neutral-300"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-                  {/* Key Projects */}
+                  {/* Work Experience */}
+                  {displayExperiences?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-3" style={{ borderColor: selectedColor.border }}>
+                        <span>$ cat experience.log</span>
+                      </h2>
+                      <div className="space-y-4">
+                        {displayExperiences.map((exp, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <div className="flex items-baseline justify-between text-xs">
+                              <span className="font-bold text-neutral-900 text-sm">
+                                {exp.role} <span className="font-mono text-emerald-600">@{exp.company}</span>
+                              </span>
+                              <span className="text-[11px] font-mono text-neutral-500">
+                                {exp.period}
+                              </span>
+                            </div>
+                            <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700 font-sans">
+                              {exp.bullets.map((b, bIdx) => (
+                                <li key={bIdx} className="leading-relaxed">
+                                  {b}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Key Projects - Full Boxed Cards */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                        Key Projects & Technical Highlights
+                      <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-3" style={{ borderColor: selectedColor.border }}>
+                        <span>$ git log --projects --all ({displayProjects.length} active repos)</span>
                       </h2>
-                      <div className="space-y-2 text-xs">
-                        {displayProjects.map((p, idx) => {
-                          const projectLink = getProjectLink(p);
-                          return (
-                            <div key={idx} className="space-y-0.5 text-left">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-bold font-serif text-neutral-900">{p.name}</span>
-                                  {projectLink && (
-                                    <a
-                                      href={projectLink}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
-                                      style={{ color: selectedColor.primary }}
-                                      title={`View ${p.name} live`}
-                                    >
-                                      <ExternalLink className="w-3 h-3 stroke-[2.2]" />
-                                    </a>
-                                  )}
-                                </div>
-                                {(p as any).technologies && (
-                                  <span className="text-[10px] font-mono text-neutral-500">
-                                    {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[11px] text-neutral-700 leading-relaxed">{p.description}</p>
-                            </div>
-                          );
-                        })}
+                      <div className="space-y-2.5">
+                        {displayProjects.map((p, idx) => renderProjectItem(p, idx, { bg: true }))}
                       </div>
                     </div>
                   )}
@@ -882,13 +992,14 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                        Education & Credentials
+                      <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-900 pb-1 border-b mb-2" style={{ borderColor: selectedColor.border }}>
+                        <span>$ ls /education</span>
                       </h2>
-                      <div className="space-y-1 text-xs text-center text-neutral-800">
+                      <div className="space-y-1 text-xs">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="font-medium">
-                            {edu.degree} — {edu.school} ({edu.year})
+                          <div key={idx} className="flex items-center justify-between">
+                            <span className="font-semibold">{edu.degree} — {edu.school}</span>
+                            <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                           </div>
                         ))}
                       </div>
@@ -898,13 +1009,132 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               )}
 
               {/* ======================================================== */}
-              {/* TEMPLATE 3: TWO-COLUMN SPLIT */}
+              {/* TEMPLATE 3: EXECUTIVE SERIF */}
+              {/* ======================================================== */}
+              {selectedTemplate === 'executive' && (
+                <div className="space-y-6">
+                  {/* Centered Formal Letterhead Header */}
+                  <div className="text-center pb-4 border-b-2" style={{ borderColor: selectedColor.primary }}>
+                    <h1 className="text-3xl font-serif font-bold tracking-tight uppercase" style={{ color: selectedColor.primary }}>
+                      {profile.fullName || 'Candidate Name'}
+                    </h1>
+                    <div className="text-xs font-serif font-semibold tracking-widest uppercase mt-1" style={{ color: selectedColor.secondary }}>
+                      {displayHeadline}
+                    </div>
+
+                    <div className="text-xs mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-serif text-neutral-600">
+                      {profile.email && <span>{profile.email}</span>}
+                      {profile.phone && <span>• {profile.phone}</span>}
+                      {profile.location && <span>• {profile.location}</span>}
+                      {profile.portfolioUrl && <span>• {profile.portfolioUrl}</span>}
+                      {profile.linkedinUrl && <span>• {profile.linkedinUrl}</span>}
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  {displaySummary && (
+                    <div>
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Executive Profile
+                      </h2>
+                      <p className="text-xs text-neutral-800 leading-relaxed font-serif text-center max-w-2xl mx-auto">
+                        {displaySummary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Skills */}
+                  {displaySkills?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Core Strategic & Technical Competencies
+                      </h2>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {displaySkills.map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="text-xs font-serif px-2.5 py-0.5 rounded border"
+                            style={{
+                              backgroundColor: selectedColor.lightBg,
+                              color: selectedColor.primary,
+                              borderColor: selectedColor.border,
+                            }}
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Experience */}
+                  {displayExperiences?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-3 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Leadership & Professional Experience
+                      </h2>
+                      <div className="space-y-4">
+                        {displayExperiences.map((exp, idx) => (
+                          <div key={idx} className="space-y-1 text-left">
+                            <div className="flex items-baseline justify-between text-xs">
+                              <span className="font-bold font-serif text-neutral-900 text-sm">
+                                {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
+                              </span>
+                              <span className="text-[11px] font-mono text-neutral-500">
+                                {exp.period}
+                              </span>
+                            </div>
+                            <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700 font-serif">
+                              {exp.bullets.map((b, bIdx) => (
+                                <li key={bIdx} className="leading-relaxed">
+                                  {b}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Key Projects */}
+                  {displayProjects?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Key Projects & Technical Highlights
+                      </h2>
+                      <div className="space-y-3">
+                        {displayProjects.map((p, idx) => renderProjectItem(p, idx, { border: true }))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Education */}
+                  {displayEducation?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-center mb-2 pb-1 border-b" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Education
+                      </h2>
+                      <div className="space-y-1 font-serif">
+                        {displayEducation.map((edu, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-xs text-neutral-800">
+                            <span className="font-semibold">{edu.degree} — {edu.school}</span>
+                            <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ======================================================== */}
+              {/* TEMPLATE 4: TWO-COLUMN SPLIT */}
               {/* ======================================================== */}
               {selectedTemplate === 'split' && (
-                <div className="grid grid-cols-12 gap-6">
-                  {/* Left Column (Sidebar) */}
-                  <div className="col-span-4 border-r pr-5 space-y-5" style={{ borderColor: selectedColor.border }}>
-                    {/* Candidate Name & Title */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                  {/* Left Column: Contact, Skills, Education */}
+                  <div className="md:col-span-4 space-y-5 p-4 rounded-xl" style={{ backgroundColor: selectedColor.lightBg, borderRight: `2px solid ${selectedColor.border}` }}>
                     <div>
                       <h1 className="text-2xl font-bold tracking-tight" style={{ color: selectedColor.primary }}>
                         {profile.fullName || 'Candidate Name'}
@@ -914,82 +1144,47 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       </div>
                     </div>
 
-                    {/* Contact List */}
-                    <div className="space-y-2 text-[11px] text-neutral-700">
+                    {/* Contact */}
+                    <div className="space-y-1.5 text-xs text-neutral-700">
                       <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
-                        Contact & Links
+                        Contact
                       </span>
-                      {profile.email && (
-                        <div className="break-all">
-                          <a href={`mailto:${profile.email}`} className="hover:underline">{profile.email}</a>
-                        </div>
-                      )}
-                      {profile.phone && (
-                        <div>
-                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">{profile.phone}</a>
-                        </div>
-                      )}
+                      {profile.email && <div className="break-all">{profile.email}</div>}
+                      {profile.phone && <div>{profile.phone}</div>}
                       {profile.location && <div>{profile.location}</div>}
-                      {profile.portfolioUrl && (
-                        <div className="break-all font-medium">
-                          <a
-                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                            style={{ color: selectedColor.secondary }}
-                          >
-                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        </div>
-                      )}
-                      {profile.linkedinUrl && (
-                        <div className="break-all">
-                          <a
-                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        </div>
-                      )}
+                      {profile.portfolioUrl && <div><a href={profile.portfolioUrl} className="hover:underline" style={{ color: selectedColor.primary }}>Portfolio</a></div>}
+                      {profile.githubUrl && <div><a href={profile.githubUrl} className="hover:underline" style={{ color: selectedColor.primary }}>GitHub</a></div>}
+                      {profile.linkedinUrl && <div><a href={profile.linkedinUrl} className="hover:underline" style={{ color: selectedColor.primary }}>LinkedIn</a></div>}
                     </div>
 
-                    {/* Skills Column */}
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
-                        Core Skills
-                      </span>
-                      <div className="flex flex-wrap gap-1">
-                        {displaySkills.map((s, idx) => (
-                          <span
-                            key={idx}
-                            className="text-[10.5px] px-2 py-0.5 rounded font-mono font-medium border"
-                            style={{
-                              backgroundColor: selectedColor.lightBg,
-                              borderColor: selectedColor.border,
-                              color: selectedColor.primary,
-                            }}
-                          >
-                            {s}
-                          </span>
-                        ))}
+                    {/* Skills */}
+                    {displaySkills?.length > 0 && (
+                      <div className="space-y-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
+                          Technical Skills
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {displaySkills.map((s, idx) => (
+                            <span key={idx} className="text-[10px] font-medium px-2 py-0.5 rounded bg-white border border-neutral-200">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Education Column */}
+                    {/* Education */}
                     {displayEducation?.length > 0 && (
                       <div className="space-y-2">
                         <span className="text-[10px] font-bold uppercase tracking-wider block" style={{ color: selectedColor.primary }}>
                           Education
                         </span>
-                        <div className="space-y-1.5 text-xs text-neutral-800">
+                        <div className="space-y-1.5 text-xs">
                           {displayEducation.map((edu, idx) => (
                             <div key={idx}>
-                              <div className="font-semibold text-[11px]">{edu.degree}</div>
-                              <div className="text-[10px] text-neutral-500">{edu.school} · {edu.year}</div>
+                              <div className="font-semibold text-neutral-900">{edu.degree}</div>
+                              <div className="text-[11px] text-neutral-600">{edu.school}</div>
+                              <div className="text-[10px] font-mono text-neutral-500">{edu.year}</div>
                             </div>
                           ))}
                         </div>
@@ -997,76 +1192,56 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                     )}
                   </div>
 
-                  {/* Right Column (Main Experience & Summary) */}
-                  <div className="col-span-8 space-y-5">
-                    {/* Summary */}
-                    <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                        Profile Overview
-                      </h2>
-                      <p className="text-xs leading-relaxed text-neutral-700">
-                        {displaySummary}
-                      </p>
-                    </div>
-
-                    {/* Experience Timeline */}
-                    <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                        Professional Experience
-                      </h2>
-                      <div className="space-y-4">
-                        {displayExperiences.map((exp, idx) => (
-                          <div key={idx} className="space-y-1">
-                            <div className="flex items-baseline justify-between text-xs font-bold">
-                              <span style={{ color: selectedColor.primary }}>
-                                {exp.role} <span className="font-normal text-neutral-600">— {exp.company}</span>
-                              </span>
-                              <span className="text-[10.5px] font-mono font-normal text-neutral-500">
-                                {exp.period}
-                              </span>
-                            </div>
-                            <ul className="space-y-1 text-xs list-disc list-outside pl-4 leading-relaxed text-neutral-700">
-                              {exp.bullets.map((b, bIdx) => (
-                                <li key={bIdx}>{b}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Key Projects */}
-                    {displayProjects?.length > 0 && (
+                  {/* Right Column: Summary, Experience, Projects */}
+                  <div className="md:col-span-8 space-y-6">
+                    {displaySummary && (
                       <div>
                         <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                          Projects
+                          Profile Overview
                         </h2>
-                        <div className="space-y-2">
-                          {displayProjects.map((p, idx) => {
-                            const projectLink = getProjectLink(p);
-                            return (
-                              <div key={idx} className="text-xs">
-                                <div className="font-semibold text-neutral-900 flex items-center justify-between">
-                                  <div className="flex items-center gap-1.5">
-                                    <span>{p.name}</span>
-                                    {projectLink && (
-                                      <a
-                                        href={projectLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
-                                        style={{ color: selectedColor.primary }}
-                                        title={`View ${p.name} live`}
-                                      >
-                                        <ExternalLink className="w-3 h-3 stroke-[2.2]" />
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-[11px] text-neutral-600">{p.description}</p>
+                        <p className="text-xs text-neutral-700 leading-relaxed">
+                          {displaySummary}
+                        </p>
+                      </div>
+                    )}
+
+                    {displayExperiences?.length > 0 && (
+                      <div>
+                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                          Experience
+                        </h2>
+                        <div className="space-y-4">
+                          {displayExperiences.map((exp, idx) => (
+                            <div key={idx} className="space-y-1">
+                              <div className="flex items-baseline justify-between text-xs">
+                                <span className="font-bold text-neutral-900 text-sm">
+                                  {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
+                                </span>
+                                <span className="text-[11px] font-mono text-neutral-500">
+                                  {exp.period}
+                                </span>
                               </div>
-                            );
-                          })}
+                              <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700">
+                                {exp.bullets.map((b, bIdx) => (
+                                  <li key={bIdx} className="leading-relaxed">
+                                    {b}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Key Projects - Full list with links & descriptions */}
+                    {displayProjects?.length > 0 && (
+                      <div>
+                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                          Projects & Engineering Highlights
+                        </h2>
+                        <div className="space-y-3">
+                          {displayProjects.map((p, idx) => renderProjectItem(p, idx))}
                         </div>
                       </div>
                     )}
@@ -1075,132 +1250,318 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               )}
 
               {/* ======================================================== */}
-              {/* TEMPLATE 4: NORDIC MINIMAL */}
+              {/* TEMPLATE 5: SWISS INTERNATIONAL GRID */}
               {/* ======================================================== */}
-              {selectedTemplate === 'nordic' && (
+              {selectedTemplate === 'swiss' && (
                 <div className="space-y-6">
                   {/* Header */}
-                  <div className="flex items-center justify-between pb-4 border-b" style={{ borderColor: selectedColor.border }}>
-                    <div>
-                      <h1 className="text-3xl font-light tracking-tight text-neutral-950">
+                  <div className="grid grid-cols-12 gap-4 pb-4 border-b-2" style={{ borderColor: selectedColor.primary }}>
+                    <div className="col-span-8">
+                      <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: selectedColor.primary }}>
                         {profile.fullName || 'Candidate Name'}
                       </h1>
-                      <div className="text-xs font-medium tracking-wide mt-1 uppercase" style={{ color: selectedColor.primary }}>
+                      <div className="text-sm font-semibold mt-1" style={{ color: selectedColor.secondary }}>
                         {displayHeadline}
                       </div>
                     </div>
-                    <div className="text-right text-[11px] font-mono text-neutral-500 space-y-0.5">
-                      {profile.email && (
-                        <div>
-                          <a href={`mailto:${profile.email}`} className="hover:underline">{profile.email}</a>
-                        </div>
-                      )}
-                      {profile.phone && (
-                        <div>
-                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">{profile.phone}</a>
-                        </div>
-                      )}
-                      {profile.location && <div>{profile.location}</div>}
-                      {profile.portfolioUrl && (
-                        <div>
-                          <a
-                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline font-medium"
-                            style={{ color: selectedColor.secondary }}
-                          >
-                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        </div>
-                      )}
+                    <div className="col-span-4 text-right text-xs space-y-0.5 text-neutral-600 font-mono">
+                      <div>{profile.email}</div>
+                      <div>{profile.phone}</div>
+                      <div>{profile.location}</div>
                     </div>
                   </div>
 
                   {/* Summary */}
-                  <div className="border-l-2 pl-3" style={{ borderColor: selectedColor.primary }}>
-                    <p className="text-xs leading-relaxed text-neutral-700">
-                      {displaySummary}
-                    </p>
-                  </div>
-
-                  {/* Skills Tag Cloud */}
-                  <div>
-                    <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
-                      // Core Competencies
-                    </h2>
-                    <div className="flex flex-wrap gap-1.5">
-                      {displaySkills.map((s, idx) => (
-                        <span key={idx} className="text-[11px] font-mono px-2 py-0.5 bg-neutral-100 text-neutral-800 rounded">
-                          {s}
-                        </span>
-                      ))}
+                  {displaySummary && (
+                    <div className="grid grid-cols-12 gap-4">
+                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                        Profile
+                      </div>
+                      <div className="col-span-9 text-xs text-neutral-700 leading-relaxed">
+                        {displaySummary}
+                      </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Skills */}
+                  {displaySkills?.length > 0 && (
+                    <div className="grid grid-cols-12 gap-4 pt-2 border-t border-neutral-100">
+                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                        Skills
+                      </div>
+                      <div className="col-span-9 flex flex-wrap gap-1.5">
+                        {displaySkills.map((s, idx) => (
+                          <span key={idx} className="text-[10.5px] font-mono px-2 py-0.5 rounded bg-neutral-100 text-neutral-800">
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Experience */}
-                  <div>
-                    <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-3">
-                      // Professional Track Record
-                    </h2>
-                    <div className="space-y-4">
-                      {displayExperiences.map((exp, idx) => (
-                        <div key={idx} className="space-y-1">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-neutral-900">
-                              {exp.role} <span className="font-normal text-neutral-500">at {exp.company}</span>
-                            </span>
-                            <span className="text-[10px] font-mono bg-neutral-100 px-1.5 py-0.5 rounded text-neutral-600">
-                              {exp.period}
-                            </span>
+                  {displayExperiences?.length > 0 && (
+                    <div className="grid grid-cols-12 gap-4 pt-2 border-t border-neutral-100">
+                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                        Experience
+                      </div>
+                      <div className="col-span-9 space-y-4">
+                        {displayExperiences.map((exp, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <div className="flex items-baseline justify-between text-xs">
+                              <span className="font-bold text-neutral-900">
+                                {exp.role} <span style={{ color: selectedColor.primary }}>/ {exp.company}</span>
+                              </span>
+                              <span className="text-[11px] font-mono text-neutral-500">
+                                {exp.period}
+                              </span>
+                            </div>
+                            <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700">
+                              {exp.bullets.map((b, bIdx) => (
+                                <li key={bIdx} className="leading-relaxed">
+                                  {b}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                          <ul className="space-y-1 text-xs list-disc list-outside pl-4 text-neutral-700">
-                            {exp.bullets.map((b, bIdx) => (
-                              <li key={bIdx}>{b}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Projects */}
+                  {displayProjects?.length > 0 && (
+                    <div className="grid grid-cols-12 gap-4 pt-2 border-t border-neutral-100">
+                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                        Projects ({displayProjects.length})
+                      </div>
+                      <div className="col-span-9 space-y-3">
+                        {displayProjects.map((p, idx) => renderProjectItem(p, idx))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Education */}
+                  {displayEducation?.length > 0 && (
+                    <div className="grid grid-cols-12 gap-4 pt-2 border-t border-neutral-100">
+                      <div className="col-span-3 text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+                        Education
+                      </div>
+                      <div className="col-span-9 space-y-1 text-xs">
+                        {displayEducation.map((edu, idx) => (
+                          <div key={idx} className="flex items-center justify-between">
+                            <span className="font-semibold">{edu.degree} — {edu.school}</span>
+                            <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ======================================================== */}
+              {/* TEMPLATE 6: METRO LEFT ACCENT RAIL */}
+              {/* ======================================================== */}
+              {selectedTemplate === 'minimal_stripe' && (
+                <div className="border-l-4 pl-6 space-y-6" style={{ borderColor: selectedColor.primary }}>
+                  {/* Header */}
+                  <div>
+                    <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: selectedColor.primary }}>
+                      {profile.fullName || 'Candidate Name'}
+                    </h1>
+                    <div className="text-sm font-semibold mt-1" style={{ color: selectedColor.secondary }}>
+                      {displayHeadline}
+                    </div>
+
+                    <div className="text-xs mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-neutral-600">
+                      {profile.email && <span>{profile.email}</span>}
+                      {profile.phone && <span>• {profile.phone}</span>}
+                      {profile.location && <span>• {profile.location}</span>}
+                      {profile.portfolioUrl && <span>• {profile.portfolioUrl}</span>}
+                      {profile.githubUrl && <span>• {profile.githubUrl}</span>}
                     </div>
                   </div>
+
+                  {/* Summary */}
+                  {displaySummary && (
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Professional Summary
+                      </h2>
+                      <p className="text-xs text-neutral-700 leading-relaxed">
+                        {displaySummary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Skills */}
+                  {displaySkills?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Technical Stack
+                      </h2>
+                      <div className="flex flex-wrap gap-1.5">
+                        {displaySkills.map((s, idx) => (
+                          <span key={idx} className="text-[11px] font-medium px-2 py-0.5 rounded-md border" style={{ backgroundColor: selectedColor.lightBg, color: selectedColor.primary, borderColor: selectedColor.border }}>
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Experience */}
+                  {displayExperiences?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Experience
+                      </h2>
+                      <div className="space-y-4">
+                        {displayExperiences.map((exp, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <div className="flex items-baseline justify-between text-xs">
+                              <span className="font-bold text-neutral-900 text-sm">
+                                {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
+                              </span>
+                              <span className="text-[11px] font-mono text-neutral-500">
+                                {exp.period}
+                              </span>
+                            </div>
+                            <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700">
+                              {exp.bullets.map((b, bIdx) => (
+                                <li key={bIdx} className="leading-relaxed">
+                                  {b}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Key Projects */}
+                  {displayProjects?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Key Projects & Engineering Work
+                      </h2>
+                      <div className="space-y-3">
+                        {displayProjects.map((p, idx) => renderProjectItem(p, idx, { bg: true }))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Education */}
+                  {displayEducation?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                        Education
+                      </h2>
+                      <div className="space-y-1 text-xs">
+                        {displayEducation.map((edu, idx) => (
+                          <div key={idx} className="flex items-center justify-between">
+                            <span className="font-semibold">{edu.degree} — {edu.school}</span>
+                            <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ======================================================== */}
+              {/* TEMPLATE 7: NORDIC MINIMAL */}
+              {/* ======================================================== */}
+              {selectedTemplate === 'nordic' && (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div>
+                    <h1 className="text-3xl font-light tracking-tight text-neutral-950">
+                      {profile.fullName || 'Candidate Name'}
+                    </h1>
+                    <div className="text-xs font-mono tracking-widest text-neutral-500 uppercase mt-1">
+                      // {displayHeadline}
+                    </div>
+
+                    <div className="text-xs mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-neutral-500">
+                      {profile.email && <span>{profile.email}</span>}
+                      {profile.phone && <span>· {profile.phone}</span>}
+                      {profile.location && <span>· {profile.location}</span>}
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  {displaySummary && (
+                    <div>
+                      <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
+                        // Summary
+                      </h2>
+                      <p className="text-xs text-neutral-700 leading-relaxed font-light">
+                        {displaySummary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Skills */}
+                  {displaySkills?.length > 0 && (
+                    <div>
+                      <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
+                        // Core Stack
+                      </h2>
+                      <div className="flex flex-wrap gap-1.5">
+                        {displaySkills.map((s, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-100 text-neutral-700"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Experience */}
+                  {displayExperiences?.length > 0 && (
+                    <div>
+                      <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-3">
+                        // Experience
+                      </h2>
+                      <div className="space-y-4">
+                        {displayExperiences.map((exp, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <div className="flex items-baseline justify-between text-xs">
+                              <span className="font-medium text-neutral-900 text-sm">
+                                {exp.role} <span className="text-neutral-400">at</span> {exp.company}
+                              </span>
+                              <span className="text-[11px] font-mono text-neutral-400">
+                                {exp.period}
+                              </span>
+                            </div>
+                            <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-600 font-light">
+                              {exp.bullets.map((b, bIdx) => (
+                                <li key={bIdx} className="leading-relaxed">
+                                  {b}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Key Projects */}
                   {displayProjects?.length > 0 && (
                     <div>
                       <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
-                        // Key Projects & Open Source
+                        // Key Projects & Open Source ({displayProjects.length})
                       </h2>
-                      <div className="space-y-2">
-                        {displayProjects.map((p, idx) => {
-                          const projectLink = getProjectLink(p);
-                          return (
-                            <div key={idx} className="space-y-0.5">
-                              <div className="flex items-center justify-between text-xs">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-semibold text-neutral-900">{p.name}</span>
-                                  {projectLink && (
-                                    <a
-                                      href={projectLink}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
-                                      style={{ color: selectedColor.primary }}
-                                      title={`View ${p.name} live`}
-                                    >
-                                      <ExternalLink className="w-3 h-3 stroke-[2.2]" />
-                                    </a>
-                                  )}
-                                </div>
-                                {(p as any).technologies && (
-                                  <span className="text-[10px] font-mono text-neutral-400">
-                                    {Array.isArray((p as any).technologies) ? (p as any).technologies.join(', ') : (p as any).technologies}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[11px] text-neutral-600">{p.description}</p>
-                            </div>
-                          );
-                        })}
+                      <div className="space-y-3">
+                        {displayProjects.map((p, idx) => renderProjectItem(p, idx))}
                       </div>
                     </div>
                   )}
@@ -1211,11 +1572,11 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                       <h2 className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
                         // Education
                       </h2>
-                      <div className="space-y-1 text-xs text-neutral-800">
+                      <div className="space-y-1 text-xs">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex justify-between">
+                          <div key={idx} className="flex items-center justify-between font-light">
                             <span>{edu.degree} — {edu.school}</span>
-                            <span className="font-mono text-[11px] text-neutral-500">{edu.year}</span>
+                            <span className="text-[11px] font-mono text-neutral-400">{edu.year}</span>
                           </div>
                         ))}
                       </div>
@@ -1225,129 +1586,85 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               )}
 
               {/* ======================================================== */}
-              {/* TEMPLATE 5: COMPACT HIGH-DENSITY ATS */}
+              {/* TEMPLATE 8: HIGH-DENSITY ATS */}
               {/* ======================================================== */}
               {selectedTemplate === 'compact' && (
-                <div className="space-y-3.5 text-xs">
-                  {/* Top Header */}
-                  <div className="border-b pb-2 text-center" style={{ borderColor: '#e5e7eb' }}>
-                    <h1 className="text-2xl font-bold tracking-tight text-neutral-950">
-                      {profile.fullName || 'Candidate Name'}
-                    </h1>
-                    <div className="text-xs font-semibold text-neutral-700 mt-0.5">
-                      {displayHeadline}
+                <div className="space-y-4 text-xs">
+                  {/* Header */}
+                  <div className="border-b pb-3" style={{ borderColor: selectedColor.primary }}>
+                    <div className="flex items-baseline justify-between">
+                      <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+                        {profile.fullName || 'Candidate Name'}
+                      </h1>
+                      <div className="text-xs font-semibold" style={{ color: selectedColor.primary }}>
+                        {displayHeadline}
+                      </div>
                     </div>
-                    <div className="text-[10.5px] mt-1 text-neutral-600 font-sans flex items-center justify-center gap-2 flex-wrap">
-                      {profile.email && (
-                        <a href={`mailto:${profile.email}`} className="hover:underline">{profile.email}</a>
-                      )}
-                      {profile.phone && (
-                        <span>
-                          • <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline">{profile.phone}</a>
-                        </span>
-                      )}
-                      {profile.location && <span>• {profile.location}</span>}
-                      {profile.portfolioUrl && (
-                        <span>
-                          •{' '}
-                          <a
-                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline font-medium"
-                            style={{ color: selectedColor.primary }}
-                          >
-                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        </span>
-                      )}
-                      {profile.linkedinUrl && (
-                        <span>
-                          •{' '}
-                          <a
-                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        </span>
-                      )}
+                    <div className="text-[11px] text-neutral-600 mt-1 flex flex-wrap gap-x-2">
+                      {profile.email && <span>{profile.email}</span>}
+                      {profile.phone && <span>| {profile.phone}</span>}
+                      {profile.location && <span>| {profile.location}</span>}
+                      {profile.portfolioUrl && <span>| {profile.portfolioUrl}</span>}
+                      {profile.githubUrl && <span>| {profile.githubUrl}</span>}
                     </div>
                   </div>
 
                   {/* Summary */}
-                  <div>
-                    <h2 className="text-[11px] font-bold uppercase tracking-wider pb-0.5 border-b mb-1 text-neutral-900">
-                      Professional Summary
-                    </h2>
-                    <p className="text-[11px] leading-snug text-neutral-800">
-                      {displaySummary}
-                    </p>
-                  </div>
+                  {displaySummary && (
+                    <div>
+                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: selectedColor.primary }}>
+                        Professional Summary
+                      </h2>
+                      <p className="text-[11px] text-neutral-700 leading-snug">
+                        {displaySummary}
+                      </p>
+                    </div>
+                  )}
 
-                  {/* Technical Skills */}
-                  <div>
-                    <h2 className="text-[11px] font-bold uppercase tracking-wider pb-0.5 border-b mb-1 text-neutral-900">
-                      Technical Skills & Competencies
-                    </h2>
-                    <p className="text-[11px] text-neutral-800 font-mono leading-relaxed">
-                      {displaySkills.join('  •  ')}
-                    </p>
-                  </div>
+                  {/* Skills */}
+                  {displaySkills?.length > 0 && (
+                    <div>
+                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: selectedColor.primary }}>
+                        Core Skills
+                      </h2>
+                      <div className="text-[11px] text-neutral-800">
+                        {displaySkills.join(' • ')}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Experience */}
-                  <div>
-                    <h2 className="text-[11px] font-bold uppercase tracking-wider pb-0.5 border-b mb-1.5 text-neutral-900">
-                      Professional Experience
-                    </h2>
-                    <div className="space-y-2.5">
-                      {displayExperiences.map((exp, idx) => (
-                        <div key={idx}>
-                          <div className="flex justify-between font-bold text-[11px] text-neutral-950">
-                            <span>{exp.role} — <span className="font-medium text-neutral-700">{exp.company}</span></span>
-                            <span className="font-mono text-[10px] text-neutral-600">{exp.period}</span>
+                  {displayExperiences?.length > 0 && (
+                    <div>
+                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: selectedColor.primary }}>
+                        Experience
+                      </h2>
+                      <div className="space-y-3">
+                        {displayExperiences.map((exp, idx) => (
+                          <div key={idx} className="space-y-0.5">
+                            <div className="flex items-baseline justify-between font-semibold text-neutral-900">
+                              <span>{exp.role} — <span style={{ color: selectedColor.primary }}>{exp.company}</span></span>
+                              <span className="text-[10px] font-mono text-neutral-500">{exp.period}</span>
+                            </div>
+                            <ul className="list-disc list-outside pl-4 space-y-0.5 text-[11px] text-neutral-700">
+                              {exp.bullets.map((b, bIdx) => (
+                                <li key={bIdx} className="leading-snug">{b}</li>
+                              ))}
+                            </ul>
                           </div>
-                          <ul className="list-disc list-outside pl-4 text-[11px] leading-tight text-neutral-800 space-y-0.5 mt-0.5">
-                            {exp.bullets.map((b, bIdx) => (
-                              <li key={bIdx}>{b}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Key Projects */}
                   {displayProjects?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-bold uppercase tracking-wider pb-0.5 border-b mb-1 text-neutral-900">
-                        Technical Highlights & Projects
+                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: selectedColor.primary }}>
+                        Featured Projects
                       </h2>
-                      <div className="space-y-1">
-                        {displayProjects.map((p, idx) => {
-                          const projectLink = getProjectLink(p);
-                          return (
-                            <div key={idx} className="text-[11px]">
-                              <span className="font-semibold">{p.name}</span>
-                              {projectLink && (
-                                <a
-                                  href={projectLink}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center align-middle ml-1 transition-transform hover:scale-110 cursor-pointer"
-                                  style={{ color: selectedColor.primary }}
-                                  title={`View ${p.name} live`}
-                                >
-                                  <ExternalLink className="w-2.5 h-2.5 stroke-[2.2]" />
-                                </a>
-                              )}
-                              <span>: </span>
-                              <span className="text-neutral-700">{p.description}</span>
-                            </div>
-                          );
-                        })}
+                      <div className="space-y-2">
+                        {displayProjects.map((p, idx) => renderProjectItem(p, idx))}
                       </div>
                     </div>
                   )}
@@ -1355,14 +1672,14 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                   {/* Education */}
                   {displayEducation?.length > 0 && (
                     <div>
-                      <h2 className="text-[11px] font-bold uppercase tracking-wider pb-0.5 border-b mb-1 text-neutral-900">
+                      <h2 className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: selectedColor.primary }}>
                         Education
                       </h2>
                       <div className="space-y-0.5 text-[11px]">
                         {displayEducation.map((edu, idx) => (
-                          <div key={idx} className="flex justify-between text-neutral-800">
-                            <span>{edu.degree} — {edu.school}</span>
-                            <span className="font-mono text-[10px] text-neutral-600">{edu.year}</span>
+                          <div key={idx} className="flex items-center justify-between">
+                            <span className="font-medium">{edu.degree} — {edu.school}</span>
+                            <span className="font-mono text-neutral-500">{edu.year}</span>
                           </div>
                         ))}
                       </div>
@@ -1372,160 +1689,200 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
               )}
 
               {/* ======================================================== */}
-              {/* TEMPLATE 6: CONTEMPORARY ACCENT BANNER */}
+              {/* TEMPLATE 9: ELEGANT IVY ACADEMIC */}
               {/* ======================================================== */}
-              {selectedTemplate === 'accent_banner' && (
-                <div className="w-full">
-                  {/* Top Colored Banner - Edge-to-edge full bleed */}
-                  <div
-                    className="p-6 sm:p-8 rounded-none w-full"
-                    style={{ backgroundColor: selectedColor.primary, color: '#ffffff' }}
-                  >
-                    <h1 className="text-3xl font-extrabold tracking-tight text-white">
+              {selectedTemplate === 'elegant_ivy' && (
+                <div className="space-y-6 font-serif">
+                  {/* Classical Letterhead Header */}
+                  <div className="text-center pb-5 border-b border-neutral-300">
+                    <h1 className="text-3xl font-serif tracking-widest uppercase font-bold text-neutral-900">
                       {profile.fullName || 'Candidate Name'}
                     </h1>
-                    <div className="text-sm font-medium mt-1 text-white/90">
+                    <div className="text-xs font-serif italic text-neutral-600 mt-1">
                       {displayHeadline}
                     </div>
-                    <div className="text-[11px] mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-white/90 font-sans">
-                      {profile.email && (
-                        <a href={`mailto:${profile.email}`} className="hover:underline text-white font-medium">
-                          {profile.email}
-                        </a>
-                      )}
-                      {profile.phone && (
-                        <span>
-                          •{' '}
-                          <a href={`tel:${profile.phone.replace(/[^\d+]/g, '')}`} className="hover:underline text-white">
-                            {profile.phone}
-                          </a>
-                        </span>
-                      )}
+
+                    <div className="text-xs mt-2.5 flex flex-wrap items-center justify-center gap-x-3 text-neutral-600 font-sans">
+                      {profile.email && <span>{profile.email}</span>}
+                      {profile.phone && <span>• {profile.phone}</span>}
                       {profile.location && <span>• {profile.location}</span>}
-                      {profile.portfolioUrl && (
-                        <span>
-                          •{' '}
-                          <a
-                            href={profile.portfolioUrl.startsWith('http') ? profile.portfolioUrl : `https://${profile.portfolioUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline text-white font-bold underline underline-offset-2"
-                          >
-                            {profile.portfolioUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        </span>
-                      )}
-                      {profile.linkedinUrl && (
-                        <span>
-                          •{' '}
-                          <a
-                            href={profile.linkedinUrl.startsWith('http') ? profile.linkedinUrl : `https://${profile.linkedinUrl}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline text-white"
-                          >
-                            {profile.linkedinUrl.replace(/^https?:\/\//, '')}
-                          </a>
-                        </span>
-                      )}
+                      {profile.portfolioUrl && <span>• {profile.portfolioUrl}</span>}
                     </div>
                   </div>
 
-                  <div className={getDensityPadding()}>
-                    {/* Summary */}
+                  {/* Summary */}
+                  {displaySummary && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                        Professional Summary
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-2">
+                        Statement of Qualifications
                       </h2>
-                      <p className="text-xs leading-relaxed text-neutral-700">
+                      <p className="text-xs text-neutral-800 leading-relaxed font-serif">
                         {displaySummary}
                       </p>
                     </div>
+                  )}
 
-                    {/* Skills Chips */}
+                  {/* Experience */}
+                  {displayExperiences?.length > 0 && (
                     <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                        Core Skills & Technologies
-                      </h2>
-                      <div className="flex flex-wrap gap-1.5">
-                        {displaySkills.map((s, idx) => (
-                          <span
-                            key={idx}
-                            className="text-[11px] px-2.5 py-0.5 rounded font-medium border"
-                            style={{
-                              backgroundColor: selectedColor.lightBg,
-                              borderColor: selectedColor.border,
-                              color: selectedColor.primary,
-                            }}
-                          >
-                            {s}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Experience with Accent Left Callouts */}
-                    <div>
-                      <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                        Professional Experience
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-3">
+                        Professional Appointments & Experience
                       </h2>
                       <div className="space-y-4">
                         {displayExperiences.map((exp, idx) => (
-                          <div
-                            key={idx}
-                            className="pl-3.5 border-l-2 space-y-1.5"
-                            style={{ borderColor: selectedColor.secondary }}
-                          >
-                            <div className="flex items-baseline justify-between text-xs font-bold">
-                              <span style={{ color: selectedColor.primary }}>
-                                {exp.role} <span className="font-normal text-neutral-600">— {exp.company}</span>
+                          <div key={idx} className="space-y-1">
+                            <div className="flex items-baseline justify-between text-xs">
+                              <span className="font-bold text-neutral-900 text-sm">
+                                {exp.role}, <span className="italic font-normal">{exp.company}</span>
                               </span>
-                              <span className="text-[11px] font-mono font-normal text-neutral-500">
+                              <span className="text-[11px] font-mono text-neutral-500">
                                 {exp.period}
                               </span>
                             </div>
-                            <ul className="space-y-1 text-xs list-disc list-outside pl-4 leading-relaxed text-neutral-700">
+                            <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700">
                               {exp.bullets.map((b, bIdx) => (
-                                <li key={bIdx}>{b}</li>
+                                <li key={bIdx} className="leading-relaxed font-serif">
+                                  {b}
+                                </li>
                               ))}
                             </ul>
                           </div>
                         ))}
                       </div>
                     </div>
+                  )}
 
-                    {/* Projects */}
+                  {/* Projects */}
+                  {displayProjects?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-2.5">
+                        Selected Projects & Systems
+                      </h2>
+                      <div className="space-y-3 font-sans">
+                        {displayProjects.map((p, idx) => renderProjectItem(p, idx, { border: true }))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Education */}
+                  {displayEducation?.length > 0 && (
+                    <div>
+                      <h2 className="text-xs font-serif font-bold uppercase tracking-widest text-neutral-900 pb-1 border-b border-neutral-200 mb-2">
+                        Degrees & Education
+                      </h2>
+                      <div className="space-y-1 text-xs font-serif">
+                        {displayEducation.map((edu, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-neutral-800">
+                            <span className="font-semibold">{edu.degree} — {edu.school}</span>
+                            <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ======================================================== */}
+              {/* TEMPLATE 10: CONTEMPORARY ACCENT BANNER */}
+              {/* ======================================================== */}
+              {selectedTemplate === 'accent_banner' && (
+                <div className="space-y-0">
+                  {/* Full-bleed Header Banner */}
+                  <div className="p-6 sm:p-8 text-white rounded-t-none" style={{ backgroundColor: selectedColor.primary }}>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1">
+                      <h1 className="text-3xl font-extrabold tracking-tight text-white">
+                        {profile.fullName || 'Candidate Name'}
+                      </h1>
+                      <div className="text-sm font-semibold opacity-90">
+                        {displayHeadline}
+                      </div>
+                    </div>
+
+                    <div className="text-xs mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-sans opacity-85">
+                      {profile.email && <span>{profile.email}</span>}
+                      {profile.phone && <span>• {profile.phone}</span>}
+                      {profile.location && <span>• {profile.location}</span>}
+                      {profile.portfolioUrl && <span>• {profile.portfolioUrl}</span>}
+                      {profile.githubUrl && <span>• {profile.githubUrl}</span>}
+                    </div>
+                  </div>
+
+                  <div className="p-6 sm:p-8 space-y-6">
+                    {/* Summary */}
+                    {displaySummary && (
+                      <div>
+                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                          Professional Profile
+                        </h2>
+                        <p className="text-xs text-neutral-700 leading-relaxed">
+                          {displaySummary}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Skills */}
+                    {displaySkills?.length > 0 && (
+                      <div>
+                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                          Skills & Competencies
+                        </h2>
+                        <div className="flex flex-wrap gap-1.5">
+                          {displaySkills.map((s, idx) => (
+                            <span
+                              key={idx}
+                              className="text-[11px] font-medium px-2 py-0.5 rounded-md border"
+                              style={{
+                                backgroundColor: selectedColor.lightBg,
+                                color: selectedColor.primary,
+                                borderColor: selectedColor.border,
+                              }}
+                            >
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Experience */}
+                    {displayExperiences?.length > 0 && (
+                      <div>
+                        <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-3" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
+                          Experience
+                        </h2>
+                        <div className="space-y-4">
+                          {displayExperiences.map((exp, idx) => (
+                            <div key={idx} className="border-l-2 pl-3 space-y-1" style={{ borderColor: selectedColor.primary }}>
+                              <div className="flex items-baseline justify-between text-xs">
+                                <span className="font-bold text-neutral-900 text-sm">
+                                  {exp.role} · <span style={{ color: selectedColor.primary }}>{exp.company}</span>
+                                </span>
+                                <span className="text-[11px] font-mono text-neutral-500">
+                                  {exp.period}
+                                </span>
+                              </div>
+                              <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-neutral-700">
+                                {exp.bullets.map((b, bIdx) => (
+                                  <li key={bIdx} className="leading-relaxed">
+                                    {b}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Key Projects */}
                     {displayProjects?.length > 0 && (
                       <div>
                         <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2.5" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
-                          Projects
+                          Key Projects & Engineering Work
                         </h2>
-                        <div className="space-y-2">
-                          {displayProjects.map((p, idx) => {
-                            const projectLink = getProjectLink(p);
-                            return (
-                              <div key={idx} className="text-xs">
-                                <div className="font-semibold text-neutral-900 flex items-center justify-between">
-                                  <div className="flex items-center gap-1.5">
-                                    <span>{p.name}</span>
-                                    {projectLink && (
-                                      <a
-                                        href={projectLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center transition-transform hover:scale-110 cursor-pointer p-0.5"
-                                        style={{ color: selectedColor.primary }}
-                                        title={`View ${p.name} live`}
-                                      >
-                                        <ExternalLink className="w-3 h-3 stroke-[2.2]" />
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-[11px] text-neutral-600">{p.description}</p>
-                              </div>
-                            );
-                          })}
+                        <div className="space-y-3">
+                          {displayProjects.map((p, idx) => renderProjectItem(p, idx))}
                         </div>
                       </div>
                     )}
@@ -1536,9 +1893,9 @@ export const ResumeTemplateStudio: React.FC<ResumeTemplateStudioProps> = ({
                         <h2 className="text-xs font-bold uppercase tracking-wider pb-1 border-b mb-2" style={{ color: selectedColor.primary, borderColor: selectedColor.border }}>
                           Education
                         </h2>
-                        <div className="space-y-1">
+                        <div className="space-y-1 text-xs">
                           {displayEducation.map((edu, idx) => (
-                            <div key={idx} className="flex items-center justify-between text-xs text-neutral-800">
+                            <div key={idx} className="flex items-center justify-between text-neutral-800">
                               <span className="font-medium">{edu.degree} — {edu.school}</span>
                               <span className="text-[11px] font-mono text-neutral-500">{edu.year}</span>
                             </div>
